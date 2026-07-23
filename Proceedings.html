@@ -1,0 +1,3132 @@
+<!doctype html>
+<html lang="ml">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proceedings</title>
+    <style>
+      :root {
+        --primary: #2c3e50;
+        --secondary: #3498db;
+        --success: #27ae60;
+        --danger: #e74c3c;
+        --warning: #f39c12;
+        --light-bg: #f8f9fa;
+        --border: #dee2e6;
+        --text-muted: #6c757d;
+        --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        align-items: start;
+      }
+
+      .panel {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+      }
+
+      .panel:hover {
+        transform: translateY(-2px);
+      }
+
+      .panel-header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 25px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .form-panel {
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-panel .panel-body {
+        padding: 30px;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .preview-panel {
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .preview-panel .panel-body {
+        padding: 0;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .section-divider {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 6px 0;
+        margin: 25px 0 15px 0;
+        border-bottom: 2px solid var(--secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--primary);
+        font-size: 1rem;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        outline: none;
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        margin: 5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: white;
+        background: linear-gradient(135deg, var(--secondary), #2980b9);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        color: white;
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, var(--success), #229954);
+        color: white;
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, var(--danger), #c0392b);
+        color: white;
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, var(--warning), #e67e22);
+        color: white;
+      }
+
+      .btn-info {
+        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        color: white;
+      }
+
+      .btn-import {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+      }
+
+      .btn-export {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+      }
+
+      .btn-small {
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+
+      .reference-item,
+      .copy-item {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border: 2px solid var(--border);
+      }
+
+      .reference-header,
+      .copy-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .content-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 15px 0;
+        padding: 15px;
+        background: var(--light-bg);
+        border-radius: 12px;
+        border: 2px solid var(--border);
+      }
+
+      .excel-file-item {
+        background: rgba(39, 174, 96, 0.08);
+        border: 2px solid var(--success);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .excel-file-info {
+        flex: 1;
+      }
+
+      .excel-file-info h4 {
+        margin: 0 0 5px 0;
+        color: var(--success);
+      }
+
+      .excel-file-info p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .file-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .table-placeholder {
+        background: #fff3cd;
+        border: 2px dashed #ffc107;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+        text-align: center;
+        color: #856404;
+        font-weight: bold;
+      }
+
+      /* Document preview styles */
+      .preview-document {
+        flex: 1;
+        overflow: auto;
+        background: #f5f5f5;
+        padding: 10px;
+        font-family: "mandaram", serif;
+        font-size: 11pt;
+      }
+
+      .zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        background: #e8e8e8;
+        border-bottom: 1px solid #ccc;
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+      .zoom-btn {
+        width: 26px;
+        height: 26px;
+        border: 1px solid #bbb;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: bold;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #444;
+      }
+      .zoom-btn:hover {
+        background: #f0f4ff;
+        border-color: var(--primary);
+      }
+      .zoom-level {
+        min-width: 40px;
+        text-align: center;
+        font-weight: 600;
+        color: #444;
+      }
+      .preview-panel:fullscreen,
+      .preview-panel:-webkit-full-screen {
+        max-height: 100vh !important;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f5f5f5;
+        border-radius: 0;
+      }
+      .preview-panel:fullscreen .preview-document,
+      .preview-panel:-webkit-full-screen .preview-document {
+        flex: 1;
+      }
+      .form-panel:fullscreen,
+      .form-panel:-webkit-full-screen {
+        max-height: 100vh !important;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 0;
+      }
+      .form-panel:fullscreen .panel-body,
+      .form-panel:-webkit-full-screen .panel-body {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .page-container {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 20px;
+        padding: 20mm;
+        background: white;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .document-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .document-header h3 {
+        font-size: 14pt;
+        margin-bottom: 10px;
+        text-decoration: underline;
+      }
+
+      .document-header h4 {
+        font-size: 13pt;
+        margin-bottom: 15px;
+        font-weight: normal;
+      }
+
+      .document-header p {
+        font-size: 13pt;
+      }
+
+      .order-info {
+        margin: 20px 0;
+        text-align: center;
+      }
+
+      .order-info table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family:
+          mandaram, "Noto Sans Malayalam", "Malayalam Sangam MN", serif;
+        margin: 0 auto;
+      }
+
+      .order-info td {
+        font-size: 14pt;
+        border-bottom: 1px solid #000;
+      }
+
+      .order-info .first-row td {
+        padding: 0;
+        line-height: 0;
+        font-size: 1px;
+      }
+
+      .order-info .second-row td {
+        padding: 8px 0;
+        line-height: 2;
+        vertical-align: middle;
+      }
+
+      .references-table {
+        margin: 20px 0;
+      }
+
+      .references-table table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .references-table td {
+        padding: 2px 4px;
+        vertical-align: top;
+        border: none;
+        line-height: 1.2;
+      }
+
+      .order-content {
+        text-align: justify;
+        margin: 20px 0;
+        line-height: 1.6;
+        font-size: 12pt;
+      }
+
+      .order-content p {
+        text-indent: 30px;
+        margin-bottom: 10px;
+      }
+
+      .copy-section {
+        margin-top: 30px;
+      }
+
+      .copy-section table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .copy-section td {
+        padding: 5px;
+        border: none;
+      }
+
+      .signature-section {
+        text-align: right;
+        margin: 40px 0 20px 0;
+      }
+
+      .input-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 20px 0;
+        font-family: inherit;
+        border-radius: 8px;
+      }
+
+      table td,
+      table th {
+        border: 1px solid #333;
+        padding: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      table th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+      }
+
+      .lang-switch {
+        display: flex;
+        gap: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid var(--secondary);
+        margin-bottom: 20px;
+      }
+
+      .lang-btn {
+        flex: 1;
+        padding: 8px 16px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        background: white;
+        color: var(--primary);
+        transition: all 0.2s;
+      }
+
+      .lang-btn.lang-active {
+        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        color: white;
+      }
+
+      @media print {
+        .preview-document {
+          background: white;
+          padding: 0;
+          zoom: 1;
+        }
+
+        .page-container {
+          box-shadow: none;
+          margin: 0;
+        }
+
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+      }
+
+      @media (max-width: 1200px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .panel-body {
+          padding: 20px;
+        }
+
+        .btn {
+          padding: 10px 16px;
+          font-size: 13px;
+        }
+
+        .input-group {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ── Mail Merge ── */
+      .merge-section {
+        background: #f0f7ff;
+        border: 1px solid #b8d4f0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+      .merge-section > .merge-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #1a5276;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .merge-nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      .merge-indicator {
+        font-size: 0.82rem;
+        color: #555;
+        flex: 1;
+        text-align: center;
+        min-width: 80px;
+      }
+      .merge-table-wrap {
+        overflow: auto;
+        max-height: 200px;
+        border: 1px solid #c8d8ea;
+        border-radius: 4px;
+        font-size: 0.77rem;
+      }
+      .merge-table-wrap table {
+        border-collapse: collapse;
+        min-width: 100%;
+      }
+      .merge-table-wrap td {
+        border: 1px solid #d0d0d0;
+        padding: 3px 8px;
+        max-width: 200px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        vertical-align: top;
+      }
+      .merge-placeholder-row td {
+        background: #dbeeff;
+        color: #1a6fa8;
+        font-style: italic;
+        cursor: pointer;
+        user-select: all;
+      }
+      .merge-header-row td {
+        background: #e8edf2;
+        font-weight: bold;
+      }
+      .merge-data-row {
+        cursor: pointer;
+      }
+      .merge-data-row:hover td {
+        background: #eaf4fb !important;
+      }
+      .merge-data-row.active td {
+        background: #d5f5e3 !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="panel form-panel" id="formPanel">
+        <div
+          class="panel-header"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <span>Proceedings Details</span>
+          <button
+            id="formFsBtn"
+            onclick="toggleFormFullscreen()"
+            title="Fullscreen"
+            style="
+              background: none;
+              border: none;
+              color: white;
+              cursor: pointer;
+              font-size: 15px;
+              padding: 2px 6px;
+              opacity: 0.85;
+              line-height: 1;
+            "
+          >
+            ⛶
+          </button>
+        </div>
+        <div class="panel-body">
+          <div class="lang-switch">
+            <button
+              id="btnMl"
+              class="lang-btn lang-active"
+              onclick="setLanguage('ml')"
+            >
+              മലയാളം
+            </button>
+            <button id="btnEn" class="lang-btn" onclick="setLanguage('en')">
+              English
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Document Type:</label>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <select
+                id="documentType"
+                onchange="switchTemplate()"
+                style="flex: 1; min-width: 0"
+              >
+                <option value="proceedings">Proceedings Template</option>
+              </select>
+              <button
+                class="btn btn-import btn-small"
+                onclick="importFromJSON()"
+              >
+                📂 Import
+              </button>
+              <input
+                type="file"
+                id="jsonFileInput"
+                accept=".json"
+                style="display: none"
+                onchange="handleJSONImport(event)"
+              />
+            </div>
+          </div>
+
+          <!-- ── Mail Merge ── -->
+          <div class="merge-section">
+            <span class="merge-label">📊 Mail Merge</span>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+              "
+            >
+              <input
+                type="file"
+                id="mergeUpload"
+                accept=".csv,.xlsx,.xls"
+                style="display: none"
+                onchange="handleMergeUpload(event)"
+              />
+              <button
+                type="button"
+                class="btn btn-import btn-small"
+                onclick="document.getElementById('mergeUpload').click()"
+              >
+                ⬆ Upload CSV / Excel
+              </button>
+              <button
+                type="button"
+                id="mergeClearBtn"
+                class="btn btn-danger btn-small"
+                onclick="clearMergeData()"
+                style="display: none"
+              >
+                ✕ Clear
+              </button>
+            </div>
+            <div id="mergePanel" style="display: none; margin-top: 10px">
+              <div class="merge-nav">
+                <button
+                  type="button"
+                  class="btn btn-import btn-small"
+                  onclick="prevMergeRow()"
+                  style="padding: 4px 10px"
+                >
+                  ◀ Prev
+                </button>
+                <span class="merge-indicator" id="mergeRowIndicator"
+                  >Showing template</span
+                >
+                <button
+                  type="button"
+                  class="btn btn-import btn-small"
+                  onclick="nextMergeRow()"
+                  style="padding: 4px 10px"
+                >
+                  Next ▶
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-import btn-small"
+                  onclick="applyMergeRow(-1)"
+                  style="padding: 4px 10px; background: #eee; color: #333"
+                >
+                  ⊘ Template
+                </button>
+              </div>
+              <div class="merge-table-wrap" id="mergeTableContainer"></div>
+              <div style="font-size: 0.72rem; color: #888; margin-top: 4px">
+                💡 Click a row to apply. Blue row shows placeholders — copy and
+                paste into fields above.
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider">📋 Proceedings Details</div>
+
+          <input type="hidden" id="principalName" value="">
+          <input type="hidden" id="collegeName" value="">
+
+          <div class="form-group">
+            <label>File No.:</label>
+            <input
+              type="text"
+              id="orderNumber"
+              placeholder="Dept. Code/....."
+              value=""
+              oninput="generateDocument()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>
+              <input
+                type="checkbox"
+                id="showAttendance"
+                style="width: auto; margin-right: 8px"
+              />
+              Present (ഹാജർ) required?
+            </label>
+          </div>
+
+          <div class="section-divider">📄 Title</div>
+
+          <div class="form-group">
+            <label>Proceedings Title:</label>
+            <textarea
+              id="documentTitle"
+              rows="3"
+              placeholder="Enter the document title..."
+              oninput="generateDocument()"
+            >
+{collegeName} - അതിഥി അദ്ധ്യാപകര്‍ - വേതനം അനുവദിച്ച് വിതരണം ചെയ്യുന്നതിനുള്ള അനുമതി - ഉത്തരവ് പുറപ്പെടുവിക്കുന്നു.</textarea
+            >
+          </div>
+
+          <div class="section-divider">📋 References</div>
+
+          <div id="referencesContainer">
+            <!-- References will be added here -->
+          </div>
+
+          <button class="btn btn-success btn-small" onclick="addReference()">
+            + Add Reference
+          </button>
+
+          <div class="section-divider">📄 Proceedings Body Text</div>
+
+          <div class="form-group">
+            <textarea
+              id="orderBodyText"
+              rows="8"
+              placeholder="Enter the main body text of the order in Malayalam..."
+            >
+മേല്‍ പരാമര്‍ശ പ്രകാരമുള്ള സര്‍ക്കാര്‍ ഉത്തരവുകളുടേയും പരിപത്രങ്ങളുടേയും അടിസ്ഥാനത്തില്‍ ഈ കോളേജില്‍ വിവിധ വിഷയങ്ങളിലേക്കായി അതിഥി അദ്ധ്യാപകരെ നിയമിച്ചിരുന്നു. പ്രസ്തുത അതിഥി അദ്ധ്യാപകരുടെ വേതനം നല്‍കുന്നതിലേക്കായി അതാത് വകുപ്പ് തലവന്മാര്‍ ലോഗ് ബുക്കും ഡ്യൂട്ടി പെര്‍ഫോമന്‍സ് സര്‍ട്ടിഫിക്കറ്റും സമര്‍പ്പിച്ചിട്ടുണ്ട്.
+
+മേല്‍ സാഹചര്യത്തില്‍ താഴെപ്പറയുന്ന അതിഥി അദ്ധ്യാപകര്‍ക്ക് അവരവര്‍ക്കര്‍ഹതപ്പെട്ട തുക അവരവരുടെ ബാങ്ക് അക്കൗണ്ടുകളിലേക്ക് താഴെപ്പറയും പ്രകാരം അനുവദിച്ച് കൊടുക്കുന്നതിന് ഇതിനാല്‍ ഉത്തരവാകുന്നു.</textarea
+            >
+          </div>
+
+          <div class="content-actions">
+            <button class="btn btn-info btn-small" onclick="showFileUpload()">
+              📁 Upload Excel File
+            </button>
+          </div>
+
+          <div class="section-divider">📊 Uploaded Files</div>
+
+          <div id="excelFilesContainer">
+            <!-- Excel files will be displayed here -->
+          </div>
+
+          <input
+            type="file"
+            id="excelFileInput"
+            accept=".xlsx,.xls,.csv"
+            style="display: none"
+            onchange="handleFileUpload(event)"
+            multiple
+          />
+
+          <div class="section-divider">📬 To</div>
+
+          <div id="toContainer">
+            <!-- To items will be added here -->
+          </div>
+
+          <button class="btn btn-success btn-small" onclick="addTo()">
+            + Add To
+          </button>
+
+          <div class="section-divider">📮 Copy To</div>
+
+          <div id="copyToContainer">
+            <!-- Copy to items will be added here -->
+          </div>
+
+          <button class="btn btn-success btn-small" onclick="addCopyTo()">
+            + Add Copy To
+          </button>
+
+          <div
+            style="
+              margin-top: 30px;
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+            "
+          >
+            <button
+              class="btn btn-export"
+              style="
+                width: 100%;
+                font-size: 15px;
+                padding: 14px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              "
+              onclick="exportToJSON()"
+            >
+              💾 Export
+            </button>
+            <button
+              class="btn btn-primary"
+              style="
+                width: 100%;
+                font-size: 16px;
+                padding: 15px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              "
+              onclick="copyWithZeroMargins()"
+            >
+              📋 Copy Proceedings
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel preview-panel" id="previewPanel">
+        <div class="panel-header">Proceedings Preview</div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="zoomOut()">−</button>
+          <span class="zoom-level" id="zoomLevel">75%</span>
+          <button class="zoom-btn" onclick="zoomIn()">+</button>
+          <button
+            class="zoom-btn"
+            onclick="zoomReset()"
+            style="width: auto; padding: 0 8px; font-size: 11px"
+          >
+            ↺
+          </button>
+          <button
+            class="zoom-btn"
+            id="fsBtn"
+            onclick="toggleFullscreen()"
+            title="Fullscreen"
+            style="width: auto; padding: 0 8px; font-size: 13px"
+          >
+            ⛶
+          </button>
+          <button
+            class="zoom-btn"
+            onclick="printPreview()"
+            title="Print"
+            style="width: auto; padding: 0 8px; font-size: 13px"
+          >
+            🖨
+          </button>
+          <button
+            class="zoom-btn"
+            id="allDraftsBtn"
+            onclick="generateAllDrafts()"
+            title="Generate all merge drafts"
+            style="
+              display: none;
+              width: auto;
+              padding: 0 8px;
+              font-size: 11px;
+              background: #e8f4e8;
+              border-color: #5a9e5a;
+              color: #2d6a2d;
+            "
+          >
+            📄 All Drafts
+          </button>
+        </div>
+        <div class="panel-body">
+          <div class="preview-document" id="documentPreview">
+            <!-- Generated document will appear here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/js/xlsx.full.min.js"></script>
+    <script>
+      let referenceCount = 0;
+      let toCount = 0;
+      let copyToCount = 0;
+      let excelFiles = {}; // Store multiple Excel files with unique IDs
+      let fileIdCounter = 0;
+      let tablePlaceholders = {}; // Track table placeholders and their content
+      let tablePlaceholderCounter = 0;
+      let currentTemplate = "proceedings";
+
+      function todayFormatted() {
+        var d = new Date();
+        return (
+          String(d.getDate()).padStart(2, "0") +
+          "/" +
+          String(d.getMonth() + 1).padStart(2, "0") +
+          "/" +
+          d.getFullYear()
+        );
+      }
+
+      // Language toggle
+      var currentLang = "ml"; // Malayalam is the default
+
+      var labels = {
+        ml: {
+          font: "mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif",
+          proceedings: "പ്രിന്‍സിപ്പാളിന്റെ നടപടിക്രമം",
+          present: "ഹാജർ",
+          orderNo: "ഉത്തരവ് നമ്പര്‍",
+          date: "തീയതി",
+          paramarsha: "പരാമര്‍ശം:-",
+          order: "ഉത്തരവ്",
+          principal: "പ്രിന്‍സിപ്പാള്‍(i/c)",
+          copy: "പകര്‍പ്പ്",
+          to: "സ്വീകര്‍ത്താവ്",
+        },
+        en: {
+          font: "'Times New Roman', Times, serif",
+          proceedings: "Proceedings of the Principal",
+          present: "Present",
+          orderNo: "Order No.",
+          date: "Date",
+          paramarsha: "Read:-",
+          order: "Order",
+          principal: "Principal(i/c)",
+          copy: "Copy to",
+          to: "To",
+        },
+      };
+
+      function setLanguage(lang) {
+        currentLang = lang;
+        document
+          .getElementById("btnMl")
+          .classList.toggle("lang-active", lang === "ml");
+        document
+          .getElementById("btnEn")
+          .classList.toggle("lang-active", lang === "en");
+        loadOfficeProfile();
+        generateDocument();
+      }
+
+      var previewZoom = 0.75;
+      function applyZoom() {
+        document.querySelectorAll(".page-container").forEach(function (el) {
+          el.style.zoom = previewZoom;
+        });
+        var el = document.getElementById("zoomLevel");
+        if (el) el.textContent = Math.round(previewZoom * 100) + "%";
+      }
+      function zoomIn() {
+        if (previewZoom < 2.0) {
+          previewZoom = Math.round((previewZoom + 0.1) * 10) / 10;
+          applyZoom();
+        }
+      }
+      function zoomOut() {
+        if (previewZoom > 0.3) {
+          previewZoom = Math.round((previewZoom - 0.1) * 10) / 10;
+          applyZoom();
+        }
+      }
+      function zoomReset() {
+        previewZoom = 0.75;
+        applyZoom();
+      }
+      function toggleFullscreen() {
+        var panel = document.getElementById("previewPanel");
+        if (!document.fullscreenElement) {
+          panel.requestFullscreen && panel.requestFullscreen();
+        } else {
+          document.exitFullscreen && document.exitFullscreen();
+        }
+      }
+      function toggleFormFullscreen() {
+        var panel = document.getElementById("formPanel");
+        if (!document.fullscreenElement) {
+          panel.requestFullscreen && panel.requestFullscreen();
+        } else {
+          document.exitFullscreen && document.exitFullscreen();
+        }
+      }
+      document.addEventListener("fullscreenchange", function () {
+        var isFs = !!document.fullscreenElement;
+        var btn = document.getElementById("fsBtn");
+        var formBtn = document.getElementById("formFsBtn");
+        if (btn) btn.textContent = isFs ? "✕" : "⛶";
+        if (formBtn) formBtn.textContent = isFs ? "✕" : "⛶";
+      });
+
+      function generateAllDrafts() {
+        if (!mergeState.rows.length) return;
+        var preview = document.getElementById("documentPreview");
+        var savedIndex = mergeState.currentIndex;
+        var parts = [];
+        for (var i = 0; i < mergeState.rows.length; i++) {
+          mergeState.currentIndex = i;
+          generateDocument();
+          var separator =
+            i > 0
+              ? '<div class="draft-separator" style="page-break-before:always;margin:30px 0 20px;border-top:2px dashed #bbb;text-align:center;padding-top:10px;color:#999;font-size:11px;">— Draft ' +
+                (i + 1) +
+                " of " +
+                mergeState.rows.length +
+                " —</div>"
+              : "";
+          parts.push(separator + preview.innerHTML);
+        }
+        mergeState.currentIndex = savedIndex;
+        updateMergeIndicator();
+        preview.innerHTML = parts.join("");
+        applyZoom();
+      }
+
+      function printPreview() {
+        var content = getUnzoomedHTML();
+        if (!content.trim()) {
+          alert("Nothing to print.");
+          return;
+        }
+        var L = labels[currentLang];
+        var win = window.open("", "_blank");
+        win.document.write(
+          '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title><style>' +
+            "* { margin: 0; padding: 0; box-sizing: border-box; }" +
+            "body { font-family: " +
+            L.font +
+            "; background: white; }" +
+            ".page-container { width: 100%; box-shadow: none; margin: 0; padding: 0; }" +
+            "@page { size: A4; margin: 15mm 20mm; }" +
+            "table { border-collapse: collapse; }" +
+            "h3, h4, p { font-family: " +
+            L.font +
+            "; }" +
+            ".draft-separator { border: none !important; background: none !important; color: transparent !important; font-size: 0 !important; padding: 0 !important; margin: 0 !important; height: 0 !important; overflow: hidden !important; }" +
+            "</style></head><body>" +
+            content +
+            "</body></html>",
+        );
+        win.document.close();
+        win.onload = function () {
+          win.focus();
+          win.print();
+          win.close();
+        };
+      }
+
+      function getOfficeProfile() {
+        // 1. Try URL parameter (passed by index.html — works reliably with file:// protocol)
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var encoded = params.get("profile");
+          if (encoded) {
+            return JSON.parse(decodeURIComponent(escape(atob(encoded))));
+          }
+        } catch (e) {}
+        // 2. Fall back to localStorage
+        try {
+          var raw = localStorage.getItem("officeProfile");
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      /* ══════════════════════════════════════
+           Mail Merge
+        ══════════════════════════════════════ */
+      var mergeState = { headers: [], rows: [], currentIndex: -1 };
+
+      function mergeSubstitute(text) {
+        if (mergeState.currentIndex < 0 || !mergeState.rows.length) return text;
+        var row = mergeState.rows[mergeState.currentIndex];
+        mergeState.headers.forEach(function (h) {
+          var re = new RegExp(
+            "\\{" + h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\}",
+            "gi",
+          );
+          text = text.replace(re, row[h] || "");
+        });
+        return text;
+      }
+
+      function handleMergeUpload(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var ext = file.name.split(".").pop().toLowerCase();
+        if (ext === "csv") {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            parseMergeCSV(e.target.result);
+          };
+          reader.readAsText(file);
+        } else {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            try {
+              var wb = XLSX.read(new Uint8Array(e.target.result), {
+                type: "array",
+              });
+              var ws = wb.Sheets[wb.SheetNames[0]];
+              var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+              if (raw.length < 2) {
+                alert("Table needs at least a header row and one data row.");
+                return;
+              }
+              processMergeData(raw);
+            } catch (err) {
+              alert("Could not read file.");
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        }
+        event.target.value = "";
+      }
+
+      function parseMergeCSV(text) {
+        var raw = [],
+          row = [],
+          field = "",
+          inQuote = false;
+        for (var i = 0; i < text.length; i++) {
+          var c = text[i],
+            next = i + 1 < text.length ? text[i + 1] : "";
+          if (inQuote) {
+            if (c === '"' && next === '"') {
+              field += '"';
+              i++;
+            } else if (c === '"') {
+              inQuote = false;
+            } else {
+              field += c;
+            }
+          } else {
+            if (c === '"') {
+              inQuote = true;
+            } else if (c === ",") {
+              row.push(field);
+              field = "";
+            } else if (c === "\r" && next === "\n") {
+              row.push(field);
+              if (
+                row.some(function (v) {
+                  return v.trim();
+                })
+              )
+                raw.push(row);
+              row = [];
+              field = "";
+              i++;
+            } else if (c === "\n" || c === "\r") {
+              row.push(field);
+              if (
+                row.some(function (v) {
+                  return v.trim();
+                })
+              )
+                raw.push(row);
+              row = [];
+              field = "";
+            } else {
+              field += c;
+            }
+          }
+        }
+        row.push(field);
+        if (
+          row.some(function (v) {
+            return v.trim();
+          })
+        )
+          raw.push(row);
+        if (raw.length < 2) {
+          alert("Table needs at least a header row and one data row.");
+          return;
+        }
+        processMergeData(raw);
+      }
+
+      function processMergeData(raw) {
+        var headers = raw[0]
+          .map(function (h) {
+            return String(h).trim();
+          })
+          .filter(Boolean);
+        var rows = [];
+        for (var i = 1; i < raw.length; i++) {
+          var anyVal = false;
+          for (var j = 0; j < headers.length; j++) {
+            if (String(raw[i][j] || "").trim()) {
+              anyVal = true;
+              break;
+            }
+          }
+          if (!anyVal) continue;
+          var rowObj = {};
+          headers.forEach(function (h, idx) {
+            var _v = String(
+              raw[i][idx] !== undefined ? raw[i][idx] : "",
+            ).replace(/\\n/g, "\n");
+            if (
+              _v.charAt(0) === '"' &&
+              _v.charAt(_v.length - 1) === '"' &&
+              _v.length >= 2
+            )
+              _v = _v.slice(1, -1);
+            rowObj[h] = _v;
+          });
+          rows.push(rowObj);
+        }
+        if (!rows.length) {
+          alert("No data rows found.");
+          return;
+        }
+        mergeState.headers = headers;
+        mergeState.rows = rows;
+        mergeState.currentIndex = -1;
+        document.getElementById("mergePanel").style.display = "block";
+        document.getElementById("mergeClearBtn").style.display = "inline-block";
+        document.getElementById("allDraftsBtn").style.display = "inline-block";
+        updateMergeIndicator();
+        renderMergeTable();
+        alert(
+          "Loaded " +
+            rows.length +
+            " row(s) with columns: " +
+            headers.join(", "),
+        );
+      }
+
+      function renderMergeTable() {
+        var container = document.getElementById("mergeTableContainer");
+        if (!container || !mergeState.headers.length) return;
+        var html = "<table><thead>";
+        html += '<tr class="merge-placeholder-row">';
+        mergeState.headers.forEach(function (h) {
+          html +=
+            '<td title="Copy this placeholder into your fields">' +
+            escMerge("{" + h + "}") +
+            "</td>";
+        });
+        html += "</tr>";
+        html += '<tr class="merge-header-row">';
+        mergeState.headers.forEach(function (h) {
+          html += "<td>" + escMerge(h) + "</td>";
+        });
+        html += "</tr></thead><tbody>";
+        mergeState.rows.forEach(function (row, index) {
+          var active = index === mergeState.currentIndex;
+          html +=
+            '<tr class="merge-data-row' +
+            (active ? " active" : "") +
+            '" onclick="applyMergeRow(' +
+            index +
+            ')">';
+          mergeState.headers.forEach(function (h) {
+            var val = row[h] || "";
+            html += "<td>" + escMerge(val) + "</td>";
+          });
+          html += "</tr>";
+        });
+        html += "</tbody></table>";
+        container.innerHTML = html;
+        if (mergeState.currentIndex >= 0) {
+          var activeRow = container.querySelector("tr.active");
+          if (activeRow) activeRow.scrollIntoView({ block: "nearest" });
+        }
+      }
+
+      function escMerge(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function applyMergeRow(index) {
+        mergeState.currentIndex = index;
+        updateMergeIndicator();
+        renderMergeTable();
+        generateDocument();
+      }
+
+      function updateMergeIndicator() {
+        var el = document.getElementById("mergeRowIndicator");
+        if (!el) return;
+        el.textContent =
+          mergeState.currentIndex < 0
+            ? "Showing template"
+            : "Row " +
+              (mergeState.currentIndex + 1) +
+              " of " +
+              mergeState.rows.length;
+      }
+
+      function nextMergeRow() {
+        if (!mergeState.rows.length) return;
+        var next = mergeState.currentIndex + 1;
+        if (next >= mergeState.rows.length) next = 0;
+        applyMergeRow(next);
+      }
+
+      function prevMergeRow() {
+        if (!mergeState.rows.length) return;
+        var prev = mergeState.currentIndex - 1;
+        if (prev < 0) prev = mergeState.rows.length - 1;
+        applyMergeRow(prev);
+      }
+
+      function clearMergeData() {
+        mergeState.headers = [];
+        mergeState.rows = [];
+        mergeState.currentIndex = -1;
+        document.getElementById("mergePanel").style.display = "none";
+        document.getElementById("mergeClearBtn").style.display = "none";
+        document.getElementById("allDraftsBtn").style.display = "none";
+        generateDocument();
+      }
+      /* ══════════════════════════════════════ */
+
+      function loadOfficeProfile() {
+        var p = getOfficeProfile();
+        if (!p) return;
+        var name =
+          currentLang === "en"
+            ? p.principalNameEn || p.principalName
+            : p.principalName;
+        var college =
+          currentLang === "en" ? p.officeNameEn || p.officeName : p.officeName;
+        if (name) document.getElementById("principalName").value = name;
+        if (college) {
+          document.getElementById("collegeName").value = college;
+          // Replace {collegeName} placeholder in document title with actual name
+          var docTitleEl = document.getElementById("documentTitle");
+          if (docTitleEl)
+            docTitleEl.value = docTitleEl.value.replace(
+              /\{collegeName\}/g,
+              college,
+            );
+        }
+        if (p.designation) labels.ml.principal = p.designation;
+        if (p.designationEn) labels.en.principal = p.designationEn;
+        // Load full proceedings header title from profile; fall back to derived title if field absent
+        var mlCollege = p.officeName || "";
+        var enCollege = p.officeNameEn || p.officeName || "";
+        labels.ml.proceedingsFull =
+          p.proceedingsTitle ||
+          (mlCollege ? mlCollege + " " + labels.ml.proceedings : "");
+        labels.en.proceedingsFull =
+          p.proceedingsTitleEn ||
+          (enCollege ? labels.en.proceedings + ", " + enCollege : "");
+      }
+
+      /* ── Header rendering (settings managed from index.html) ── */
+      function buildHeaderWithLogo(textContent, mb, textAlign) {
+        var mode = localStorage.getItem("headerMode_proceedings");
+        if (mode === "none") {
+          return (
+            '<div style="text-align:' +
+            textAlign +
+            ";margin-bottom:" +
+            mb +
+            ';">' +
+            textContent +
+            "</div>"
+          );
+        }
+        var logo = localStorage.getItem("officeLogo");
+        var pos = localStorage.getItem("officeLogoPos") || "center";
+        var size = localStorage.getItem("officeLogoSize") || "115";
+        if (!logo) {
+          return (
+            '<div style="text-align:' +
+            textAlign +
+            ";margin-bottom:" +
+            mb +
+            ';">' +
+            textContent +
+            "</div>"
+          );
+        }
+        var imgTag =
+          '<img src="' +
+          logo +
+          '" style="height:' +
+          size +
+          'px;max-width:400px;object-fit:contain;">';
+        if (pos === "center") {
+          return (
+            '<div style="text-align:' +
+            textAlign +
+            ";margin-bottom:" +
+            mb +
+            ';">' +
+            '<div style="margin-bottom:8px;">' +
+            imgTag +
+            "</div>" +
+            textContent +
+            "</div>"
+          );
+        }
+        var hrM = textContent.match(/<hr[^>]*>/i);
+        var bodyContent = hrM ? textContent.replace(hrM[0], "") : textContent;
+        var hrHtml = hrM ? hrM[0] : "";
+        return (
+          '<table style="width:100%;border-collapse:collapse;margin-bottom:0;padding:0;">' +
+          "<tr>" +
+          '<td style="border:none;padding:0 15px 0 0;vertical-align:middle;width:1%;white-space:nowrap;">' +
+          imgTag +
+          "</td>" +
+          '<td style="border:none;padding:0;vertical-align:middle;text-align:' +
+          textAlign +
+          ';">' +
+          bodyContent +
+          "</td>" +
+          "</tr></table>" +
+          hrHtml +
+          '<div style="margin-bottom:' +
+          mb +
+          ';"></div>'
+        );
+      }
+
+      // Template configurations
+      const templates = {
+        proceedings: {
+          name: "Proceedings Template",
+          orderNumber: "",
+          documentTitle: "",
+          orderBodyText: "",
+          references: [""],
+          copyTo: [],
+        },
+      };
+
+      function switchTemplate() {
+        const selectedTemplate = document.getElementById("documentType").value;
+        currentTemplate = selectedTemplate;
+        const template = templates[selectedTemplate];
+
+        // Update form fields
+        document.getElementById("orderNumber").value = template.orderNumber;
+        var _collegeVal = document.getElementById("collegeName").value;
+        document.getElementById("documentTitle").value = _collegeVal
+          ? template.documentTitle.replace(/\{collegeName\}/g, _collegeVal)
+          : template.documentTitle;
+        document.getElementById("orderBodyText").value = template.orderBodyText;
+
+        // Clear existing references, to, and copy-to items
+        document.getElementById("referencesContainer").innerHTML = "";
+        document.getElementById("toContainer").innerHTML = "";
+        document.getElementById("copyToContainer").innerHTML = "";
+        referenceCount = 0;
+        toCount = 0;
+        copyToCount = 0;
+
+        // Load template references
+        template.references.forEach((ref) => {
+          addReference();
+          document.getElementById(`ref-text-${referenceCount}`).value = ref;
+        });
+
+        // Load template to items
+        (template.to || []).forEach((item) => {
+          addTo();
+          document.getElementById(`to-text-${toCount}`).value = item;
+        });
+
+        // Load template copy-to items
+        template.copyTo.forEach((item) => {
+          addCopyTo();
+          document.getElementById(`copy-text-${copyToCount}`).value = item;
+        });
+
+        // Regenerate document
+        generateDocument();
+      }
+
+      // Initialize with default template
+      function initializeDefaults() {
+        loadOfficeProfile();
+        switchTemplate();
+      }
+
+      function addReference() {
+        referenceCount++;
+        const container = document.getElementById("referencesContainer");
+
+        const refDiv = document.createElement("div");
+        refDiv.className = "reference-item";
+        refDiv.id = `reference-${referenceCount}`;
+
+        refDiv.innerHTML = `
+                <div class="reference-header">
+                    <h4>Reference ${referenceCount}</h4>
+                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removeReference(${referenceCount})">Remove</button>
+                </div>
+                <div class="form-group">
+                    <textarea id="ref-text-${referenceCount}" placeholder="Enter reference text in Malayalam..." rows="2"></textarea>
+                </div>
+            `;
+
+        container.appendChild(refDiv);
+
+        // Add real-time preview update
+        const newRefField = document.getElementById(
+          `ref-text-${referenceCount}`,
+        );
+        if (newRefField) {
+          newRefField.addEventListener(
+            "input",
+            debounce(generateDocument, 300),
+          );
+        }
+      }
+
+      function removeReference(id) {
+        const refDiv = document.getElementById(`reference-${id}`);
+        if (refDiv) {
+          refDiv.remove();
+          generateDocument();
+        }
+      }
+
+      function addTo() {
+        toCount++;
+        const container = document.getElementById("toContainer");
+        const div = document.createElement("div");
+        div.className = "copy-item";
+        div.id = `to-${toCount}`;
+        div.innerHTML = `
+          <div class="copy-header">
+            <h4>To ${toCount}</h4>
+            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removeTo(${toCount})">Remove</button>
+          </div>
+          <div class="form-group">
+            <input type="text" id="to-text-${toCount}" placeholder="Enter recipient...">
+          </div>
+        `;
+        container.appendChild(div);
+        const field = document.getElementById(`to-text-${toCount}`);
+        if (field) field.addEventListener("input", generateDocument);
+      }
+
+      function removeTo(id) {
+        const div = document.getElementById(`to-${id}`);
+        if (div) {
+          div.remove();
+          generateDocument();
+        }
+      }
+
+      function collectToItems() {
+        const items = [];
+        const container = document.getElementById("toContainer");
+        container.querySelectorAll(".copy-item").forEach((div) => {
+          const id = div.id.split("-")[1];
+          const text = document.getElementById(`to-text-${id}`)?.value || "";
+          if (text.trim()) items.push(mergeSubstitute(text.trim()));
+        });
+        return items;
+      }
+
+      function addCopyTo() {
+        copyToCount++;
+        const container = document.getElementById("copyToContainer");
+
+        const copyDiv = document.createElement("div");
+        copyDiv.className = "copy-item";
+        copyDiv.id = `copyto-${copyToCount}`;
+
+        copyDiv.innerHTML = `
+                <div class="copy-header">
+                    <h4>Copy To ${copyToCount}</h4>
+                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removeCopyTo(${copyToCount})">Remove</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="copy-text-${copyToCount}" placeholder="Enter copy to recipient in Malayalam...">
+                </div>
+            `;
+
+        container.appendChild(copyDiv);
+
+        // Add real-time preview update
+        const newCopyField = document.getElementById(
+          `copy-text-${copyToCount}`,
+        );
+        if (newCopyField) {
+          newCopyField.addEventListener(
+            "input",
+            debounce(generateDocument, 300),
+          );
+        }
+      }
+
+      function removeCopyTo(id) {
+        const copyDiv = document.getElementById(`copyto-${id}`);
+        if (copyDiv) {
+          copyDiv.remove();
+          generateDocument();
+        }
+      }
+
+      // New function to insert table placeholder
+      function insertTablePlaceholder() {
+        tablePlaceholderCounter++;
+        const placeholderText = `[TABLE_${tablePlaceholderCounter}]`;
+
+        // Store the placeholder info
+        tablePlaceholders[tablePlaceholderCounter] = {
+          id: tablePlaceholderCounter,
+          hasContent: false,
+          content: "",
+        };
+
+        const orderBodyText = document.getElementById("orderBodyText");
+
+        // Insert at cursor position
+        const startPos = orderBodyText.selectionStart;
+        const endPos = orderBodyText.selectionEnd;
+        const text = orderBodyText.value;
+
+        if (startPos || startPos === 0) {
+          orderBodyText.value =
+            text.substring(0, startPos) +
+            placeholderText +
+            text.substring(endPos, text.length);
+
+          // Move cursor after the inserted text
+          const newPos = startPos + placeholderText.length;
+          orderBodyText.setSelectionRange(newPos, newPos);
+        } else {
+          // Fallback to append if selection not supported
+          orderBodyText.value += "\n\n" + placeholderText;
+        }
+
+        orderBodyText.focus();
+
+        generateDocument();
+        updatePlaceholderStatus();
+
+        // Return the created placeholder object so it can be used by other functions
+        return tablePlaceholders[tablePlaceholderCounter];
+      }
+
+      // Function to show file upload dialog
+      function showFileUpload() {
+        // No need to check for placeholders here, handleFileUpload handles it
+        document.getElementById("excelFileInput").click();
+      }
+
+      // Function to remove table content from the most recent placeholder
+      function removeTableAndPlaceholder(fileId) {
+        const file = excelFiles[fileId];
+        if (!file) return;
+
+        const placeholderId = file.placeholderId;
+        const placeholderText = `[TABLE_${placeholderId}]`;
+
+        // Remove the placeholder from the order body text
+        const orderBodyText = document.getElementById("orderBodyText");
+        let currentText = orderBodyText.value;
+
+        // Remove the placeholder and surrounding newlines
+        currentText = currentText.replace(
+          new RegExp(`\\n\\n\\[TABLE_${placeholderId}\\]\\n\\n`, "g"),
+          "\n",
+        );
+        currentText = currentText.replace(
+          new RegExp(`\\[TABLE_${placeholderId}\\]\\n\\n`, "g"),
+          "",
+        );
+        currentText = currentText.replace(
+          new RegExp(`\\n\\n\\[TABLE_${placeholderId}\\]`, "g"),
+          "",
+        );
+        currentText = currentText.replace(
+          new RegExp(`\\[TABLE_${placeholderId}\\]`, "g"),
+          "",
+        );
+
+        orderBodyText.value = currentText;
+
+        // Remove from data structures
+        delete excelFiles[fileId];
+        delete tablePlaceholders[placeholderId];
+
+        displayExcelFiles();
+        generateDocument();
+      }
+
+      function handleFileUpload(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        // Find the first empty placeholder or create a new one
+        let emptyPlaceholder = Object.values(tablePlaceholders).find(
+          (p) => !p.hasContent,
+        );
+
+        if (!emptyPlaceholder) {
+          // Auto-create if none exists
+          emptyPlaceholder = insertTablePlaceholder();
+        }
+
+        // Only handle the first file
+        const file = files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          try {
+            let data;
+            if (file.name.endsWith(".csv")) {
+              // Handle CSV files
+              const text = e.target.result;
+              const lines = text.split("\n");
+              data = lines.map((line) => line.split(","));
+            } else {
+              // Handle Excel files
+              const workbook = XLSX.read(e.target.result, { type: "binary" });
+              const sheetName = workbook.SheetNames[0];
+              const worksheet = workbook.Sheets[sheetName];
+              data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            }
+
+            // Store the file data in the placeholder
+            const fileId = ++fileIdCounter;
+            excelFiles[fileId] = {
+              id: fileId,
+              name: file.name,
+              data: data,
+              uploadDate: new Date().toLocaleString(),
+              placeholderId: emptyPlaceholder.id,
+            };
+
+            // Update placeholder with content
+            emptyPlaceholder.hasContent = true;
+            emptyPlaceholder.content = generateTableFromFile(fileId);
+            emptyPlaceholder.fileId = fileId;
+
+            displayExcelFiles();
+            generateDocument();
+            updatePlaceholderStatus();
+          } catch (error) {
+            alert("Error reading file: " + error.message);
+          }
+        };
+
+        if (file.name.endsWith(".csv")) {
+          reader.readAsText(file);
+        } else {
+          reader.readAsBinaryString(file);
+        }
+
+        // Clear the input so same file can be uploaded again
+        event.target.value = "";
+      }
+
+      function updatePlaceholderStatus() {
+        const emptyCount = Object.values(tablePlaceholders).filter(
+          (p) => !p.hasContent,
+        ).length;
+        const filledCount = Object.values(tablePlaceholders).filter(
+          (p) => p.hasContent,
+        ).length;
+
+        // Status tracking without console output
+      }
+
+      function displayExcelFiles() {
+        const container = document.getElementById("excelFilesContainer");
+        container.innerHTML = "";
+
+        if (Object.keys(excelFiles).length === 0) {
+          container.innerHTML =
+            '<p style="text-align: center; color: #666; padding: 20px;">No files uploaded yet.</p>';
+          return;
+        }
+
+        Object.values(excelFiles).forEach((file) => {
+          const fileDiv = document.createElement("div");
+          fileDiv.className = "excel-file-item";
+          fileDiv.innerHTML = `
+                    <div class="excel-file-info">
+                        <h4>📊 ${file.name}</h4>
+                        <p>Uploaded: ${file.uploadDate} | Rows: ${file.data.length} | In Table ${file.placeholderId}</p>
+                    </div>
+                    <div class="file-actions">
+                        <button class="btn btn-danger btn-small" onclick="removeTableAndPlaceholder(${file.id})">🗑️ Remove Table</button>
+                    </div>
+                `;
+          container.appendChild(fileDiv);
+        });
+      }
+
+      function insertFileTable(fileId) {
+        const file = excelFiles[fileId];
+        if (!file) return;
+
+        const placeholderText = `[EXCEL_TABLE_${fileId}]`;
+
+        const orderBodyText = document.getElementById("orderBodyText");
+        const cursorPos = orderBodyText.selectionStart;
+        const textBefore = orderBodyText.value.substring(0, cursorPos);
+        const textAfter = orderBodyText.value.substring(cursorPos);
+
+        orderBodyText.value =
+          textBefore + "\n\n" + placeholderText + "\n\n" + textAfter;
+
+        // Move cursor after the placeholder
+        const newCursorPos = cursorPos + placeholderText.length + 4;
+        orderBodyText.setSelectionRange(newCursorPos, newCursorPos);
+        orderBodyText.focus();
+
+        generateDocument();
+      }
+
+      function previewFile(fileId) {
+        const file = excelFiles[fileId];
+        if (!file) return;
+
+        let previewHTML = `<h3>Preview: ${file.name}</h3>`;
+        previewHTML +=
+          '<table border="1" style="width: 100%; border-collapse: collapse; margin: 10px 0;">';
+
+        // Display first 10 rows as preview
+        const previewRows = Math.min(10, file.data.length);
+        for (let i = 0; i < previewRows; i++) {
+          previewHTML += "<tr>";
+          for (let j = 0; j < file.data[i].length; j++) {
+            const cellData = file.data[i][j] || "";
+            if (i === 0) {
+              previewHTML += `<th style="padding: 5px; background: #f0f0f0;">${cellData}</th>`;
+            } else {
+              previewHTML += `<td style="padding: 5px;">${cellData}</td>`;
+            }
+          }
+          previewHTML += "</tr>";
+        }
+
+        if (file.data.length > 10) {
+          previewHTML += `<tr><td colspan="${file.data[0].length}" style="text-align: center; font-style: italic; padding: 10px;">... and ${file.data.length - 10} more rows</td></tr>`;
+        }
+
+        previewHTML += "</table>";
+
+        // Create modal-like preview
+        const modal = document.createElement("div");
+        modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); 
+                z-index: 10000; display: flex; justify-content: center; align-items: center;
+            `;
+
+        const content = document.createElement("div");
+        content.style.cssText = `
+                background: white; padding: 20px; border-radius: 10px; max-width: 80%; max-height: 80%; 
+                overflow: auto; position: relative;
+            `;
+
+        content.innerHTML = `
+                <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
+                        style="position: absolute; top: 10px; right: 15px; background: #ff6b6b; color: white; border: none; 
+                               border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">×</button>
+                ${previewHTML}
+            `;
+
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+      }
+
+      function removeFile(fileId) {
+        if (confirm("Are you sure you want to remove this file?")) {
+          delete excelFiles[fileId];
+          displayExcelFiles();
+          generateDocument();
+        }
+      }
+
+      function setupRealTimePreview() {
+        // Add event listeners to all form inputs for real-time updates
+        const inputs = [
+          "orderNumber",
+          "principalName",
+          "collegeName",
+          "documentTitle",
+          "orderBodyText",
+        ];
+
+        inputs.forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.addEventListener("input", debounce(generateDocument, 300));
+          }
+        });
+
+        // Add event listener to checkbox
+        const checkbox = document.getElementById("showAttendance");
+        if (checkbox) {
+          checkbox.addEventListener("change", generateDocument);
+        }
+
+        // Add event listener to dropdown
+        const dropdown = document.getElementById("documentType");
+        if (dropdown) {
+          dropdown.addEventListener("change", switchTemplate);
+        }
+      }
+
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      function collectReferences() {
+        const references = [];
+        const container = document.getElementById("referencesContainer");
+        const refDivs = container.querySelectorAll(".reference-item");
+
+        refDivs.forEach((div) => {
+          const id = div.id.split("-")[1];
+          const text = document.getElementById(`ref-text-${id}`)?.value || "";
+          if (text.trim()) {
+            references.push(mergeSubstitute(text.trim()));
+          }
+        });
+
+        return references;
+      }
+
+      function collectCopyToItems() {
+        const copyItems = [];
+        const container = document.getElementById("copyToContainer");
+        const copyDivs = container.querySelectorAll(".copy-item");
+
+        copyDivs.forEach((div) => {
+          const id = div.id.split("-")[1];
+          const text = document.getElementById(`copy-text-${id}`)?.value || "";
+          if (text.trim()) {
+            copyItems.push(mergeSubstitute(text.trim()));
+          }
+        });
+
+        return copyItems;
+      }
+
+      function generateTableFromFile(fileId) {
+        const file = excelFiles[fileId];
+        if (!file || !file.data || file.data.length === 0) {
+          return '<p style="color: red; text-align: center; padding: 20px;">File data not found.</p>';
+        }
+
+        let tableHTML = `
+                <div style="text-align: center; margin: 20px auto; width: 100%;">
+                    <table style="width: 100%; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif; margin-left: auto; margin-right: auto; display: table;">
+            `;
+
+        // Process all rows as-is without any special formatting
+        for (let i = 0; i < file.data.length; i++) {
+          const row = file.data[i];
+          if (
+            row &&
+            row.length > 0 &&
+            row.some((cell) => cell && cell.toString().trim())
+          ) {
+            tableHTML += "<tr>";
+
+            // Process each cell in the row
+            for (let j = 0; j < row.length; j++) {
+              const cellValue = row[j] ? row[j].toString().trim() : "";
+              tableHTML += `<td style="border: 1px solid #000; padding: 2px; font-size: 12pt; text-align: center;">${cellValue}</td>`;
+            }
+
+            tableHTML += "</tr>";
+          }
+        }
+
+        tableHTML += `
+                    </table>
+                </div>
+            `;
+
+        return tableHTML;
+      }
+
+      function processOrderBodyText(text) {
+        // Split text into paragraphs first
+        let paragraphs = text.split("\n");
+        let processedHTML = "";
+
+        for (let i = 0; i < paragraphs.length; i++) {
+          let para = paragraphs[i].trim();
+
+          // Check if this paragraph contains a table placeholder
+          const tableMatch = para.match(/\[TABLE_(\d+)\]/);
+          if (tableMatch) {
+            const placeholderId = parseInt(tableMatch[1]);
+            const placeholder = tablePlaceholders[placeholderId];
+
+            if (placeholder && placeholder.hasContent) {
+              // Replace with actual table content
+              processedHTML += placeholder.content;
+            } else {
+              // Show empty placeholder
+              processedHTML += `<div style="background: #fff3cd; border: 2px dashed #ffc107; border-radius: 8px; padding: 20px; margin: 15px 0; text-align: center; color: #856404; font-weight: bold; font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;">📋 Table ${placeholderId} - Upload Excel file to fill this table</div>`;
+            }
+          } else if (para) {
+            // Regular paragraph - wrap in <p> tags with no bottom margin
+            processedHTML += `<p style="text-indent: 30px; margin: 0; text-align: justify; font-family: ${labels[currentLang].font}; line-height: 1.15; font-size: 13pt;">${para}</p>`;
+          }
+          // Remove the else clause that added <br> tags for empty lines
+        }
+
+        return processedHTML;
+      }
+
+      function generateDocument() {
+        const L = labels[currentLang];
+        const orderNumber = mergeSubstitute(
+          document.getElementById("orderNumber").value,
+        );
+        const orderDate =
+          '<span class="preview-date">' + todayFormatted() + "</span>"; // preview only; copy restores #ApprovedDate#
+        const principalName = mergeSubstitute(
+          document.getElementById("principalName").value,
+        );
+        const collegeName = mergeSubstitute(
+          document.getElementById("collegeName").value,
+        );
+        const showAttendance =
+          document.getElementById("showAttendance").checked;
+        let documentTitle = mergeSubstitute(
+          document.getElementById("documentTitle").value,
+        );
+        let orderBodyText = mergeSubstitute(
+          document.getElementById("orderBodyText").value,
+        );
+
+        // Replace placeholders in all text fields
+        documentTitle = documentTitle.replace(/{collegeName}/g, collegeName);
+        orderBodyText = orderBodyText.replace(/{collegeName}/g, collegeName);
+
+        // No need to pre-process placeholders here anymore - handled in processOrderBodyText
+
+        const references = collectReferences();
+        const copyToItems = collectCopyToItems();
+
+        let referencesHTML = "";
+        if (references.length > 0) {
+          references.forEach((ref, index) => {
+            // Replace placeholders in references too
+            let processedRef = ref;
+
+            // Show numbering only if there are multiple references
+            const showNumber = references.length > 1;
+            const numberText = showNumber ? `${index + 1})` : "";
+
+            referencesHTML += `
+                        <tr>
+                            <td style="width: 5%; padding: 2px 0; border: none; font-size: 13pt; font-family: ${L.font};"></td>
+                            <td style="width: 12%; padding: 2px 4px; vertical-align: top; border: none; line-height: 1.2; font-size: 13pt; font-family: ${L.font};">${index === 0 ? L.paramarsha : ""}</td>
+                            <td style="width: 2%; text-align: right; padding: 2px 4px; vertical-align: top; border: none; line-height: 1.2; font-size: 13pt; font-family: ${L.font};">${numberText}</td>
+                            <td style="width: 81%; text-align: justify; padding: 2px 4px; vertical-align: top; border: none; line-height: 1.2; font-size: 13pt; font-family: ${L.font};">${processedRef}</td>
+                        </tr>
+                    `;
+          });
+        }
+
+        const toItems = collectToItems();
+        let toHTML = "";
+        if (toItems.length > 0) {
+          const toMultiple = toItems.length > 1;
+          toHTML += `<tr><td colspan="2" style="padding: 3px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${L.to}:</td></tr>`;
+          toItems.forEach((item, index) => {
+            const prefix = toMultiple ? `${index + 1})&nbsp;` : "";
+            toHTML += `
+                        <tr>
+                            <td style="width: 30px; border: none;"></td>
+                            <td style="padding: 2px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${prefix}${item}</td>
+                        </tr>
+                    `;
+          });
+        }
+
+        let copyToHTML = "";
+        if (copyToItems.length > 0) {
+          const copyMultiple = copyToItems.length > 1;
+          copyToHTML += `<tr><td colspan="2" style="padding: 3px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${L.copy}:</td></tr>`;
+          copyToItems.forEach((item, index) => {
+            const prefix = copyMultiple ? `${index + 1})&nbsp;` : "";
+            copyToHTML += `
+                        <tr>
+                            <td style="width: 30px; border: none;"></td>
+                            <td style="padding: 2px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${prefix}${item}</td>
+                        </tr>
+                    `;
+          });
+        }
+
+        const _procTitle =
+          L.proceedingsFull ||
+          "[ Upload office profile to set proceedings title ]";
+        const _hdrProc = `<h3 style="font-size: 14pt; margin-bottom: 0; text-decoration: underline; font-family: ${L.font};">${_procTitle}</h3>`;
+        const documentHTML = `
+                <div class="page-container" style="font-family: ${L.font}; font-size: 13pt;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        ${buildHeaderWithLogo(_hdrProc, "10px", "center")}
+                        ${showAttendance ? `<h4 style="font-size: 13pt; margin-bottom: 15px; font-weight: normal; font-family: ${L.font};">(${L.present}: ${principalName})</h4>` : ""}
+                        <p style="font-size: 13pt; text-align: justify; margin: 15px 0; font-family: ${L.font};">
+                            ${documentTitle}
+                        </p>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <table style="width: 100%; min-width: 100%; max-width: 100%; border-collapse: collapse; font-family: ${L.font}; table-layout: fixed;">
+                            <tr>
+                                <td style="width: 60%; border: none; border-bottom: 1px solid #000; padding: 0; line-height: 0; font-size: 1px;">&nbsp;</td>
+                                <td style="width: 40%; border: none; border-bottom: 1px solid #000; padding: 0; line-height: 0; font-size: 1px;">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 60%; border: none; border-bottom: 1px solid #000; padding: 8px 0; font-size: 14pt; text-align: left; vertical-align: middle; line-height: 2; font-family: ${L.font};"><strong>${L.orderNo}: ${orderNumber}</strong></td>
+                                <td style="width: 40%; border: none; border-bottom: 1px solid #000; padding: 8px 0; font-size: 14pt; text-align: right; vertical-align: middle; line-height: 2; font-family: ${L.font};"><strong>${L.date}: ${orderDate}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="line-height: 1; margin: 10px 0;">&nbsp;</div>
+
+                    ${
+                      referencesHTML
+                        ? `
+                    <div style="margin: 20px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            ${referencesHTML}
+                        </table>
+                    </div>
+                    `
+                        : ""
+                    }
+
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="font-size: 14pt; margin-bottom: 10px; text-decoration: underline; font-family: ${L.font};">${L.order}</h3>
+                    </div>
+
+                    ${
+                      orderBodyText
+                        ? `
+                    <div style="text-align: justify; margin: 20px 0; line-height: 1.15; font-size: 13pt; font-family: ${L.font};">
+                        ${processOrderBodyText(orderBodyText)}
+                    </div>
+                    `
+                        : ""
+                    }
+
+                    <div style="text-align: right; margin: 20px 0 20px 0; font-size: 13pt; font-family: ${L.font};">
+                        <p style="margin-bottom: 60px;"></p>
+                        <p>${principalName}<br>${L.principal}</p>
+                    </div>
+
+                    ${
+                      toHTML
+                        ? `
+                    <div style="margin-top: 30px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12pt; font-family: ${L.font};">
+                            ${toHTML}
+                        </table>
+                    </div>
+                    `
+                        : ""
+                    }
+                    ${
+                      copyToHTML
+                        ? `
+                    <div style="margin-top: 20px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12pt; font-family: ${L.font};">
+                            ${copyToHTML}
+                        </table>
+                    </div>
+                    `
+                        : ""
+                    }
+                </div>
+            `;
+
+        document.getElementById("documentPreview").innerHTML = documentHTML;
+        applyZoom();
+      }
+
+      // Returns a clean copy of documentPreview innerHTML with zoom stripped and preview-date restored
+      function getUnzoomedHTML() {
+        const documentContent = document.getElementById("documentPreview");
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = documentContent.innerHTML;
+        tempDiv.querySelectorAll(".page-container").forEach(function (el) {
+          el.style.zoom = "";
+          if (el.getAttribute("style") !== null && !el.style.cssText.trim()) {
+            el.removeAttribute("style");
+          }
+        });
+        // Restore placeholder for copy — preview shows today's date, copy keeps #ApprovedDate#
+        return tempDiv.innerHTML.replace(
+          /<span class="preview-date">[^<]*<\/span>/g,
+          "#ApprovedDate#",
+        );
+      }
+
+      function copyWithFormatting() {
+        const documentContent = document.getElementById("documentPreview");
+
+        if (!documentContent || !documentContent.innerHTML.trim()) {
+          alert("Please generate a document first before copying!");
+          return;
+        }
+
+        // Initialize the enhanced CopyFormatter
+        const formatter = new CopyFormatter({
+          fontFamily: labels[currentLang].font,
+          fontSize: "13pt",
+          lineHeight: "1.15",
+          color: "#000",
+          customCSS: `
+                    .document-header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .document-header h3 {
+                        font-size: 16px;
+                        margin-bottom: 10px;
+                        text-decoration: underline;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                    }
+                    
+                    .document-header h4 {
+                        font-size: 14px;
+                        margin-bottom: 15px;
+                        font-weight: normal;
+                        font-family: mandaram, serif;
+                    }
+
+                    .document-header p {
+                        font-size: 12pt;
+                        text-align: justify;
+                        margin: 15px 0;
+                        font-family: mandaram, serif;
+                    }
+                    
+                    .order-info {
+                        margin: 20px 0;
+                        text-align: center;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                    }
+                    
+                    .order-info table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                        margin: 0 auto;
+                    }
+                    
+                    .order-info td {
+                        font-size: 13pt;
+                        border-bottom: 1px solid #000;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                    }
+                    
+                    .order-info .first-row td {
+                        padding: 0;
+                        line-height: 0;
+                        font-size: 1px;
+                    }
+                    
+                    .order-info .second-row td {
+                        padding: 8px 0;
+                        line-height: 2;
+                        vertical-align: middle;
+                    }
+                    
+                    .references-table table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    
+                    .references-table td {
+                        padding: 2px 4px;
+                        vertical-align: top;
+                        border: none;
+                        line-height: 1.2;
+                        font-size: 12pt;
+                        font-family: mandaram, serif;
+                    }
+                    
+                    .order-content {
+                        text-align: justify;
+                        margin: 20px 0;
+                        line-height: 1.15;
+                        font-size: 12pt;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                    }
+
+                    .order-content p {
+                        text-indent: 30px;
+                        margin-bottom: 0;
+                        text-align: justify;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                    }
+                    
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 20px 0;
+                        border: 1px solid #000;
+                        font-family: mandaram, serif;
+                    }
+                    
+                    table th,
+                    table td {
+                        border: 1px solid #000;
+                        padding: 8px;
+                        font-size: 11pt;
+                        font-family: mandaram, serif;
+                    }
+                    
+                    .signature-section {
+                        text-align: right;
+                        margin: 20px 0 20px 0;
+                        font-size: 12pt;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                    }
+                    
+                    .copy-section table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 12pt;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                    }
+                    
+                    .copy-section td {
+                        padding: 5px;
+                        border: none;
+                        font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;
+                        text-align: left;
+                    }
+
+                    .table-placeholder {
+                        background: #fff3cd;
+                        border: 2px dashed #ffc107;
+                        border-radius: 8px;
+                        padding: 20px;
+                        margin: 15px 0;
+                        text-align: center;
+                        color: #856404;
+                        font-weight: bold;
+                        font-family: mandaram, serif;
+                    }
+
+                    h3[style*="text-decoration: underline"] {
+                        text-decoration: underline;
+                        font-family: mandaram, serif;
+                    }
+                `,
+          showToast: (message, type) => {
+            showCopySuccess(message);
+          },
+        });
+
+        // Prepare content for the enhanced formatter (zoom stripped)
+        const content = {
+          rawHTML: getUnzoomedHTML(),
+        };
+
+        // Use the enhanced copy formatter
+        formatter.copyWithFormatting(content);
+      }
+
+      /**
+       * Copy with Formatting Library
+       * A reusable library for copying content with formatting preservation
+       * Supports both modern Clipboard API and fallback methods
+       */
+      class CopyFormatter {
+        constructor(options = {}) {
+          this.options = {
+            // Default font family - customize for your content
+            fontFamily: options.fontFamily || "'Times New Roman', serif",
+            fontSize: options.fontSize || "12pt",
+            lineHeight: options.lineHeight || "1.4",
+            color: options.color || "#000",
+            // Toast notification function - provide your own or use default
+            showToast: options.showToast || this.defaultToast,
+            // Custom CSS for HTML format
+            customCSS: options.customCSS || "",
+            ...options,
+          };
+        }
+
+        /**
+         * Main function to copy content with formatting
+         * @param {Object} content - Content object with data
+         * @param {Object} formatConfig - Configuration for formatting
+         */
+        async copyWithFormatting(content, formatConfig = {}) {
+          try {
+            // Create formatted versions
+            const htmlContent = this.createHTMLVersion(content, formatConfig);
+            const textContent = this.createTextVersion(content, formatConfig);
+
+            // Try modern clipboard API first
+            if (await this.tryModernClipboard(htmlContent, textContent)) {
+              this.options.showToast(
+                "📋 Document copied with formatting! You can now paste it into Word, Google Docs, or other platforms.",
+                "success",
+              );
+              return true;
+            }
+
+            // Fallback to selection-based copying
+            if (this.tryFallbackCopy(htmlContent)) {
+              this.options.showToast(
+                "📋 Document copied! You can now paste it into Word, Google Docs, or other platforms.",
+                "success",
+              );
+              return true;
+            }
+
+            // If all methods fail
+            this.options.showToast(
+              "❌ Copy failed. Please try selecting and copying manually.",
+              "error",
+            );
+            return false;
+          } catch (error) {
+            console.error("Copy operation failed:", error);
+            this.options.showToast(
+              "❌ Copy failed. Please try again.",
+              "error",
+            );
+            return false;
+          }
+        }
+
+        /**
+         * Try modern Clipboard API with multiple formats
+         */
+        async tryModernClipboard(htmlContent, textContent) {
+          if (!navigator.clipboard || !window.ClipboardItem) {
+            return false;
+          }
+
+          try {
+            const fullHTML = this.wrapHTMLContent(htmlContent);
+
+            const clipboardItem = new ClipboardItem({
+              "text/html": new Blob([fullHTML], { type: "text/html" }),
+              "text/plain": new Blob([textContent], { type: "text/plain" }),
+            });
+
+            await navigator.clipboard.write([clipboardItem]);
+            return true;
+          } catch (error) {
+            console.warn("Modern clipboard failed:", error);
+            return false;
+          }
+        }
+
+        /**
+         * Fallback method using selection and execCommand
+         */
+        tryFallbackCopy(htmlContent) {
+          try {
+            // Create temporary container
+            const tempContainer = document.createElement("div");
+            tempContainer.style.position = "absolute";
+            tempContainer.style.left = "-9999px";
+            tempContainer.style.top = "-9999px";
+            tempContainer.innerHTML = htmlContent;
+            tempContainer.contentEditable = true;
+            document.body.appendChild(tempContainer);
+
+            // Select content
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(tempContainer);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Copy using execCommand
+            const success = document.execCommand("copy");
+
+            // Cleanup
+            selection.removeAllRanges();
+            document.body.removeChild(tempContainer);
+
+            return success;
+          } catch (error) {
+            console.warn("Fallback copy failed:", error);
+            return false;
+          }
+        }
+
+        /**
+         * Create HTML version with proper formatting
+         */
+        createHTMLVersion(content, formatConfig) {
+          const config = { ...this.getDefaultFormatConfig(), ...formatConfig };
+
+          let html = `<div style="${this.getBaseStyles()}">`;
+
+          // Add header if provided
+          if (content.header) {
+            html += this.formatHeader(content.header, config);
+          }
+
+          // Add main content sections
+          if (content.sections) {
+            content.sections.forEach((section) => {
+              html += this.formatSection(section, config);
+            });
+          }
+
+          // Add raw content if provided
+          if (content.rawHTML) {
+            html += content.rawHTML;
+          }
+
+          html += "</div>";
+
+          return html;
+        }
+
+        /**
+         * Create plain text version
+         */
+        createTextVersion(content, formatConfig) {
+          let text = "";
+
+          // Add header
+          if (content.header) {
+            if (content.header.title) {
+              text += content.header.title + "\n";
+            }
+            if (content.header.subtitle) {
+              text += content.header.subtitle + "\n";
+            }
+            if (content.header.contact) {
+              text += content.header.contact + "\n";
+            }
+            text += "_".repeat(60) + "\n\n";
+          }
+
+          // Add sections
+          if (content.sections) {
+            content.sections.forEach((section) => {
+              if (section.title) {
+                text += section.title + "\n";
+              }
+              if (section.content) {
+                // Handle different content types
+                if (typeof section.content === "string") {
+                  text += section.content + "\n\n";
+                } else if (Array.isArray(section.content)) {
+                  section.content.forEach((item, index) => {
+                    text += `${index + 1}. ${item}\n`;
+                  });
+                  text += "\n";
+                }
+              }
+            });
+          }
+
+          // Add raw text if provided - extract from HTML
+          if (content.rawHTML) {
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = content.rawHTML;
+            text += tempDiv.innerText || tempDiv.textContent || "";
+          }
+
+          return text.trim();
+        }
+
+        /**
+         * Get base styles for the container
+         */
+        getBaseStyles() {
+          return `
+                    font-family: ${this.options.fontFamily};
+                    font-size: ${this.options.fontSize};
+                    line-height: ${this.options.lineHeight};
+                    color: ${this.options.color};
+                    max-width: 100%;
+                    margin: 0;
+                    padding: 0;
+                `
+            .replace(/\s+/g, " ")
+            .trim();
+        }
+
+        /**
+         * Wrap HTML content with proper document structure
+         */
+        wrapHTMLContent(htmlContent) {
+          return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: ${this.options.fontFamily}; font-size: ${this.options.fontSize}; line-height: ${this.options.lineHeight}; color: ${this.options.color}; margin: 0; padding: 20px;">
+    ${htmlContent}
+</body>
+</html>
+                `.trim();
+        }
+
+        /**
+         * Get default format configuration
+         */
+        getDefaultFormatConfig() {
+          return {
+            headerFontSize: "16pt",
+            subHeaderFontSize: "14pt",
+            sectionTitleSize: "13pt",
+            indent: true,
+            numbered: true,
+          };
+        }
+
+        /**
+         * Default toast notification (override with your own)
+         */
+        defaultToast(message, type = "info") {
+          // Simple console log - replace with your notification system
+          console.log(`[${type.toUpperCase()}] ${message}`);
+
+          // Optional: Create a simple toast if no notification system exists
+          if (typeof window !== "undefined") {
+            const toast = document.createElement("div");
+            toast.style.cssText = `
+                        position: fixed;
+                        bottom: 20px;
+                        right: 20px;
+                        background: ${type === "error" ? "#e74c3c" : "#27ae60"};
+                        color: white;
+                        padding: 15px 25px;
+                        border-radius: 5px;
+                        z-index: 10000;
+                        font-family: Arial, sans-serif;
+                        font-size: 14px;
+                    `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+              if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+              }
+            }, 3000);
+          }
+        }
+      }
+
+      // JSON Export/Import Functions
+      function exportToJSON() {
+        try {
+          const filename = prompt(
+            "Enter filename for export:",
+            "malayalam_document",
+          );
+          if (!filename) return; // User cancelled
+
+          const formData = {
+            filename: filename, // Store the filename in the JSON data
+            documentType: document.getElementById("documentType").value,
+            orderNumber: document.getElementById("orderNumber").value,
+            showAttendance: document.getElementById("showAttendance").checked,
+            documentTitle: document.getElementById("documentTitle").value,
+            orderBodyText: document.getElementById("orderBodyText").value,
+            references: collectReferences(),
+            toItems: collectToItems(),
+            copyToItems: collectCopyToItems(),
+            tablePlaceholders: tablePlaceholders,
+            excelFiles:
+              Object.keys(excelFiles).length > 0
+                ? Object.fromEntries(
+                    Object.entries(excelFiles).map(([key, file]) => [
+                      key,
+                      {
+                        id: file.id,
+                        name: file.name,
+                        data: file.data,
+                        uploadDate: file.uploadDate,
+                        placeholderId: file.placeholderId,
+                      },
+                    ]),
+                  )
+                : {},
+            exportDate: new Date().toISOString(),
+            version: "1.0",
+          };
+
+          const jsonString = JSON.stringify(formData, null, 2);
+          const blob = new Blob([jsonString], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${filename}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          showCopySuccess("Document data exported to JSON file successfully!");
+        } catch (error) {
+          alert("Error exporting data: " + error.message);
+        }
+      }
+
+      function importFromJSON() {
+        document.getElementById("jsonFileInput").click();
+      }
+
+      function handleJSONImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const jsonData = JSON.parse(e.target.result);
+
+            // Validate JSON structure
+            if (!jsonData || typeof jsonData !== "object") {
+              throw new Error("Invalid JSON format");
+            }
+
+            // Clear existing data
+            document.getElementById("referencesContainer").innerHTML = "";
+            document.getElementById("toContainer").innerHTML = "";
+            document.getElementById("copyToContainer").innerHTML = "";
+            document.getElementById("excelFilesContainer").innerHTML = "";
+            referenceCount = 0;
+            toCount = 0;
+            copyToCount = 0;
+            excelFiles = {};
+            tablePlaceholders = {};
+
+            // Import form data
+            if (jsonData.documentType)
+              document.getElementById("documentType").value =
+                jsonData.documentType;
+            if (jsonData.orderNumber)
+              document.getElementById("orderNumber").value =
+                jsonData.orderNumber;
+            if (typeof jsonData.showAttendance === "boolean")
+              document.getElementById("showAttendance").checked =
+                jsonData.showAttendance;
+            if (jsonData.documentTitle)
+              document.getElementById("documentTitle").value =
+                jsonData.documentTitle;
+            if (jsonData.orderBodyText)
+              document.getElementById("orderBodyText").value =
+                jsonData.orderBodyText;
+
+            // Import references
+            if (jsonData.references && Array.isArray(jsonData.references)) {
+              jsonData.references.forEach((ref) => {
+                if (ref && ref.trim()) {
+                  addReference();
+                  document.getElementById(`ref-text-${referenceCount}`).value =
+                    ref;
+                }
+              });
+            }
+
+            // Import to items
+            if (jsonData.toItems && Array.isArray(jsonData.toItems)) {
+              jsonData.toItems.forEach((item) => {
+                if (item && item.trim()) {
+                  addTo();
+                  document.getElementById(`to-text-${toCount}`).value = item;
+                }
+              });
+            }
+
+            // Import copy-to items
+            if (jsonData.copyToItems && Array.isArray(jsonData.copyToItems)) {
+              jsonData.copyToItems.forEach((item) => {
+                if (item && item.trim()) {
+                  addCopyTo();
+                  document.getElementById(`copy-text-${copyToCount}`).value =
+                    item;
+                }
+              });
+            }
+
+            // Import table placeholders
+            if (
+              jsonData.tablePlaceholders &&
+              typeof jsonData.tablePlaceholders === "object"
+            ) {
+              tablePlaceholders = jsonData.tablePlaceholders;
+              tablePlaceholderCounter = Math.max(
+                0,
+                ...Object.keys(tablePlaceholders).map((k) => parseInt(k)),
+              );
+            }
+
+            // Import excel files
+            if (
+              jsonData.excelFiles &&
+              typeof jsonData.excelFiles === "object"
+            ) {
+              excelFiles = jsonData.excelFiles;
+              fileIdCounter = Math.max(
+                0,
+                ...Object.values(excelFiles).map((f) => f.id || 0),
+              );
+
+              // Update placeholder content with tables
+              Object.values(excelFiles).forEach((file) => {
+                if (
+                  file.placeholderId &&
+                  tablePlaceholders[file.placeholderId]
+                ) {
+                  tablePlaceholders[file.placeholderId].hasContent = true;
+                  tablePlaceholders[file.placeholderId].content =
+                    generateTableFromFile(file.id);
+                  tablePlaceholders[file.placeholderId].fileId = file.id;
+                }
+              });
+            }
+
+            // Add imported template to dropdown temporarily
+            const dropdown = document.getElementById("documentType");
+            const templateName =
+              jsonData.filename || file.name.replace(".json", "");
+            const tempValue = "imported_" + Date.now();
+
+            // Check if this template is already in dropdown
+            const existingOption = Array.from(dropdown.options).find(
+              (option) => option.text === templateName,
+            );
+            if (!existingOption) {
+              const newOption = document.createElement("option");
+              newOption.value = tempValue;
+              newOption.text = templateName;
+              newOption.style.fontStyle = "italic";
+              newOption.style.color = "#666";
+              dropdown.appendChild(newOption);
+            }
+
+            // Select the imported template
+            dropdown.value = existingOption ? existingOption.value : tempValue;
+
+            // Update displays
+            displayExcelFiles();
+            updatePlaceholderStatus();
+            generateDocument();
+
+            showCopySuccess("Template imported successfully!");
+          } catch (error) {
+            alert("Error importing JSON file: " + error.message);
+          }
+        };
+
+        reader.readAsText(file);
+        event.target.value = ""; // Clear the input
+      }
+
+      function copyWithZeroMargins() {
+        const documentContent = document.getElementById("documentPreview");
+
+        if (!documentContent || !documentContent.innerHTML.trim()) {
+          alert("Please generate a document first before copying!");
+          return;
+        }
+
+        // Create a clean copy of the content without zoom, margin or padding styles
+        const cleanContent = stripAllMarginsAndPadding(getUnzoomedHTML());
+
+        // Initialize the enhanced CopyFormatter with completely stripped styles
+        const formatter = new CopyFormatter({
+          fontFamily: labels[currentLang].font,
+          fontSize: "13pt",
+          lineHeight: "1.15",
+          color: "#000",
+          customCSS: ``,
+          showToast: (message, type) => {
+            showCopySuccess(
+              "Document copied with zero margins! Perfect for tight spacing requirements.",
+            );
+          },
+        });
+
+        // Prepare content for the enhanced formatter
+        const content = {
+          rawHTML: cleanContent,
+        };
+
+        // Use the enhanced copy formatter
+        formatter.copyWithFormatting(content);
+      }
+
+      function stripAllMarginsAndPadding(htmlContent) {
+        // Create a temporary div to work with the HTML
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = htmlContent;
+
+        // Remove all style attributes that contain margin or padding
+        const allElements = tempDiv.querySelectorAll("*");
+        allElements.forEach((element) => {
+          if (element.style) {
+            // Remove zoom, margin and padding from inline styles
+            element.style.zoom = "";
+            element.style.margin = "";
+            element.style.marginTop = "";
+            element.style.marginBottom = "";
+            element.style.marginLeft = "";
+            element.style.marginRight = "";
+            element.style.padding = "";
+            element.style.paddingTop = "";
+            element.style.paddingBottom = "";
+            element.style.paddingLeft = "";
+            element.style.paddingRight = "";
+
+            // Clean up the style attribute if it becomes empty
+            if (!element.style.cssText.trim()) {
+              element.removeAttribute("style");
+            } else {
+              // Remove margin and padding from style strings
+              let styleText = element.style.cssText;
+              styleText = styleText.replace(/margin[^;]*;?/gi, "");
+              styleText = styleText.replace(/padding[^;]*;?/gi, "");
+              styleText = styleText.replace(/;;+/g, ";");
+              styleText = styleText.replace(/^;|;$/g, "");
+
+              if (styleText.trim()) {
+                element.style.cssText = styleText;
+              } else {
+                element.removeAttribute("style");
+              }
+            }
+          }
+        });
+
+        // Also handle any remaining inline style attributes by regex
+        let cleanedHTML = tempDiv.innerHTML;
+
+        // Remove margin and padding properties from any remaining style attributes
+        cleanedHTML = cleanedHTML.replace(/margin[^;]*;?\s*/gi, "");
+        cleanedHTML = cleanedHTML.replace(/padding[^;]*;?\s*/gi, "");
+
+        // Clean up empty style attributes
+        cleanedHTML = cleanedHTML.replace(/style="\s*"/gi, "");
+        cleanedHTML = cleanedHTML.replace(/style='[\s]*'/gi, "");
+
+        return cleanedHTML;
+      }
+
+      function showCopySuccess(
+        message = "Document copied with formatting! You can now paste it into Word, Google Docs, or other platforms.",
+      ) {
+        // Create a temporary success message
+        const successDiv = document.createElement("div");
+        successDiv.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    font-size: 14px;
+                    max-width: 300px;
+                ">
+                    <strong>✅ Success!</strong><br>
+                    ${message}
+                </div>
+            `;
+
+        document.body.appendChild(successDiv);
+
+        // Remove after 4 seconds
+        setTimeout(() => {
+          if (document.body.contains(successDiv)) {
+            document.body.removeChild(successDiv);
+          }
+        }, 4000);
+      }
+
+      function showCopyError() {
+        alert(
+          "Failed to copy document. Please try selecting and copying manually.",
+        );
+      }
+
+      function clearAll() {
+        if (confirm("Are you sure you want to clear all data?")) {
+          document.getElementById("referencesContainer").innerHTML = "";
+          document.getElementById("toContainer").innerHTML = "";
+          document.getElementById("copyToContainer").innerHTML = "";
+          document.getElementById("documentPreview").innerHTML = "";
+          document.getElementById("excelFilesContainer").innerHTML = "";
+
+          referenceCount = 0;
+          toCount = 0;
+          copyToCount = 0;
+          excelFiles = {};
+          fileIdCounter = 0;
+          tablePlaceholders = {};
+          tablePlaceholderCounter = 0;
+
+          // Reset form fields — profile values will be restored by initializeDefaults()
+          document.getElementById("orderNumber").value = "";
+          document.getElementById("documentTitle").value =
+            "{collegeName} - അതിഥി അദ്ധ്യാപകര്‍ - വേതനം അനുവദിച്ച് വിതരണം ചെയ്യുന്നതിനുള്ള അനുമതി - ഉത്തരവ് പുറപ്പെടുവിക്കുന്നു.";
+          document.getElementById("showAttendance").checked = false;
+          document.getElementById("orderBodyText").value =
+            `മേല്‍ പരാമര്‍ശ പ്രകാരമുള്ള സര്‍ക്കാര്‍ ഉത്തരവുകളുടേയും പരിപത്രങ്ങളുടേയും അടിസ്ഥാനത്തില്‍ ഈ കോളേജില്‍ വിവിധ വിഷയങ്ങളിലേക്കായി അതിഥി അദ്ധ്യാപകരെ നിയമിച്ചിരുന്നു. പ്രസ്തുത അതിഥി അദ്ധ്യാപകരുടെ വേതനം നല്‍കുന്നതിലേക്കായി അതാത് വകുപ്പ് തലവന്മാര്‍ ലോഗ് ബുക്കും ഡ്യൂട്ടി പെര്‍ഫോമന്‍സ് സര്‍ട്ടിഫിക്കറ്റും സമര്‍പ്പിച്ചിട്ടുണ്ട്.
+
+മേല്‍ സാഹചര്യത്തില്‍ താഴെപ്പറയുന്ന അതിഥി അദ്ധ്യാപകര്‍ക്ക് അവരവര്‍ക്കര്‍ഹതപ്പെട്ട തുക അവരവരുടെ ബാങ്ക് അക്കൗണ്ടുകളിലേക്ക് താഴെപ്പറയും പ്രകാരം അനുവദിച്ച് കൊടുക്കുന്നതിന് ഇതിനാല്‍ ഉത്തരവാകുന്നു.`;
+
+          // Reinitialize defaults
+          initializeDefaults();
+        }
+      }
+
+      // Initialize the application
+      window.onload = function () {
+        initializeDefaults();
+        setupRealTimePreview(); // Set up real-time preview
+        generateDocument(); // Initial document generation
+      };
+    </script>
+  </body>
+</html>

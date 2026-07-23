@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Office Suite</title>
+    <style>
+      :root {
+        --primary: #2c3e50;
+        --secondary: #3498db;
+        --accent: #e74c3c;
+        --light: #f8f9fa;
+        --dark: #34495e;
+        --success: #27ae60;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: #ecf0f1;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--dark) 100%
+        );
+        color: white;
+        padding: 2rem 0;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      header p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 1rem;
+        flex: 1;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        /* Always 3 columns */
+        gap: 2rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        border-top: 5px solid var(--secondary);
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-body {
+        padding: 2rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .card-icon {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        background: var(--light);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary);
+      }
+
+      .card p {
+        color: #7f8c8d;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background: linear-gradient(135deg, var(--secondary) 0%, #2980b9 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: transform 0.2s;
+        margin-top: auto;
+      }
+
+      .btn:hover {
+        transform: scale(1.05);
+      }
+
+      .offline-badge {
+        background: var(--success);
+        color: white;
+        padding: 0.25rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .offline-badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+      }
+
+      footer {
+        text-align: center;
+        padding: 2rem;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+      }
+
+      .profile-section {
+        max-width: 1200px;
+        margin: 0 auto 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .profile-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem 2rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        border-left: 5px solid var(--secondary);
+      }
+
+      .profile-card.loaded {
+        border-left-color: var(--success);
+      }
+
+      .profile-info h3 {
+        font-size: 1rem;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+      }
+
+      .profile-info p {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin: 0;
+      }
+
+      .profile-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .btn-sm {
+        padding: 0.5rem 1.2rem;
+        font-size: 0.85rem;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.2s;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn-sm:hover {
+        transform: scale(1.05);
+      }
+
+      .btn-upload {
+        background: linear-gradient(135deg, var(--secondary) 0%, #2980b9 100%);
+        color: white;
+      }
+
+      .btn-sample {
+        background: linear-gradient(135deg, var(--success) 0%, #219a52 100%);
+        color: white;
+      }
+
+      .btn-clear {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+      }
+
+      .profile-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        padding: 0.2rem 0.7rem;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+
+      .profile-badge.active {
+        background: #d5f5e3;
+        color: #1e8449;
+      }
+
+      .profile-badge.inactive {
+        background: #fde8e8;
+        color: #c0392b;
+      }
+
+      /* Header & Logo Settings card */
+      .header-settings-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem 2rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        border-left: 5px solid var(--secondary);
+        margin-top: 1rem;
+      }
+      .idx-pos-btn {
+        padding: 4px 12px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 600;
+        background: white;
+        color: var(--primary);
+        transition: all 0.2s;
+      }
+      .idx-pos-btn.active {
+        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        color: white;
+      }
+      .idx-mode-group {
+        display: flex;
+        border: 2px solid var(--secondary);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .idx-mode-btn {
+        padding: 4px 12px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 600;
+        background: white;
+        color: var(--primary);
+        transition: all 0.2s;
+      }
+      .idx-mode-btn.active {
+        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        color: white;
+      }
+      .header-settings-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+        padding: 0;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+      }
+      .header-settings-toggle:hover strong {
+        color: var(--secondary);
+      }
+      .header-settings-chevron {
+        font-size: 0.8rem;
+        color: var(--secondary);
+        transition: transform 0.2s;
+        display: inline-block;
+        font-style: normal;
+      }
+      .header-settings-chevron.open {
+        transform: rotate(180deg);
+      }
+
+      /* User Manual */
+      .manual-section {
+        max-width: 1200px;
+        margin: 0 auto 2rem auto;
+        padding: 0 1rem;
+        text-align: center;
+      }
+      .manual-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 2rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--dark) 100%
+        );
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      .manual-link:hover {
+        opacity: 0.88;
+        transform: scale(1.03);
+      }
+      .feedback-link {
+        background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+        margin-left: 0.75rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div style="margin-bottom: 1rem">
+        <span class="offline-badge">Offline Ready</span>
+      </div>
+      <h1>Office Suite</h1>
+      <p>A toolkit for e-Office document drafting.</p>
+    </header>
+
+    <div class="profile-section">
+      <div class="profile-card" id="profileCard">
+        <div class="profile-info">
+          <h3 id="profileTitle">No Office Profile Loaded</h3>
+          <p id="profileSubtitle">
+            Upload a profile JSON file so all apps load your office details
+            automatically.
+          </p>
+        </div>
+        <div class="profile-actions">
+          <span class="profile-badge inactive" id="profileBadge"
+            >Not configured</span
+          >
+          <input
+            type="file"
+            id="profileUpload"
+            accept=".json"
+            style="display: none"
+          />
+          <button
+            class="btn-sm btn-upload"
+            onclick="document.getElementById('profileUpload').click()"
+          >
+            Upload Profile
+          </button>
+          <button class="btn-sm btn-sample" onclick="downloadSample()">
+            Download Sample
+          </button>
+          <button
+            class="btn-sm btn-clear"
+            id="clearBtn"
+            onclick="clearProfile()"
+            style="display: none"
+          >
+            Clear Profile
+          </button>
+        </div>
+      </div>
+      <!-- Header & Logo Settings -->
+      <div class="header-settings-card">
+        <button class="header-settings-toggle" onclick="idxToggleHeaderSettings()" aria-expanded="true" aria-controls="headerSettingsBody">
+          <strong style="color:var(--primary);font-size:1rem;">Header &amp; Logo Settings</strong>
+          <em id="headerSettingsChevron" class="header-settings-chevron open">▼</em>
+        </button>
+        <div id="headerSettingsBody" style="margin-top:1rem;">
+        <!-- Image uploads -->
+        <div style="margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <input type="file" id="idxLogoUpload" accept="image/*" style="display:none;" onchange="idxHandleLogoUpload(event)">
+            <button class="btn-sm btn-upload" onclick="document.getElementById('idxLogoUpload').click()">🖼 Logo</button>
+            <div style="display:flex;border:2px solid var(--secondary);border-radius:8px;overflow:hidden;flex-shrink:0;">
+              <button id="idxLogoPosCenter" class="idx-pos-btn active" onclick="idxSetLogoPos('center')">Center</button>
+              <button id="idxLogoPosLeft" class="idx-pos-btn" onclick="idxSetLogoPos('left')">Left</button>
+            </div>
+            <span id="idxLogoThumb"></span>
+            <span id="idxLogoSizeRow" style="display:none;align-items:center;gap:4px;">
+              <input type="range" id="idxLogoSizeSlider" min="30" max="250" value="115" style="width:90px;cursor:pointer;" oninput="idxSetLogoSize(this.value)">
+              <span id="idxLogoSizeLabel" style="font-size:0.8rem;color:#555;min-width:32px;">115px</span>
+            </span>
+            <button id="idxLogoClearBtn" class="btn-sm btn-clear" onclick="idxClearLogo()" style="display:none;">✕ Remove</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin:6px 0;">
+            <hr style="flex:1;border:none;border-top:1px solid #e0e0e0;">
+            <span style="font-size:0.75rem;color:#aaa;white-space:nowrap;">or full header image (replaces text header)</span>
+            <hr style="flex:1;border:none;border-top:1px solid #e0e0e0;">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <input type="file" id="idxHeaderUpload" accept="image/*" style="display:none;" onchange="idxHandleHeaderUpload(event)">
+            <button class="btn-sm btn-upload" onclick="document.getElementById('idxHeaderUpload').click()">🖼 Header Image</button>
+            <span id="idxHeaderThumb"></span>
+            <button id="idxHeaderClearBtn" class="btn-sm btn-clear" onclick="idxClearHeader()" style="display:none;">✕ Remove</button>
+          </div>
+        </div>
+        <!-- Per-app display mode -->
+        <div style="border-top:1px solid #e8e8e8;padding-top:1rem;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.75rem;">Header display per app:</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+            <span style="min-width:130px;font-size:0.85rem;color:#555;">✉️ Letter</span>
+            <div class="idx-mode-group" data-app="letter">
+              <button class="idx-mode-btn" data-val="none" onclick="idxSetMode('letter','none')">No Header</button>
+              <button class="idx-mode-btn" data-val="logo" onclick="idxSetMode('letter','logo')">Logo</button>
+              <button class="idx-mode-btn" data-val="header" onclick="idxSetMode('letter','header')">Header Image</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+            <span style="min-width:130px;font-size:0.85rem;color:#555;">⚖️ Proceedings</span>
+            <div class="idx-mode-group" data-app="proceedings">
+              <button class="idx-mode-btn" data-val="none" onclick="idxSetMode('proceedings','none')">No Header</button>
+              <button class="idx-mode-btn" data-val="logo" onclick="idxSetMode('proceedings','logo')">Logo</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="min-width:130px;font-size:0.85rem;color:#555;">📢 Notice</span>
+            <div class="idx-mode-group" data-app="notice">
+              <button class="idx-mode-btn" data-val="none" onclick="idxSetMode('notice','none')">No Header</button>
+              <button class="idx-mode-btn" data-val="logo" onclick="idxSetMode('notice','logo')">Logo</button>
+              <button class="idx-mode-btn" data-val="header" onclick="idxSetMode('notice','header')">Header Image</button>
+            </div>
+          </div>
+        </div>
+        </div><!-- /headerSettingsBody -->
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="grid">
+        <!-- Application 1: Letter -->
+        <div class="card" style="border-top-color: #3498db">
+          <div class="card-body">
+            <div class="card-icon">✉️</div>
+            <h2>Letter</h2>
+            <a
+              href="#"
+              class="btn"
+              onclick="return launchApp('Letter Generator.html');"
+              >Launch App</a
+            >
+          </div>
+        </div>
+
+        <!-- Application 2: Proceedings -->
+        <div class="card" style="border-top-color: #e67e22">
+          <div class="card-body">
+            <div class="card-icon">⚖️</div>
+            <h2>Proceedings</h2>
+            <a
+              href="#"
+              class="btn"
+              onclick="return launchApp('Proceedings.html');"
+              >Launch App</a
+            >
+          </div>
+        </div>
+
+        <!-- Application 3: Circular/Notice -->
+        <div class="card" style="border-top-color: #9b59b6">
+          <div class="card-body">
+            <div class="card-icon">📢</div>
+            <h2>Circular/Notice</h2>
+            <a href="#" class="btn" onclick="return launchApp('Notice.html');"
+              >Launch App</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Manual & Feedback -->
+    <div class="manual-section">
+      <a href="User Manual.pdf" target="_blank" class="manual-link">
+        📖 USER MANUAL
+      </a>
+      <a
+        href="YOUR_GOOGLE_FORM_URL_HERE"
+        target="_blank"
+        class="manual-link feedback-link"
+      >
+        💬 FEEDBACK
+      </a>
+    </div>
+
+    <div style="display: none">
+      <ol>
+        <li>
+          <strong>Office Suite</strong><br />
+          e-Office ലേക്ക് ആവശ്യമായ കരടുകള്‍ എളുപ്പത്തില്‍ തയ്യാറാക്കുന്നതിനാണ് ഈ
+          ആപ്ലിക്കേഷന്‍ വികസിപ്പിച്ചിട്ടുള്ളത്. ഇതുവഴി തയ്യാറാക്കുന്ന കരടുകള്‍
+          നേരിട്ട് e-Office ലേക്ക് Alignment തെറ്റാതെ പക‍ര്‍ത്താന്‍
+          സാധിക്കുന്നതാണ്. കൂടാതെ കരടുകള്‍ export ചെയ്ത് കമ്പ്യൂട്ടറില്‍ save
+          ചെയ്യാനും പിന്നീട് Upload ചെയ്ത് edit ചെയ്യാവുന്നതുമാണ്. കൂടാതെ
+          തയ്യാറാക്കിയ കരട് പ്രിന്റ് ചെയ്യുവാനും സാധിക്കുന്നതാണ്.
+        </li>
+        <li>
+          <strong>ഓഫീസ് പ്രൊഫൈൽ അപ്‌ലോഡ് ചെയ്യുക</strong><br />
+          ഇതിനായി ആദ്യം മാതൃക ഫയൽ (JSON) <em>Download Sample</em> ബട്ടൺ വഴി
+          ഡൗൺലോഡ് ചെയ്യാുക. ഓഫീസ് വിവരങ്ങൾ പൂരിപ്പിച്ചശേഷം
+          <em>Upload Profile</em> ബട്ടൺ ക്ലിക്ക് ചെയ്ത് ഫയൽ അപ്‌ലോഡ് ചെയ്യുക. ഈ
+          വിവരങ്ങൾ പൂര്‍ണമായും browser ലാണ് save ചെയ്യപ്പെടുന്നത്. ആയതിനാല്‍ ഓരേ
+          web browser തന്നെ ഉപയോിഗിക്കുവാന്‍ ശ്രദ്ധിക്കുക. ഇത്
+          പ്രവര്‍ത്തിക്കുന്നതിന് internet ആവശ്യമില്ല.
+        </li>
+        <li>
+          <strong>ഡ്രാഫ്റ്റ് തയ്യാറാക്കുക</strong><br />
+          Letter, Proceedings, അല്ലെങ്കിൽ Circular/Notice കാർഡിലെ
+          <em>Launch App</em> ബട്ടൺ ക്ലിക്ക് ചെയ്ത് ആവശ്യമുള്ള ആപ്ലിക്കേഷൻ
+          തുറക്കുക. ഫോം ഫീൽഡുകൾ പൂരിപ്പിക്കുമ്പോൾ വലതുവശത്ത് പ്രിവ്യൂ തത്സമയം
+          അപ്ഡേറ്റ് ആകും.
+        </li>
+        <li>
+          <strong>Mail-merge ഉപയോഗിക്കുക</strong><br />
+          ഒന്നിലധികം ഡ്രാഫ്റ്റുകൾ ഒരേസമയം തയ്യാറാക്കാൻ Mail Merge ഉപയോഗിക്കാം.
+          ഇതിനായി Excel അല്ലെങ്കിൽ CSV ഫയൽ അപ്‌ലോഡ് ചെയ്യുക. Upload ചെയ്ത
+          ഫയലില്‍ ഏറ്റവും മുകളിലായി ഒരു row വരുന്നതായി കാണാം. ഇതില്‍ {കോളം പേര്}
+          കാണാം. ഇത് പകര്‍ത്തി ഫോം ഫീൽഡുകളിൽ
+          <code>{കോളം പേര്}</code> എന്ന രൂപത്തിൽ പ്ലേസ്‌ഹോൾഡർ ചേർക്കുക. ഇപ്രകാരം
+          വിവധ കോളം പേരുകള്‍ ആവശ്യമായ സ്ഥലങ്ങളില്‍ പകര്‍തിയ ശേഷം ഓരോ വരിയിലം
+          ക്ലിക്ക് ചെയ്യുക. അപ്പോള്‍ {കോളം പേര്} നു പകരം ആ വരിയിലെ ഡാറ്റ
+          വരുന്നത് കാണാം. ഇതിലെ ഓരോ കരടും e-Office ലേക്ക് പ്രത്യേകം കരടുകളായി
+          പകര്‍ത്തുക. excel/csv ഫയലുകളിലെ ഡാറ്റ ഉപയോഗിച്ച മുഴുവന്‍ കരടുകളും pdf
+          ആയി കാണുന്നതിനായി പ്രിവ്യൂ പാനലിലെ <em>📄 All Drafts</em> ബട്ടൺ
+          ഉപയോഗിക്കാം. ആവശ്യമെങ്കില്‍ പ്രിന്റ് എടുക്കുകയും ചെയ്യാം
+        </li>
+        <li>
+          <strong>Logo/Header </strong><br />
+          ലോഗോ upload ചെയ്യാം. ലോഗോ മുകളിലാണോ ഇടതു വശത്താണോ കാണപ്പെടേണ്ടത് എന്ന്
+          തീരുമാനിക്കാം. Microsoft word ഫയലുകളില്‍ Header ചേര്‍ക്കുന്നതുപേലെ
+          ഇതിലും Header ചേര്‍ക്കാം. ഇതിനായി jpg/png format ല്‍ Header
+          തയ്യാറാക്കി upload ചെയ്യുക.
+        </li>
+        <li>
+          <strong>ടെംപ്ലേറ്റ് സേവ് ചെയ്യുക</strong><br />
+          പതിവായി ഉപയോഗിക്കുന്ന ഡ്രാഫ്റ്റ് ഒരു ടെംപ്ലേറ്റ് ആയി സേവ് ചെയ്യാം.
+          <em>Export</em> ബട്ടൺ ഉപയോഗിച്ച് JSON ഫയലായി ഡൗൺലോഡ് ചെയ്ത്, അടുത്ത
+          തവണ <em>Import</em> ബട്ടൺ വഴി ലോഡ് ചെയ്യുക. ഇതുവഴി ഓരോ തവണയും ആദ്യം
+          മുതൽ ടൈപ്പ് ചെയ്യേണ്ട ആവശ്യം ഒഴിവാകും.
+        </li>
+      </ol>
+    </div>
+
+    <footer>
+      <p>
+        Developed by Sreejith M, Head Accountant, Govt. Arts and Science College
+        Uduma
+      </p>
+    </footer>
+
+    <script>
+      // ── Header & Logo Settings ──
+      function idxHandleLogoUpload(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          localStorage.setItem('officeLogo', e.target.result);
+          idxRefreshLogoUI();
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+      }
+      function idxHandleHeaderUpload(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          localStorage.setItem('officeHeader', e.target.result);
+          idxRefreshHeaderUI();
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+      }
+      function idxClearLogo() {
+        localStorage.removeItem('officeLogo');
+        idxRefreshLogoUI();
+      }
+      function idxClearHeader() {
+        localStorage.removeItem('officeHeader');
+        idxRefreshHeaderUI();
+      }
+      function idxSetLogoPos(pos) {
+        localStorage.setItem('officeLogoPos', pos);
+        document.getElementById('idxLogoPosCenter').classList.toggle('active', pos === 'center');
+        document.getElementById('idxLogoPosLeft').classList.toggle('active', pos === 'left');
+      }
+      function idxSetLogoSize(val) {
+        localStorage.setItem('officeLogoSize', val);
+        document.getElementById('idxLogoSizeLabel').textContent = val + 'px';
+      }
+      function idxRefreshLogoUI() {
+        var logo = localStorage.getItem('officeLogo');
+        var pos = localStorage.getItem('officeLogoPos') || 'center';
+        var size = localStorage.getItem('officeLogoSize') || '115';
+        var thumb = document.getElementById('idxLogoThumb');
+        var clearBtn = document.getElementById('idxLogoClearBtn');
+        var sizeRow = document.getElementById('idxLogoSizeRow');
+        idxSetLogoPos(pos);
+        if (logo) {
+          thumb.innerHTML = '<img src="' + logo + '" style="height:40px;max-width:80px;object-fit:contain;border:1px solid #ddd;border-radius:4px;">';
+          clearBtn.style.display = 'inline-block';
+          sizeRow.style.display = 'inline-flex';
+          document.getElementById('idxLogoSizeSlider').value = size;
+          document.getElementById('idxLogoSizeLabel').textContent = size + 'px';
+        } else {
+          thumb.innerHTML = '';
+          clearBtn.style.display = 'none';
+          sizeRow.style.display = 'none';
+        }
+      }
+      function idxRefreshHeaderUI() {
+        var header = localStorage.getItem('officeHeader');
+        var thumb = document.getElementById('idxHeaderThumb');
+        var clearBtn = document.getElementById('idxHeaderClearBtn');
+        if (header) {
+          thumb.innerHTML = '<img src="' + header + '" style="max-height:40px;max-width:150px;object-fit:contain;border:1px solid #ddd;border-radius:4px;">';
+          clearBtn.style.display = 'inline-block';
+        } else {
+          thumb.innerHTML = '';
+          clearBtn.style.display = 'none';
+        }
+      }
+      function idxSetMode(app, val) {
+        localStorage.setItem('headerMode_' + app, val);
+        idxRefreshModeUI(app);
+      }
+      function idxRefreshModeUI(app) {
+        var mode = localStorage.getItem('headerMode_' + app) || 'logo';
+        var group = document.querySelector('.idx-mode-group[data-app="' + app + '"]');
+        if (!group) return;
+        group.querySelectorAll('.idx-mode-btn').forEach(function(btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-val') === mode);
+        });
+      }
+      function idxToggleHeaderSettings() {
+        var body = document.getElementById('headerSettingsBody');
+        var chevron = document.getElementById('headerSettingsChevron');
+        var btn = chevron.closest('button');
+        var isOpen = body.style.display !== 'none';
+        body.style.display = isOpen ? 'none' : 'block';
+        chevron.classList.toggle('open', !isOpen);
+        btn.setAttribute('aria-expanded', !isOpen);
+        localStorage.setItem('headerSettingsOpen', isOpen ? '0' : '1');
+      }
+      function idxInitHeaderSettings() {
+        var isOpen = localStorage.getItem('headerSettingsOpen') !== '0';
+        var body = document.getElementById('headerSettingsBody');
+        var chevron = document.getElementById('headerSettingsChevron');
+        var btn = chevron.closest('button');
+        body.style.display = isOpen ? 'block' : 'none';
+        chevron.classList.toggle('open', isOpen);
+        btn.setAttribute('aria-expanded', isOpen);
+        idxRefreshLogoUI();
+        idxRefreshHeaderUI();
+        ['letter', 'proceedings', 'notice'].forEach(idxRefreshModeUI);
+      }
+
+      function renderProfileStatus() {
+        var raw = localStorage.getItem("officeProfile");
+        var card = document.getElementById("profileCard");
+        var title = document.getElementById("profileTitle");
+        var subtitle = document.getElementById("profileSubtitle");
+        var badge = document.getElementById("profileBadge");
+        var clearBtn = document.getElementById("clearBtn");
+
+        if (raw) {
+          try {
+            var p = JSON.parse(raw);
+            card.classList.add("loaded");
+            title.textContent = p.officeName || "Office Profile Loaded";
+            subtitle.textContent =
+              "Principal: " +
+              (p.principalName || "—") +
+              (p.principalNameEn ? " / " + p.principalNameEn : "");
+            badge.textContent = "Profile Active";
+            badge.className = "profile-badge active";
+            clearBtn.style.display = "inline-block";
+          } catch (e) {
+            localStorage.removeItem("officeProfile");
+          }
+        } else {
+          card.classList.remove("loaded");
+          title.textContent = "No Office Profile Loaded";
+          subtitle.textContent =
+            "Upload a profile JSON file so all apps load your office details automatically.";
+          badge.textContent = "Not configured";
+          badge.className = "profile-badge inactive";
+          clearBtn.style.display = "none";
+        }
+      }
+
+      document.getElementById("profileUpload").onchange = function (event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            var profile = JSON.parse(e.target.result);
+            if (!profile.officeName && !profile.principalName) {
+              alert("Invalid profile file. Please use the sample as a guide.");
+              return;
+            }
+            localStorage.setItem("officeProfile", JSON.stringify(profile));
+            renderProfileStatus();
+          } catch (err) {
+            alert(
+              "Could not read the file. Make sure it is a valid JSON file.",
+            );
+          }
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+      };
+
+      function clearProfile() {
+        if (
+          confirm(
+            "Remove the current office profile? Apps will show empty fields until a new profile is uploaded.",
+          )
+        ) {
+          localStorage.removeItem("officeProfile");
+          renderProfileStatus();
+        }
+      }
+
+      function downloadSample() {
+        var sample = {
+          officeName: "ഓഫീസിന്റെ പേര്",
+          officeNameEn: "Name of Office",
+          officeAddress: "വിലാസം (ലൈൻ 1)\nഫോണ്‍ നം., ഇമെയില്‍ (ലൈന്‍ 2)",
+          officeAddressEn: "Address (Line 1)\nPhone No., email (Line 2)",
+          principalName: "ഓഫീസ് മേധാവിയുടെ പേര്",
+          principalNameEn: "Name of the Head of Office",
+          designation: "ഉദ്യോഗപ്പേര്",
+          designationEn: "Designation",
+          fromAddress: "ഉദ്യോഗപ്പേര്\nലൈന്‍2\nലൈന്‍3",
+          fromAddressEn: "Designation\nLine2\nLine3",
+          proceedingsTitle: "നടപടിക്രമത്തിന്റെ ശീര്‍ഷകം",
+          proceedingsTitleEn: "Header of the Proceedings",
+        };
+        var blob = new Blob([JSON.stringify(sample, null, 2)], {
+          type: "application/json",
+        });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "office_profile_sample.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function launchApp(url) {
+        var raw = localStorage.getItem("officeProfile");
+        if (raw) {
+          try {
+            // Base64-encode the profile JSON, then URL-encode the result
+            // so that base64 characters like + / = survive the URL round-trip
+            var b64 = btoa(unescape(encodeURIComponent(raw)));
+            window.location.href = url + "?profile=" + encodeURIComponent(b64);
+          } catch (e) {
+            window.location.href = url; // fallback without profile
+          }
+        } else {
+          window.location.href = url;
+        }
+        return false; // always prevent the anchor's own href from firing
+      }
+
+      renderProfileStatus();
+      idxInitHeaderSettings();
+    </script>
+  </body>
+</html>
