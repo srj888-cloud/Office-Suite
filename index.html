@@ -488,9 +488,6 @@
 
   <body>
     <header>
-      <div style="margin-bottom: 1rem">
-        <span class="offline-badge">Offline Ready</span>
-      </div>
       <h1>Office Suite</h1>
       <p>A toolkit for e-Office document drafting.</p>
     </header>
@@ -880,13 +877,12 @@
               <strong>Office Suite</strong><br />
               e-Office ല്‍ Alignment തെറ്റാതെ ഡ്രാഫ്റ്റുകൾ
               തയ്യാറാക്കുന്നതിനായിട്ടാണ് ഈ Application വികസിപ്പിച്ചിരിക്കുന്നത്.
-              പൂര്‍ണമായും AI സാങ്കേതിക വിദ്യ ഉപയോഗിച്ചാണ് ഇത്
-              വികസിപ്പിച്ചിരിക്കുന്നത്.
             </li>
 
             <li>
               <strong>Bookmark</strong><br />
-              Website ന്റെ Link bookmark ചെയ്ത് സൂക്ഷിക്കുന്നത് നന്നായിരിക്കും.
+              Web Application ന്റെ Link bookmark ചെയ്ത് സൂക്ഷിക്കുന്നത്
+              നന്നായിരിക്കും.
             </li>
             <li>
               <strong>Browser</strong><br />
@@ -936,10 +932,12 @@
               സേവ് ചെയ്യാനും സാധിക്കും. ഈ സൗകര്യം e-office നു വേണ്ടിയുള്ളതല്ല
             </li>
             <li>
-              ഈ ആപ്ലിക്കഷനില്‍ Table ചേര്‍ക്കുന്നത് Excel മുഖേനയാണ്. ഇതിനായി
-              Excel - ല്‍ ആവശ്യമായി വിവരങ്ങള്‍ ചേ‍ര്‍ത്തശേഷം Upload Excel
-              ബട്ടണ്‍ മുഖേന Table insert ചെയ്യുക. ഇത് Letter/Proceedings/Notice
-              Body യില്‍ cursor point ലാണ് Insert ആകുന്നത്.
+              <strong>Excel File Upload</strong><br />
+              ഈ ആപ്ലിക്കഷനില്‍ Table ചേര്‍ക്കുന്നത് Excel File മുഖേനയാണ്.
+              ഇതിനായി Excel Sheet - ല്‍ ആവശ്യമായി വിവരങ്ങള്‍ ചേ‍ര്‍ത്തശേഷം
+              Upload Excel ബട്ടണ്‍ മുഖേന Table insert ചെയ്യുക. ഇത്
+              Letter/Proceedings/Notice Body യില്‍ cursor point ലാണ് Insert
+              ആകുന്നത്.
             </li>
             <li>
               Manage Address button ഉപയോഗിച്ച് To Address ചേര്‍ക്കാം. ഈ
@@ -970,8 +968,12 @@
 
     <footer>
       <p>
-        Developed by <strong>Sreejith M</strong>, Head Accountant<br />Govt.
-        Arts and Science College Uduma, Kasaragod (officesuite888@gmail.com)
+        🔒 Fully offline · No server · Your data never leaves this device · Code
+        is fully inspectable
+      </p>
+      <p style="margin-top: 0.6rem; font-size: 0.78rem; opacity: 0.6">
+        Developed by Sreejith M, Head Accountant<br />Govt. Arts and Science
+        College Uduma, Kasaragod (officesuite888@gmail.com)
       </p>
     </footer>
 
@@ -1107,11 +1109,9 @@
           try {
             var p = JSON.parse(raw);
             card.classList.add("loaded");
-            title.textContent = p.officeName || "Office Profile Loaded";
-            subtitle.textContent =
-              "Principal: " +
-              (p.principalName || "—") +
-              (p.principalNameEn ? " / " + p.principalNameEn : "");
+            title.textContent =
+              p.officeNameEn || p.officeName || "Office Profile Loaded";
+            subtitle.textContent = "";
             badge.textContent = "Profile Active";
             badge.className = "profile-badge active";
             clearBtn.style.display = "inline-block";
