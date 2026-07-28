@@ -2016,7 +2016,8 @@
         if (!tableData || tableData.length === 0) return "";
 
         var html =
-          '<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-family: inherit; font-size: 11pt;">';
+          var html =
+  '<table style="width: 100%; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
 
         for (var rowIndex = 0; rowIndex < tableData.length; rowIndex++) {
           var row = tableData[rowIndex];
@@ -2087,7 +2088,7 @@
             // Apply same styling to all rows - no special header treatment
             var tag = "td";
             var style =
-              "border: 1px solid #333; padding: 8px; text-align: left; white-space: pre-wrap;";
+              "border: 1px solid #000; padding: 2px; font-size: 12pt; text-align: center;";
 
             // Only make first row bold for visual distinction, but same content processing
             if (rowIndex === 0) {
