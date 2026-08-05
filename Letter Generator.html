@@ -460,6 +460,19 @@
           padding: 0;
         }
 
+        table {
+          page-break-inside: auto;
+        }
+
+        tr {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        thead {
+          display: table-header-group;
+        }
+
         .form-panel {
           display: none;
         }
@@ -824,6 +837,23 @@
             >
               Upload Excel
             </button>
+            <label
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 12px;
+                font-weight: normal;
+                margin: 5px 0;
+              "
+            >
+              <input
+                type="checkbox"
+                id="numberParagraphs"
+                onchange="updatePreview()"
+              />
+              Number each paragraph (1., 2., 3. ...)
+            </label>
             <textarea
               id="letterBody"
               style="min-height: 150px"
@@ -904,6 +934,66 @@
             </button>
           </div>
 
+          <div class="dynamic-section">
+            <label
+              style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"
+            >
+              <input
+                type="checkbox"
+                id="includeAppellateAuthority"
+                onchange="toggleAppellateAuthority(); updatePreview();"
+                style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+              />
+              Include Appellate Authority (RTI) — അപ്പീൽ അധികാരി
+            </label>
+            <div id="appellateAuthorityFields" style="display: none;">
+              <button
+                type="button"
+                class="btn btn-primary"
+                onclick="openManager('appellate')"
+                style="margin-bottom: 6px;"
+              >
+                Manage Appellate Authority Addresses
+              </button>
+              <select
+                class="appellate-dropdown"
+                onchange="loadAddress(this, 'appellate')"
+                style="margin-bottom: 6px;"
+              >
+                <option value="">
+                  Select saved Appellate Authority address...
+                </option>
+              </select>
+              <textarea
+                id="appellateAuthorityText"
+                oninput="updatePreview()"
+                placeholder="Enter Appellate Authority name, designation, address..."
+                style="min-height: 80px; width: 100%; box-sizing: border-box;"
+              ></textarea>
+              <div style="margin-top: 6px; font-size: 12px;">
+                <label style="margin-right: 15px;">
+                  <input
+                    type="radio"
+                    name="appellateAuthorityPosition"
+                    value="afterBody"
+                    checked
+                    onchange="updatePreview()"
+                  />
+                  End of Body
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="appellateAuthorityPosition"
+                    value="afterClosing"
+                    onchange="updatePreview()"
+                  />
+                  After Closing (valediction + signature)
+                </label>
+              </div>
+            </div>
+          </div>
+
           <input type="hidden" id="principalName" value="" />
 
           <div
@@ -929,6 +1019,203 @@
             >
               💾 Download Draft
             </button>
+            <div
+              id="copyOptionsPanel"
+              style="
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 8px 10px;
+                font-size: 12px;
+                background: #f8f9fa;
+              "
+            >
+              <div style="font-weight: bold; margin-bottom: 5px;">
+                Copy Draft — Include Sections
+              </div>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 6px;
+                  padding-bottom: 6px;
+                  border-bottom: 1px solid #ddd;
+                  font-weight: bold;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copySelectAll"
+                  checked
+                  onchange="toggleAllCopyOptions(this.checked)"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Select All / Deselect All
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeHeader"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Header
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeFileNoDate"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                File No. / Date
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeFrom"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                From
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeTo"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                To
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeSirMadam"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Sir/Madam
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeSubjectRef"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Subject / Reference
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeBody"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Body
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeClosing"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Closing (valediction + signature)
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 3px;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeEnclosure"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Enclosure
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px;">
+                <input
+                  type="checkbox"
+                  id="copyIncludeCopyTo"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Copy To
+              </label>
+            </div>
             <button
               type="button"
               class="btn btn-primary"
@@ -1000,8 +1287,99 @@
             📄 All Drafts
           </button>
         </div>
+        <div
+          style="
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            padding: 6px 10px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+          "
+        >
+          <button
+            type="button"
+            id="previewModeLetterBtn"
+            onclick="setPreviewMode('letter')"
+            style="
+              padding: 4px 10px;
+              font-size: 12px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              cursor: pointer;
+              background: var(--primary, #2c3e50);
+              color: white;
+            "
+          >
+            Letter Preview
+          </button>
+          <button
+            type="button"
+            id="previewModeDataBtn"
+            onclick="setPreviewMode('data')"
+            style="
+              padding: 4px 10px;
+              font-size: 12px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              cursor: pointer;
+              background: white;
+              color: #333;
+            "
+          >
+            Data Sheet
+          </button>
+          <span style="flex: 1"></span>
+          <input
+            type="file"
+            id="dataSheetFileInput"
+            accept=".xlsx,.xls,.csv"
+            style="display: none"
+            onchange="handleDataSheetUpload(this.files)"
+          />
+          <button
+            type="button"
+            onclick="document.getElementById('dataSheetFileInput').click()"
+            style="
+              padding: 4px 10px;
+              font-size: 12px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              cursor: pointer;
+              background: #f8f9fa;
+            "
+          >
+            📊 Upload Data Sheet
+          </button>
+        </div>
         <div class="letter-preview">
           <div id="letterPreview"></div>
+        </div>
+        <div id="dataSheetPanel" style="display: none; padding: 10px; overflow: auto;">
+          <div
+            id="dataSheetTabs"
+            style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;"
+          ></div>
+          <div id="dataSheetHint" style="font-size: 12px; color: #666; margin-bottom: 8px;">
+            Click into a field (From, To, Subject, Body, etc.), then click any value below to insert it at your cursor.
+          </div>
+          <input
+            type="text"
+            id="dataSheetSearch"
+            placeholder="Search rows..."
+            oninput="renderDataSheetGrid(this.value)"
+            style="
+              width: 100%;
+              max-width: 300px;
+              padding: 6px 8px;
+              font-size: 12px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              margin-bottom: 8px;
+              box-sizing: border-box;
+            "
+          />
+          <div id="dataSheetGrid" style="overflow: auto;"></div>
         </div>
         <div
           class="resize-handle"
@@ -1027,10 +1405,14 @@
       var data = {
         addresses: [],
         copyAddresses: [],
+        appellateAddresses: [],
         templates: [],
         tables: {},
         tableCounter: 0,
+        dataSheets: {},
       };
+      var activeDataSheetName = null;
+      var lastFocusedField = null;
       var currentManager = "";
       var isResizing = false;
       var currentPanel = null;
@@ -1064,7 +1446,8 @@
           faithfully: "വിശ്വസ്തതയോടെ,",
           copy: "പകർപ്പ്",
           enclosure: "ഉള്ളടക്കം",
-          principal: "പ്രിന്‍സിപ്പാള്‍(i/c)",
+          principal: "",
+          appellateAuthority: "അപ്പീൽ അധികാരി",
         },
         en: {
           font: "'Times New Roman', Times, serif",
@@ -1078,7 +1461,8 @@
           faithfully: "Yours faithfully,",
           copy: "Copy to",
           enclosure: "Enclosure",
-          principal: "Principal(i/c)",
+          principal: "",
+          appellateAuthority: "അപ്പീൽ അധികാരി",
         },
       };
 
@@ -1292,6 +1676,11 @@
             copyTo: copyTo,
             principalName: document.getElementById("principalName").value,
             tables: data.tables,
+            numberParagraphs: document.getElementById("numberParagraphs")
+              .checked,
+            copyOptions: getCopyOptions(),
+            dataSheets: data.dataSheets,
+            appellateAuthority: getAppellateAuthorityData(),
           },
           exportDate: new Date().toISOString(),
           version: "1.0",
@@ -1320,6 +1709,7 @@
         loadOfficeProfile();
         updateDropdowns();
         updatePreview();
+        renderDataSheetTabs();
 
         // Setup file upload handler
         document.getElementById("templateUpload").onchange = function (event) {
@@ -1360,8 +1750,13 @@
 
               data.tables = d.tables || {};
               updateTablesDisplay();
-
-              // Clear and rebuild dynamic fields
+              document.getElementById("numberParagraphs").checked =
+                !!d.numberParagraphs;
+              applyCopyOptions(d.copyOptions);
+              data.dataSheets = d.dataSheets || {};
+              activeDataSheetName = null;
+              renderDataSheetTabs();
+              applyAppellateAuthorityData(d.appellateAuthority);
               var containers = [
                 "toAddresses",
                 "references",
@@ -1451,8 +1846,10 @@
                   var tableId = "TABLE_" + tableNum;
 
                   data.tables[tableId] = {
-                    html: processRawExcelHTML(rawHTML),
+                    html: processRawExcelHTML(rawHTML, []),
+                    rawHTML: rawHTML,
                     fileName: file.name,
+                    splitAfterRows: [],
                   };
 
                   // Insert placeholder at cursor position (like Notice)
@@ -1485,6 +1882,9 @@
             JSON.parse(sessionStorage.getItem("ml_addresses")) || [];
           data.copyAddresses =
             JSON.parse(sessionStorage.getItem("ml_copy_addresses")) || [];
+          data.appellateAddresses =
+            JSON.parse(sessionStorage.getItem("ml_appellate_addresses")) ||
+            [];
           data.templates =
             JSON.parse(sessionStorage.getItem("ml_templates")) || [];
           // Clear any legacy pre-loaded default addresses
@@ -1514,6 +1914,10 @@
           sessionStorage.setItem(
             "ml_copy_addresses",
             JSON.stringify(data.copyAddresses),
+          );
+          sessionStorage.setItem(
+            "ml_appellate_addresses",
+            JSON.stringify(data.appellateAddresses),
           );
           sessionStorage.setItem(
             "ml_templates",
@@ -1953,7 +2357,404 @@
         }
       }
 
-      function processRawExcelHTML(rawHTML) {
+      function applyCopyOptions(copyOptions) {
+        var opts = copyOptions || {};
+        var fields = {
+          copyIncludeHeader: "header",
+          copyIncludeFileNoDate: "fileNoDate",
+          copyIncludeFrom: "from",
+          copyIncludeTo: "to",
+          copyIncludeSirMadam: "sirMadam",
+          copyIncludeSubjectRef: "subjectRef",
+          copyIncludeBody: "body",
+          copyIncludeClosing: "closing",
+          copyIncludeEnclosure: "enclosure",
+          copyIncludeCopyTo: "copyTo",
+        };
+        for (var elId in fields) {
+          var el = document.getElementById(elId);
+          if (!el) continue;
+          var key = fields[elId];
+          el.checked = opts.hasOwnProperty(key) ? !!opts[key] : true;
+        }
+        updateCopySelectAllState();
+      }
+
+      var COPY_OPTION_CHECKBOX_IDS = [
+        "copyIncludeHeader",
+        "copyIncludeFileNoDate",
+        "copyIncludeFrom",
+        "copyIncludeTo",
+        "copyIncludeSirMadam",
+        "copyIncludeSubjectRef",
+        "copyIncludeBody",
+        "copyIncludeClosing",
+        "copyIncludeEnclosure",
+        "copyIncludeCopyTo",
+      ];
+
+      function toggleAllCopyOptions(checked) {
+        for (var i = 0; i < COPY_OPTION_CHECKBOX_IDS.length; i++) {
+          var el = document.getElementById(COPY_OPTION_CHECKBOX_IDS[i]);
+          if (el) el.checked = checked;
+        }
+      }
+
+      function updateCopySelectAllState() {
+        var total = 0;
+        var checkedCount = 0;
+        for (var i = 0; i < COPY_OPTION_CHECKBOX_IDS.length; i++) {
+          var el = document.getElementById(COPY_OPTION_CHECKBOX_IDS[i]);
+          if (!el) continue;
+          total++;
+          if (el.checked) checkedCount++;
+        }
+        var selectAllEl = document.getElementById("copySelectAll");
+        if (!selectAllEl) return;
+        selectAllEl.checked = checkedCount === total;
+        selectAllEl.indeterminate = checkedCount > 0 && checkedCount < total;
+      }
+
+      function getCopyOptions() {
+        function isChecked(id) {
+          var el = document.getElementById(id);
+          return el ? el.checked : true;
+        }
+        return {
+          header: isChecked("copyIncludeHeader"),
+          fileNoDate: isChecked("copyIncludeFileNoDate"),
+          from: isChecked("copyIncludeFrom"),
+          to: isChecked("copyIncludeTo"),
+          sirMadam: isChecked("copyIncludeSirMadam"),
+          subjectRef: isChecked("copyIncludeSubjectRef"),
+          body: isChecked("copyIncludeBody"),
+          closing: isChecked("copyIncludeClosing"),
+          enclosure: isChecked("copyIncludeEnclosure"),
+          copyTo: isChecked("copyIncludeCopyTo"),
+        };
+      }
+
+      // ===== Data Sheet feature =====
+
+      function setPreviewMode(mode) {
+        var letterBtn = document.getElementById("previewModeLetterBtn");
+        var dataBtn = document.getElementById("previewModeDataBtn");
+        var letterEl = document.querySelector(".letter-preview");
+        var dataEl = document.getElementById("dataSheetPanel");
+
+        var activeStyle = "background: var(--primary, #2c3e50); color: white;";
+        var inactiveStyle = "background: white; color: #333;";
+
+        if (mode === "data") {
+          letterEl.style.display = "none";
+          dataEl.style.display = "block";
+          letterBtn.style.cssText = letterBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            inactiveStyle,
+          );
+          dataBtn.style.cssText = dataBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            activeStyle,
+          );
+        } else {
+          letterEl.style.display = "";
+          dataEl.style.display = "none";
+          letterBtn.style.cssText = letterBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            activeStyle,
+          );
+          dataBtn.style.cssText = dataBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            inactiveStyle,
+          );
+        }
+      }
+
+      function handleDataSheetUpload(files) {
+        if (!files || !files.length) return;
+        var file = files[0];
+        var isCsv = /\.csv$/i.test(file.name);
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+          try {
+            var workbook;
+            if (isCsv) {
+              workbook = XLSX.read(e.target.result, { type: "string" });
+            } else {
+              var arr = new Uint8Array(e.target.result);
+              workbook = XLSX.read(arr, { type: "array" });
+            }
+
+            var sheets = {};
+            for (var s = 0; s < workbook.SheetNames.length; s++) {
+              var sheetName = workbook.SheetNames[s];
+              var ws = workbook.Sheets[sheetName];
+              var rows = XLSX.utils.sheet_to_json(ws, {
+                header: 1,
+                defval: "",
+                raw: false,
+              });
+              sheets[sheetName] = rows;
+            }
+
+            data.dataSheets = sheets;
+            activeDataSheetName = workbook.SheetNames[0] || null;
+            renderDataSheetTabs();
+            showToast("Data sheet uploaded: " + file.name);
+          } catch (err) {
+            showToast("Error reading data sheet file");
+          }
+        };
+
+        if (isCsv) {
+          reader.readAsText(file);
+        } else {
+          reader.readAsArrayBuffer(file);
+        }
+      }
+
+      function renderDataSheetTabs() {
+        var tabsEl = document.getElementById("dataSheetTabs");
+        var sheetNames = Object.keys(data.dataSheets || {});
+
+        if (sheetNames.length === 0) {
+          tabsEl.innerHTML = "";
+          document.getElementById("dataSheetGrid").innerHTML =
+            '<div style="color:#888; font-size:12px;">No data sheet uploaded yet.</div>';
+          return;
+        }
+
+        if (!activeDataSheetName || sheetNames.indexOf(activeDataSheetName) === -1) {
+          activeDataSheetName = sheetNames[0];
+        }
+
+        tabsEl.innerHTML = "";
+        for (var i = 0; i < sheetNames.length; i++) {
+          var name = sheetNames[i];
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = name;
+          btn.style.cssText =
+            "padding:4px 10px;font-size:12px;border:1px solid #ccc;border-radius:4px;cursor:pointer;" +
+            (name === activeDataSheetName
+              ? "background: var(--primary, #2c3e50); color:white;"
+              : "background:#f0f0f0; color:#333;");
+          (function (sheetName) {
+            btn.addEventListener("click", function () {
+              activeDataSheetName = sheetName;
+              var searchEl = document.getElementById("dataSheetSearch");
+              if (searchEl) searchEl.value = "";
+              renderDataSheetTabs();
+            });
+          })(name);
+          tabsEl.appendChild(btn);
+        }
+
+        renderDataSheetGrid();
+      }
+
+      function renderDataSheetGrid(filterText) {
+        var gridEl = document.getElementById("dataSheetGrid");
+        var allRows = (data.dataSheets && data.dataSheets[activeDataSheetName]) || [];
+
+        if (allRows.length === 0) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px;">This sheet has no data.</div>';
+          return;
+        }
+
+        var term = (filterText || "").trim().toLowerCase();
+        var rows = allRows;
+        if (term) {
+          rows = [allRows[0]].concat(
+            allRows.slice(1).filter(function (row) {
+              return row.some(function (cell) {
+                return String(cell == null ? "" : cell)
+                  .toLowerCase()
+                  .indexOf(term) !== -1;
+              });
+            }),
+          );
+        }
+
+        if (rows.length <= 1 && term) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px; padding-top:6px;">No matching rows.</div>';
+          return;
+        }
+
+        var table = document.createElement("table");
+        table.style.cssText =
+          "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+        for (var r = 0; r < rows.length; r++) {
+          var tr = document.createElement("tr");
+          var row = rows[r];
+          for (var c = 0; c < row.length; c++) {
+            var td = document.createElement("td");
+            var val = row[c] === null || row[c] === undefined ? "" : String(row[c]);
+            td.textContent = val;
+            td.style.cssText =
+              "border: 1px solid #ddd; padding: 4px 8px; cursor: pointer; white-space: nowrap;" +
+              (r === 0 ? " font-weight: bold; background: #f0f0f0;" : "");
+            td.addEventListener("mouseenter", function () {
+              this.style.background = "#dff0ff";
+            });
+            td.addEventListener("mouseleave", function () {
+              this.style.background =
+                this.parentElement.rowIndex === 0 ? "#f0f0f0" : "";
+            });
+            td.addEventListener("click", function () {
+              insertDataSheetValue(this.textContent);
+            });
+            tr.appendChild(td);
+          }
+          table.appendChild(tr);
+        }
+
+        gridEl.innerHTML = "";
+        gridEl.appendChild(table);
+      }
+
+      function insertDataSheetValue(text) {
+        insertValueAtCursor(lastFocusedField, text);
+      }
+
+      function insertValueAtCursor(field, text) {
+        if (
+          !field ||
+          !document.body.contains(field) ||
+          (field.tagName !== "TEXTAREA" && field.tagName !== "INPUT")
+        ) {
+          showToast(
+            "Click into a field first, then click a value to insert it.",
+          );
+          return;
+        }
+
+        var start = field.selectionStart != null ? field.selectionStart : field.value.length;
+        var end = field.selectionEnd != null ? field.selectionEnd : field.value.length;
+        var before = field.value.substring(0, start);
+        var after = field.value.substring(end);
+
+        field.value = before + text + after;
+        var newPos = start + text.length;
+        field.focus();
+        field.setSelectionRange(newPos, newPos);
+
+        var evt = new Event("input", { bubbles: true });
+        field.dispatchEvent(evt);
+      }
+
+      document.addEventListener("focusin", function (e) {
+        var t = e.target;
+        if (
+          t.tagName === "TEXTAREA" ||
+          (t.tagName === "INPUT" &&
+            (t.type === "text" || t.type === "" || !t.type))
+        ) {
+          lastFocusedField = t;
+        }
+      });
+
+      function applyAppellateAuthorityData(aa) {
+        aa = aa || {};
+        document.getElementById("includeAppellateAuthority").checked =
+          !!aa.enabled;
+        document.getElementById("appellateAuthorityText").value =
+          aa.text || "";
+        var position = aa.position === "afterClosing" ? "afterClosing" : "afterBody";
+        var radios = document.querySelectorAll(
+          'input[name="appellateAuthorityPosition"]',
+        );
+        for (var i = 0; i < radios.length; i++) {
+          radios[i].checked = radios[i].value === position;
+        }
+        toggleAppellateAuthority();
+      }
+
+      function toggleAppellateAuthority() {
+        var checked = document.getElementById("includeAppellateAuthority")
+          .checked;
+        document.getElementById("appellateAuthorityFields").style.display =
+          checked ? "block" : "none";
+      }
+
+      function getAppellateAuthorityData() {
+        var enabled = document.getElementById("includeAppellateAuthority")
+          .checked;
+        var text = document.getElementById("appellateAuthorityText").value.trim();
+        var posEl = document.querySelector(
+          'input[name="appellateAuthorityPosition"]:checked',
+        );
+        var position = posEl ? posEl.value : "afterBody";
+        return { enabled: enabled, text: text, position: position };
+      }
+
+      function buildAppellateAuthorityHTML(L, fontSize, marginBottom) {
+        var aa = getAppellateAuthorityData();
+        if (!aa.enabled || !aa.text) return "";
+        return (
+          '<div style="margin: 15px 0 ' +
+          marginBottom +
+          "px 0; padding: 0; font-size: " +
+          fontSize +
+          'pt;">' +
+          '<div style="font-size: ' +
+          fontSize +
+          'pt; font-weight: bold; margin: 0; padding: 0;">' +
+          L.appellateAuthority +
+          "</div>" +
+          '<div style="margin: 0; padding: 1px 0 0 0; font-size: ' +
+          fontSize +
+          'pt; line-height: 1.3;">' +
+          aa.text.replace(/\n/g, "<br>") +
+          "</div>" +
+          "</div>"
+        );
+      }
+
+      function buildAppellateAuthorityPlainText(L) {
+        var aa = getAppellateAuthorityData();
+        if (!aa.enabled || !aa.text) return "";
+        return (
+          L.appellateAuthority +
+          ":\n" +
+          aa.text
+            .split("\n")
+            .map(function (line) {
+              return "  " + line;
+            })
+            .join("\n")
+        );
+      }
+
+      function formatBodyParagraphs(processedBody, pStyle) {
+        if (!processedBody) return "";
+        var numberedEl = document.getElementById("numberParagraphs");
+        var numbered = numberedEl && numberedEl.checked;
+
+        var lines = processedBody.split("\n").filter(function (p) {
+          return p.trim();
+        });
+
+        var counter = 0;
+        var out = "";
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          var isTableLine = line.indexOf("<table") !== -1;
+          var prefix = "";
+          if (numbered && !isTableLine) {
+            counter++;
+            prefix = counter + ". ";
+          }
+          out += '<p style="' + pStyle + '">' + prefix + line + "</p>";
+        }
+        return out;
+      }
+
+      function processRawExcelHTML(rawHTML, splitAfterRows) {
         // Create a temporary div to work with the HTML
         var tempDiv = document.createElement("div");
         tempDiv.innerHTML = rawHTML;
@@ -1963,8 +2764,48 @@
 
         // Process all cells and extract clean text content
         var rows = table.querySelectorAll("tr");
-        var cleanedHTML =
-          '<table style="width: 100%; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
+        var tableOpenTag =
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
+        var tableOpenTagSplit =
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 24px auto 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table; page-break-before: always;">';
+        var splitDividerHTML =
+          '<p style="text-align: center; font-weight: bold; margin: 16px 0; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif;">(Table continued)</p>';
+        var cleanedHTML = tableOpenTag;
+        // Normalize to a sorted array of unique positive row indices
+        var splitRows = [];
+        if (Array.isArray(splitAfterRows)) {
+          for (var s = 0; s < splitAfterRows.length; s++) {
+            var n = parseInt(splitAfterRows[s], 10);
+            if (n > 0 && splitRows.indexOf(n) === -1) splitRows.push(n);
+          }
+        } else {
+          var singleN = parseInt(splitAfterRows, 10);
+          if (singleN > 0) splitRows.push(singleN);
+        }
+        splitRows.sort(function (a, b) {
+          return a - b;
+        });
+        var headerRowHTML = "";
+
+        // Determine column widths in px that sum to 588 (e-Office/TinyMCE strips
+        // table-level width but preserves per-cell width, based on observed behavior)
+        var numCols = 0;
+        for (var r0 = 0; r0 < rows.length; r0++) {
+          var c0 = rows[r0].querySelectorAll("td, th");
+          if (c0.length > 0) {
+            numCols = c0.length;
+            break;
+          }
+        }
+        var TOTAL_TABLE_WIDTH = 588;
+        var colWidths = [];
+        if (numCols > 0) {
+          var baseWidth = Math.floor(TOTAL_TABLE_WIDTH / numCols);
+          var remainder = TOTAL_TABLE_WIDTH - baseWidth * numCols;
+          for (var c1 = 0; c1 < numCols; c1++) {
+            colWidths.push(baseWidth + (c1 < remainder ? 1 : 0));
+          }
+        }
 
         for (var i = 0; i < rows.length; i++) {
           var row = rows[i];
@@ -1972,7 +2813,18 @@
 
           if (cells.length === 0) continue;
 
+          // Manual split point(s): close current table, open a new one before this row,
+          // repeating the header row (row 0) at the top of the new table.
+          if (splitRows.indexOf(i) !== -1) {
+            cleanedHTML +=
+              "</table>" +
+              splitDividerHTML +
+              tableOpenTagSplit +
+              headerRowHTML;
+          }
+
           cleanedHTML += "<tr>";
+          var rowHTML = "<tr>";
 
           for (var j = 0; j < cells.length; j++) {
             var cell = cells[j];
@@ -1991,21 +2843,38 @@
             cleanText = cleanText.trim();
 
             // Use HTML attributes for better copy compatibility
+            var colWidthPx =
+              colWidths.length > j ? colWidths[j] : Math.floor(588 / cells.length);
             var cellStyle =
-              "border: 1px solid #000; padding: 2px; font-size: 12pt; text-align: center;";
+              "border: 1px solid #000; padding: 2px; text-align: center; width: " +
+              colWidthPx +
+              "px;";
             var cellAttrs = ' style="' + cellStyle;
 
             // Only visual difference for first row
             if (i === 0) {
-              cellAttrs += " background-color: #f0f0f0; font-weight: bold;";
+              cellAttrs += " background-color: #f0f0f0;";
             }
 
             cellAttrs += '"';
 
-            cleanedHTML += "<td" + cellAttrs + ">" + cleanText + "</td>";
+            var spanStyle =
+              "font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif; font-size: 13pt;" +
+              (i === 0 ? " font-weight: bold;" : "");
+            var cellText =
+              '<span style="' + spanStyle + '">' + cleanText + "</span>";
+
+            var cellHTML = "<td" + cellAttrs + ">" + cellText + "</td>";
+            cleanedHTML += cellHTML;
+            rowHTML += cellHTML;
           }
 
           cleanedHTML += "</tr>";
+          rowHTML += "</tr>";
+
+          if (i === 0) {
+            headerRowHTML = rowHTML;
+          }
         }
 
         cleanedHTML += "</table>";
@@ -2152,11 +3021,22 @@
         var html =
           '<div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">Uploaded Tables: ';
         for (var tableId in data.tables) {
+          var tbl = data.tables[tableId];
+          var curSplits = tbl.splitAfterRows || [];
           html +=
-            '<span style="margin-right: 10px; padding: 5px; background: white; border-radius: 3px;">{{' +
+            '<span style="display:inline-flex; align-items:center; gap:4px; margin-right: 10px; margin-bottom: 6px; padding: 5px; background: white; border-radius: 3px;">{{' +
             tableId +
             "}} - " +
-            data.tables[tableId].fileName +
+            tbl.fileName +
+            ' <label style="font-size:11px; color:#555; margin-left:6px;">Split after rows:</label>' +
+            '<input type="text" placeholder="e.g. 8,15" value="' +
+            curSplits.join(",") +
+            '" data-split-table-id="' +
+            tableId +
+            '" class="table-split-input" style="width:70px; padding:2px 4px; font-size:11px;">' +
+            ' <button data-apply-split-id="' +
+            tableId +
+            '" class="table-split-apply-btn" style="cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">Apply</button>' +
             " <button onclick=\"deleteTable('" +
             tableId +
             '\')" style="margin-left: 5px; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px;">×</button></span>';
@@ -2164,6 +3044,43 @@
         html += "</div>";
 
         container.innerHTML = html;
+
+        // Wire up split-apply buttons (data-attribute delegation, no inline handlers with values)
+        var applyBtns = container.querySelectorAll(".table-split-apply-btn");
+        for (var b = 0; b < applyBtns.length; b++) {
+          applyBtns[b].addEventListener("click", function () {
+            var tid = this.getAttribute("data-apply-split-id");
+            var input = container.querySelector(
+              '.table-split-input[data-split-table-id="' + tid + '"]',
+            );
+            var raw = input ? input.value : "";
+            var rowNums = raw
+              .split(",")
+              .map(function (v) {
+                return parseInt(v.trim(), 10);
+              })
+              .filter(function (v) {
+                return v > 0;
+              });
+            applyTableSplit(tid, rowNums);
+          });
+        }
+      }
+
+      function applyTableSplit(tableId, rowNums) {
+        var tbl = data.tables[tableId];
+        if (!tbl || !tbl.rawHTML) {
+          showToast("Cannot split this table \u2014 original data not found.");
+          return;
+        }
+        tbl.splitAfterRows = rowNums;
+        tbl.html = processRawExcelHTML(tbl.rawHTML, rowNums);
+        updatePreview();
+        showToast(
+          rowNums.length > 0
+            ? "Table split after row(s) " + rowNums.join(", ") + "."
+            : "Table splits removed.",
+        );
       }
 
       function deleteTable(tableId) {
@@ -2243,6 +3160,25 @@
           dropdown.value = current;
         }
 
+        var appellateDropdowns = document.querySelectorAll(
+          ".appellate-dropdown",
+        );
+        for (var i = 0; i < appellateDropdowns.length; i++) {
+          var dropdown = appellateDropdowns[i];
+          var current = dropdown.value;
+          dropdown.innerHTML =
+            '<option value="">Select saved Appellate Authority address...</option>';
+          for (var j = 0; j < data.appellateAddresses.length; j++) {
+            dropdown.innerHTML +=
+              '<option value="' +
+              j +
+              '">' +
+              data.appellateAddresses[j].title +
+              "</option>";
+          }
+          dropdown.value = current;
+        }
+
         templateSelect.innerHTML =
           '<option value="custom">Custom Template</option>';
         for (var i = 0; i < data.templates.length; i++) {
@@ -2293,24 +3229,36 @@
         }
       }
 
+      function getManagerItems(type) {
+        if (type === "address") return data.addresses;
+        if (type === "copy") return data.copyAddresses;
+        if (type === "appellate") return data.appellateAddresses;
+        return data.addresses;
+      }
+
       function loadAddress(dropdown, type) {
         if (dropdown.value === "") return;
 
-        var addresses = type === "copy" ? data.copyAddresses : data.addresses;
+        var addresses = getManagerItems(type);
         var address = addresses[dropdown.value];
 
-        if (address) {
-          var target =
-            type === "copy"
-              ? dropdown
-                  .closest(".dynamic-item-content")
-                  .querySelector(".copy-input")
-              : dropdown
-                  .closest(".dynamic-item-content")
-                  .querySelector(".address-textarea");
-          target.value = address.address;
-          updatePreview();
+        if (!address) return;
+
+        var target;
+        if (type === "copy") {
+          target = dropdown
+            .closest(".dynamic-item-content")
+            .querySelector(".copy-input");
+        } else if (type === "appellate") {
+          target = document.getElementById("appellateAuthorityText");
+        } else {
+          target = dropdown
+            .closest(".dynamic-item-content")
+            .querySelector(".address-textarea");
         }
+
+        target.value = address.address;
+        updatePreview();
       }
 
       function loadTemplate() {
@@ -2329,7 +3277,13 @@
 
         data.tables = d.tables || {};
         updateTablesDisplay();
-
+        document.getElementById("numberParagraphs").checked =
+          !!d.numberParagraphs;
+        applyCopyOptions(d.copyOptions);
+        data.dataSheets = d.dataSheets || {};
+        activeDataSheetName = null;
+        renderDataSheetTabs();
+        applyAppellateAuthorityData(d.appellateAuthority);
         var containers = ["toAddresses", "references", "copyTo"];
         for (var i = 0; i < containers.length; i++) {
           var container = document.getElementById(containers[i]);
@@ -2376,8 +3330,12 @@
       function openManager(type) {
         currentManager = type;
         var title =
-          type === "address" ? "Manage Addresses" : "Manage Copy Addresses";
-        var items = type === "address" ? data.addresses : data.copyAddresses;
+          type === "address"
+            ? "Manage Addresses"
+            : type === "appellate"
+              ? "Manage Appellate Authority Addresses"
+              : "Manage Copy Addresses";
+        var items = getManagerItems(type);
 
         var html = '<div style="margin-bottom: 20px;">';
         for (var i = 0; i < items.length; i++) {
@@ -2406,8 +3364,7 @@
       }
 
       function editItem(index) {
-        var items =
-          currentManager === "address" ? data.addresses : data.copyAddresses;
+        var items = getManagerItems(currentManager);
         var item = items[index];
 
         var title = prompt("Title:", item.title);
@@ -2426,8 +3383,7 @@
       function deleteItem(index) {
         if (!confirm("Delete this item?")) return;
 
-        var items =
-          currentManager === "address" ? data.addresses : data.copyAddresses;
+        var items = getManagerItems(currentManager);
         items.splice(index, 1);
         saveData();
         updateDropdowns();
@@ -2442,8 +3398,7 @@
         var address = prompt("Address:");
         if (!address) return;
 
-        var items =
-          currentManager === "address" ? data.addresses : data.copyAddresses;
+        var items = getManagerItems(currentManager);
         items.push({ title: title, address: address });
         saveData();
         updateDropdowns();
@@ -2506,13 +3461,10 @@
         var bodyParagraphs = processedBody.split("\n").filter(function (p) {
           return p.trim();
         });
-        var formattedBody = "";
-        for (var i = 0; i < bodyParagraphs.length; i++) {
-          formattedBody +=
-            '<p style="margin-bottom: 15px; text-indent: 1.5cm;">' +
-            bodyParagraphs[i] +
-            "</p>";
-        }
+        var formattedBody = formatBodyParagraphs(
+          processedBody,
+          "margin-bottom: 15px; text-indent: 1.5cm;",
+        );
 
         var toAddressesHtml = "";
         if (toAddresses.length > 1) {
@@ -2707,6 +3659,9 @@
           '<div style="margin-bottom: 20px; font-size: 12pt; line-height: 1.8; text-align: justify;">' +
           formattedBody +
           "</div>" +
+          (getAppellateAuthorityData().position === "afterBody"
+            ? buildAppellateAuthorityHTML(L, 12, 20)
+            : "") +
           '<div style="margin-bottom: 20px;"></div>' +
           '<div style="text-align: right; margin-bottom: 20px; font-size: 12pt;">' +
           L.faithfully +
@@ -2717,9 +3672,12 @@
           principalName +
           "</div>" +
           "<div>" +
-          L.principal +
+          L.principal.replace(/\n/g, "<br>") +
           "</div>" +
           "</div>" +
+          (getAppellateAuthorityData().position === "afterClosing"
+            ? buildAppellateAuthorityHTML(L, 12, 20)
+            : "") +
           enclosuresHtml +
           copyToHtml +
           "</div>";
@@ -2868,68 +3826,77 @@
           _a1 +
           "</div>" +
           '<hr style="border: none; border-top: 1px solid #000; margin: 5px 0; padding: 0;">';
+        var opts = getCopyOptions();
         return (
           '<div style="font-family: ' +
           L.font +
           '; font-size: 13pt; line-height: 1.3; color: #000; margin: 0; padding: 0;">' +
-          buildHeaderSection(_hdr1, "8px", "center") +
-          '<table width="100%" style="width: 100%; margin: 0 0 5px 0; border-collapse: collapse; padding: 0;">' +
-          "<tr>" +
-          '<td style="border: none; padding: 0; margin: 0; font-size: 13pt; width: 50%;">' +
-          L.number +
-          ": " +
-          refNumber +
-          "</td>" +
-          '<td style="border: none; padding: 0; margin: 0; text-align: right; font-size: 13pt; width: 50%;">' +
-          L.date +
-          ": #ApprovedDate#</td>" +
-          "</tr>" +
-          "</table>" +
-          '<div style="margin: 0 0 5px 0; padding: 0;"></div>' +
-          '<div style="margin: 0 0 5px 0; padding: 0;">' +
-          '<div style="font-size: 13pt; margin: 0; padding: 0;">' +
-          L.from +
-          "</div>" +
-          '<div style="margin: 0 0 0 1.2cm; padding: 1px 0 0 0; font-size: 13pt; line-height: 1.3;">' +
-          fromAddress.replace(/\n/g, "<br>") +
-          "</div>" +
-          "</div>" +
-          '<div style="margin: 0 0 5px 0; padding: 0;"></div>' +
-          '<div style="margin: 0 0 5px 0; padding: 0;">' +
-          '<div style="font-size: 13pt; margin: 0; padding: 0;">' +
-          L.to +
-          "</div>" +
-          (toAddresses.length > 1
-            ? '<table style="width: 100%; border-collapse: collapse;">' +
-              toAddresses
-                .map(function (addr, index) {
-                  return (
-                    "<tr>" +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
-                    '<td style="border:none;padding:1px 4px 0 0;vertical-align:top;white-space:nowrap;font-size:13pt;line-height:1.3;">' +
-                    (index + 1) +
-                    ".</td>" +
-                    '<td style="border:none;padding:1px 0 0 0;vertical-align:top;font-size:13pt;line-height:1.3;">' +
-                    addr.replace(/\n/g, "<br>") +
-                    "</td>" +
-                    "</tr>"
-                  );
-                })
-                .join("") +
-              "</table>"
-            : '<div style="margin: 0 0 0 1.2cm; padding: 1px 0 0 0; font-size: 13pt; line-height: 1.3;">' +
-              (toAddresses[0] || "").replace(/\n/g, "<br>") +
-              "</div>") +
-          "</div>" +
-          '<div style="margin: 0 0 5px 0; padding: 0;"></div>' +
-          '<div style="margin: 0 0 5px 0; padding: 0; font-size: 13pt;">' +
-          L.sirMadam +
-          "</div>" +
-          (subject || references.length > 0
+          (opts.header ? buildHeaderSection(_hdr1, "8px", "center") : "") +
+          (opts.fileNoDate
+            ? '<table width="588" style="width: 588px; margin: 0 0 5px 0; border-collapse: collapse; padding: 0;">' +
+              "<tr>" +
+              '<td style="border: none; padding: 0; margin: 0; font-size: 13pt; width: 294px;">' +
+              L.number +
+              ": " +
+              refNumber +
+              "</td>" +
+              '<td style="border: none; padding: 0; margin: 0; text-align: right; font-size: 13pt; width: 294px;">' +
+              L.date +
+              ": #ApprovedDate#</td>" +
+              "</tr>" +
+              "</table>" +
+              '<div style="margin: 0 0 5px 0; padding: 0;"></div>'
+            : "") +
+          (opts.from
+            ? '<div style="margin: 0 0 5px 0; padding: 0;">' +
+              '<div style="font-size: 13pt; margin: 0; padding: 0;">' +
+              L.from +
+              "</div>" +
+              '<div style="margin: 0 0 0 1.2cm; padding: 1px 0 0 0; font-size: 13pt; line-height: 1.3;">' +
+              fromAddress.replace(/\n/g, "<br>") +
+              "</div>" +
+              "</div>" +
+              '<div style="margin: 0 0 5px 0; padding: 0;"></div>'
+            : "") +
+          (opts.to
+            ? '<div style="margin: 0 0 5px 0; padding: 0;">' +
+              '<div style="font-size: 13pt; margin: 0; padding: 0;">' +
+              L.to +
+              "</div>" +
+              (toAddresses.length > 1
+                ? '<table style="width: 100%; border-collapse: collapse;">' +
+                  toAddresses
+                    .map(function (addr, index) {
+                      return (
+                        "<tr>" +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:13pt;"></td>' +
+                        '<td style="border:none;padding:1px 4px 0 0;vertical-align:top;white-space:nowrap;font-size:13pt;line-height:1.3;">' +
+                        (index + 1) +
+                        ".</td>" +
+                        '<td style="border:none;padding:1px 0 0 0;vertical-align:top;font-size:13pt;line-height:1.3;">' +
+                        addr.replace(/\n/g, "<br>") +
+                        "</td>" +
+                        "</tr>"
+                      );
+                    })
+                    .join("") +
+                  "</table>"
+                : '<div style="margin: 0 0 0 1.2cm; padding: 1px 0 0 0; font-size: 13pt; line-height: 1.3;">' +
+                  (toAddresses[0] || "").replace(/\n/g, "<br>") +
+                  "</div>") +
+              "</div>" +
+              '<div style="margin: 0 0 5px 0; padding: 0;"></div>'
+            : "") +
+          (opts.sirMadam
+            ? '<div style="margin: 0 0 5px 0; padding: 0; font-size: 13pt;">' +
+              L.sirMadam +
+              "</div>"
+            : "") +
+          (opts.subjectRef && (subject || references.length > 0)
             ? '<table style="width: 100%; border-collapse: collapse; margin: 0 0 5px 0; padding: 0;">' +
               (subject
                 ? "<tr>" +
@@ -2994,36 +3961,35 @@
             : "") +
           '<div style="margin: 0 0 8px 0; padding: 0;"></div>' +
           '<div style="margin: 0 0 5px 0; padding: 0; text-align: justify; font-size: 13pt; line-height: 1.4;">' +
-          (processedBody
-            ? processedBody
-                .split("\n")
-                .filter(function (p) {
-                  return p.trim();
-                })
-                .map(function (p) {
-                  return (
-                    '<p style="margin: 0 0 5px 0; padding: 0; text-indent: 1.2cm;">' +
-                    p +
-                    "</p>"
-                  );
-                })
-                .join("")
+          (opts.body && processedBody
+            ? formatBodyParagraphs(
+                processedBody,
+                "margin: 0 0 5px 0; padding: 0; text-indent: 1.2cm;",
+              )
             : "") +
           "</div>" +
-          '<div style="margin: 0 0 5px 0; padding: 0;"></div>' +
-          '<div style="text-align: right; margin: 0 0 5px 0; padding: 0; font-size: 13pt;">' +
-          L.faithfully +
-          "</div>" +
-          '<div style="margin: 0 0 5px 0; padding: 0;"></div>' +
-          '<div style="text-align: right; margin: 0 0 15px 0; padding: 0; font-size: 13pt; line-height: 1.3;">' +
-          '<div style="margin: 0; padding: 0;">' +
-          principalName +
-          "</div>" +
-          '<div style="margin: 0; padding: 0;">' +
-          L.principal +
-          "</div>" +
-          "</div>" +
-          (enclosures.length > 0
+          (getAppellateAuthorityData().position === "afterBody"
+            ? buildAppellateAuthorityHTML(L, 13, 5)
+            : "") +
+          (opts.closing
+            ? '<div style="margin: 0 0 5px 0; padding: 0;"></div>' +
+              '<div style="text-align: right; margin: 0 0 5px 0; padding: 0; font-size: 13pt;">' +
+              L.faithfully +
+              "</div>" +
+              '<div style="margin: 0 0 5px 0; padding: 0;"></div>' +
+              '<div style="text-align: right; margin: 0 0 15px 0; padding: 0; font-size: 13pt; line-height: 1.3;">' +
+              '<div style="margin: 0; padding: 0;">' +
+              principalName +
+              "</div>" +
+              '<div style="margin: 0; padding: 0;">' +
+              L.principal.replace(/\n/g, "<br>") +
+              "</div>" +
+              "</div>"
+            : "") +
+          (getAppellateAuthorityData().position === "afterClosing"
+            ? buildAppellateAuthorityHTML(L, 13, 5)
+            : "") +
+          (opts.enclosure && enclosures.length > 0
             ? '<div style="font-size: 13pt; margin: 0; padding: 0;">' +
               '<div style="margin: 0 0 2px 0; padding: 0;">' +
               L.enclosure +
@@ -3047,7 +4013,7 @@
                   "</div>") +
               "</div>"
             : "") +
-          (copyTo.length > 0
+          (opts.copyTo && copyTo.length > 0
             ? '<div style="font-size: 13pt; margin: 0; padding: 0;">' +
               '<div style="margin: 0 0 2px 0; padding: 0;">' +
               L.copy +
@@ -3156,68 +4122,75 @@
           _a2 +
           "</div>" +
           '<hr style="border: none; border-top: 1px solid #000; margin: 5px 0;">';
+        var opts = getCopyOptions();
         return (
           '<div style="font-family: ' +
           L.font +
           '; font-size: 12pt; line-height: 1.3; color: #000; max-width: 100%; margin: 0; padding: 0;">' +
-          buildHeaderSection(_hdr2, "8px", "center") +
-          '<table width="100%" style="width: 100%; margin-bottom: 5px; border-collapse: collapse;">' +
-          "<tr>" +
-          '<td style="border: none; padding: 0; font-size: 12pt; width: 50%;">' +
-          L.number +
-          ": " +
-          refNumber +
-          "</td>" +
-          '<td style="border: none; padding: 0; text-align: right; font-size: 12pt; width: 50%;">' +
-          L.date +
-          ": #ApprovedDate#</td>" +
-          "</tr>" +
-          "</table>" +
-          '<div style="margin-bottom: 5px;"></div>' +
-          '<div style="margin-bottom: 5px;">' +
-          '<div style="font-size: 12pt;">' +
-          L.from +
-          "</div>" +
-          '<div style="margin-left: 1.2cm; margin-top: 1px; font-size: 12pt; line-height: 1.3;">' +
-          fromAddress.replace(/\n/g, "<br>") +
-          "</div>" +
-          "</div>" +
-          '<div style="margin-bottom: 5px;"></div>' +
-          '<div style="margin-bottom: 5px;">' +
-          '<div style="font-size: 12pt;">' +
-          L.to +
-          "</div>" +
-          (toAddresses.length > 1
-            ? '<table style="width: 100%; border-collapse: collapse;">' +
-              toAddresses
-                .map(function (addr, index) {
-                  return (
-                    "<tr>" +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
-                    '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
-                    '<td style="border:none;padding:1px 4px 0 0;vertical-align:top;white-space:nowrap;font-size:12pt;line-height:1.3;">' +
-                    (index + 1) +
-                    ".</td>" +
-                    '<td style="border:none;padding:1px 0 0 0;vertical-align:top;font-size:12pt;line-height:1.3;">' +
-                    addr.replace(/\n/g, "<br>") +
-                    "</td>" +
-                    "</tr>"
-                  );
-                })
-                .join("") +
-              "</table>"
-            : '<div style="margin-left: 1.2cm; margin-top: 1px; font-size: 12pt; line-height: 1.3;">' +
-              (toAddresses[0] || "").replace(/\n/g, "<br>") +
-              "</div>") +
-          "</div>" +
-          '<div style="margin-bottom: 5px;"></div>' +
-          '<div style="margin-bottom: 5px; font-size: 12pt;">' +
-          L.sirMadam +
-          "</div>" +
-          (subject || references.length > 0
+          (opts.header ? buildHeaderSection(_hdr2, "8px", "center") : "") +
+          (opts.fileNoDate
+            ? '<table width="588" style="width: 588px; margin-bottom: 5px; border-collapse: collapse;">' +
+              "<tr>" +
+              '<td style="border: none; padding: 0; font-size: 12pt; width: 294px;">' +
+              L.number +
+              ": " +
+              refNumber +
+              "</td>" +
+              '<td style="border: none; padding: 0; text-align: right; font-size: 12pt; width: 294px;">' +
+              L.date +
+              ": #ApprovedDate#</td>" +
+              "</tr>" +
+              "</table>" +
+              '<div style="margin-bottom: 5px;"></div>'
+            : "") +
+          (opts.from
+            ? '<div style="margin-bottom: 5px;">' +
+              '<div style="font-size: 12pt;">' +
+              L.from +
+              "</div>" +
+              '<div style="margin-left: 1.2cm; margin-top: 1px; font-size: 12pt; line-height: 1.3;">' +
+              fromAddress.replace(/\n/g, "<br>") +
+              "</div>" +
+              "</div>" +
+              '<div style="margin-bottom: 5px;"></div>'
+            : "") +
+          (opts.to
+            ? '<div style="margin-bottom: 5px;">' +
+              '<div style="font-size: 12pt;">' +
+              L.to +
+              "</div>" +
+              (toAddresses.length > 1
+                ? '<table style="width: 100%; border-collapse: collapse;">' +
+                  toAddresses
+                    .map(function (addr, index) {
+                      return (
+                        "<tr>" +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
+                        '<td style="border:none;padding:1px 0 0 0;margin:0;width:5%;font-size:12pt;"></td>' +
+                        '<td style="border:none;padding:1px 4px 0 0;vertical-align:top;white-space:nowrap;font-size:12pt;line-height:1.3;">' +
+                        (index + 1) +
+                        ".</td>" +
+                        '<td style="border:none;padding:1px 0 0 0;vertical-align:top;font-size:12pt;line-height:1.3;">' +
+                        addr.replace(/\n/g, "<br>") +
+                        "</td>" +
+                        "</tr>"
+                      );
+                    })
+                    .join("") +
+                  "</table>"
+                : '<div style="margin-left: 1.2cm; margin-top: 1px; font-size: 12pt; line-height: 1.3;">' +
+                  (toAddresses[0] || "").replace(/\n/g, "<br>") +
+                  "</div>") +
+              "</div>" +
+              '<div style="margin-bottom: 5px;"></div>'
+            : "") +
+          (opts.sirMadam
+            ? '<div style="margin-bottom: 5px; font-size: 12pt;">' + L.sirMadam + "</div>"
+            : "") +
+          (opts.subjectRef && (subject || references.length > 0)
             ? '<table style="width:100%;border-collapse:collapse;margin-bottom:5px;">' +
               (subject
                 ? "<tr>" +
@@ -3282,36 +4255,35 @@
             : "") +
           '<div style="margin-bottom: 8px;"></div>' +
           '<div style="margin-bottom: 5px; text-align: justify; font-size: 12pt; line-height: 1.4;">' +
-          (processedBody
-            ? processedBody
-                .split("\n")
-                .filter(function (p) {
-                  return p.trim();
-                })
-                .map(function (p) {
-                  return (
-                    '<p style="margin-bottom: 5px; text-indent: 1.2cm;">' +
-                    p +
-                    "</p>"
-                  );
-                })
-                .join("")
+          (opts.body && processedBody
+            ? formatBodyParagraphs(
+                processedBody,
+                "margin-bottom: 5px; text-indent: 1.2cm;",
+              )
             : "") +
           "</div>" +
-          '<div style="margin-bottom: 5px;"></div>' +
-          '<div style="text-align: right; margin-bottom: 5px; font-size: 12pt;">' +
-          L.faithfully +
-          "</div>" +
-          '<div style="margin-bottom: 5px;"></div>' +
-          '<div style="text-align: right; margin-bottom: 15px; font-size: 12pt; line-height: 1.3;">' +
-          "<div>" +
-          principalName +
-          "</div>" +
-          "<div>" +
-          L.principal +
-          "</div>" +
-          "</div>" +
-          (enclosures.length > 0
+          (getAppellateAuthorityData().position === "afterBody"
+            ? buildAppellateAuthorityHTML(L, 12, 5)
+            : "") +
+          (opts.closing
+            ? '<div style="margin-bottom: 5px;"></div>' +
+              '<div style="text-align: right; margin-bottom: 5px; font-size: 12pt;">' +
+              L.faithfully +
+              "</div>" +
+              '<div style="margin-bottom: 5px;"></div>' +
+              '<div style="text-align: right; margin-bottom: 15px; font-size: 12pt; line-height: 1.3;">' +
+              "<div>" +
+              principalName +
+              "</div>" +
+              "<div>" +
+              L.principal.replace(/\n/g, "<br>") +
+              "</div>" +
+              "</div>"
+            : "") +
+          (getAppellateAuthorityData().position === "afterClosing"
+            ? buildAppellateAuthorityHTML(L, 12, 5)
+            : "") +
+          (opts.enclosure && enclosures.length > 0
             ? '<div style="font-size: 12pt;">' +
               '<div style="margin-bottom: 2px;">' +
               L.enclosure +
@@ -3335,7 +4307,7 @@
                   "</div>") +
               "</div>"
             : "") +
-          (copyTo.length > 0
+          (opts.copyTo && copyTo.length > 0
             ? '<div style="font-size: 12pt;">' +
               '<div style="margin-bottom: 2px;">' +
               L.copy +
@@ -3474,6 +4446,9 @@
                 .join("\n")
             : "") +
           "\n\n" +
+          (getAppellateAuthorityData().position === "afterBody"
+            ? buildAppellateAuthorityPlainText(L) + "\n"
+            : "") +
           "                                                        " +
           L.faithfully +
           "\n\n" +
@@ -3483,6 +4458,9 @@
           "                                                        " +
           L.principal +
           "\n\n" +
+          (getAppellateAuthorityData().position === "afterClosing"
+            ? buildAppellateAuthorityPlainText(L) + "\n"
+            : "") +
           (enclosures.length > 0
             ? L.enclosure +
               ":\n" +
