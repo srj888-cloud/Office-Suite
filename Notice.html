@@ -1043,6 +1043,122 @@
             >
               💾 Download Draft
             </button>
+            <div
+              id="copyOptionsPanel"
+              style="
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 8px 10px;
+                font-size: 12px;
+                background: #f8f9fa;
+              "
+            >
+              <div style="font-weight: bold; margin-bottom: 5px;">
+                Copy Draft — Include Sections
+              </div>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 6px;
+                  padding-bottom: 6px;
+                  border-bottom: 1px solid #ddd;
+                  font-weight: bold;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copySelectAll"
+                  checked
+                  onchange="toggleAllCopyOptions(this.checked)"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Select All / Deselect All
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeHeader"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Header
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeFileNoDate"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                File No. / Date
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeTitle"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Title
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeSubjectRef"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Subject / Reference
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeBodyClosing"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Body Closing (valediction + signature)
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeTo"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                To
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px;">
+                <input
+                  type="checkbox"
+                  id="copyIncludeCopyTo"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Copy To
+              </label>
+            </div>
             <button
               type="button"
               class="btn btn-primary"
@@ -2029,6 +2145,7 @@
         appData.dataSheets = data.dataSheets || {};
         activeDataSheetName = null;
         renderDataSheetTabs();
+        applyCopyOptions(data.copyOptions);
 
         // Clear and rebuild dynamic fields
         clearDynamicFields();
@@ -2097,6 +2214,7 @@
           principalName: document.getElementById("principalName").value,
           tables: appData.tables,
           dataSheets: appData.dataSheets,
+          copyOptions: getCopyOptions(),
         };
       }
 
@@ -3224,6 +3342,74 @@
             `;
       }
 
+      const COPY_OPTION_CHECKBOX_IDS = [
+        "copyIncludeHeader",
+        "copyIncludeFileNoDate",
+        "copyIncludeTitle",
+        "copyIncludeSubjectRef",
+        "copyIncludeBodyClosing",
+        "copyIncludeTo",
+        "copyIncludeCopyTo",
+      ];
+
+      function toggleAllCopyOptions(checked) {
+        COPY_OPTION_CHECKBOX_IDS.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.checked = checked;
+        });
+      }
+
+      function updateCopySelectAllState() {
+        let total = 0;
+        let checkedCount = 0;
+        COPY_OPTION_CHECKBOX_IDS.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          total++;
+          if (el.checked) checkedCount++;
+        });
+        const selectAllEl = document.getElementById("copySelectAll");
+        if (!selectAllEl) return;
+        selectAllEl.checked = checkedCount === total;
+        selectAllEl.indeterminate = checkedCount > 0 && checkedCount < total;
+      }
+
+      function getCopyOptions() {
+        function isChecked(id) {
+          const el = document.getElementById(id);
+          return el ? el.checked : true;
+        }
+        return {
+          header: isChecked("copyIncludeHeader"),
+          fileNoDate: isChecked("copyIncludeFileNoDate"),
+          title: isChecked("copyIncludeTitle"),
+          subjectRef: isChecked("copyIncludeSubjectRef"),
+          bodyClosing: isChecked("copyIncludeBodyClosing"),
+          to: isChecked("copyIncludeTo"),
+          copyTo: isChecked("copyIncludeCopyTo"),
+        };
+      }
+
+      function applyCopyOptions(opts) {
+        opts = opts || {};
+        const fields = {
+          copyIncludeHeader: "header",
+          copyIncludeFileNoDate: "fileNoDate",
+          copyIncludeTitle: "title",
+          copyIncludeSubjectRef: "subjectRef",
+          copyIncludeBodyClosing: "bodyClosing",
+          copyIncludeTo: "to",
+          copyIncludeCopyTo: "copyTo",
+        };
+        for (const elId in fields) {
+          const el = document.getElementById(elId);
+          if (!el) continue;
+          const key = fields[elId];
+          el.checked = opts.hasOwnProperty(key) ? !!opts[key] : true;
+        }
+        updateCopySelectAllState();
+      }
+
       function copyLetter() {
         const data = applyMergeToData(gatherFormData());
         if (!data.refNumber || !data.refNumber.trim()) {
@@ -3420,10 +3606,14 @@
               .join("")
           : '<div style="font-size: 13pt; margin: 0; padding: 0;">[ Office Address ]</div>';
         const _hdrCopy = `<div style="font-size: 16pt; font-weight: bold; margin: 0 0 2px 0; padding: 0;">${_cn1}</div>${_ca1}<hr style="border: none; border-top: 1px solid #000; margin: 5px 0; padding: 0;">`;
+        const opts = getCopyOptions();
         return `
                 <div style="font-family: ${L.font}; font-size: 13pt; line-height: 1.3; color: #000; margin: 0; padding: 0;">
-                    ${buildHeaderSection(_hdrCopy, "8px", "center")}
+                    ${opts.header ? buildHeaderSection(_hdrCopy, "8px", "center") : ""}
                     
+                    ${
+                      opts.fileNoDate
+                        ? `
                     <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 0 0 5px 0;">
                         <tr>
                             <td style="border: none; padding: 0; margin: 0; font-size: 13pt; width: 50%;">${L.number}: ${data.refNumber}</td>
@@ -3432,9 +3622,12 @@
                     </table>
                     
                     <div style="margin: 0 0 5px 0; padding: 0;"></div>
+                    `
+                        : ""
+                    }
                     
                     ${
-                      data.noticeTitle
+                      opts.title && data.noticeTitle
                         ? `
                         <div style="text-align: center; font-size: 14pt; font-weight: bold; margin: 0 0 15px 0; padding: 0; text-decoration: underline;">
                             ${data.noticeTitle}
@@ -3443,10 +3636,13 @@
                         : ""
                     }
                     
-                    ${subjectReferences}
+                    ${opts.subjectRef ? subjectReferences : ""}
 
-                    ${hasSubject || hasReferences ? '<div style="margin: 0 0 8px 0; padding: 0;"></div>' : ""}
+                    ${opts.subjectRef && (hasSubject || hasReferences) ? '<div style="margin: 0 0 8px 0; padding: 0;"></div>' : ""}
 
+                    ${
+                      opts.bodyClosing
+                        ? `
                     <div style="margin: 0 0 5px 0; padding: 0; text-align: justify; font-size: 13pt; line-height: 1.4;">
                         ${bodyContent}
                     </div>
@@ -3457,9 +3653,12 @@
                         <div style="margin: 0; padding: 0;">${data.principalName}</div>
                         <div style="margin: 0; padding: 0;">${L.principal.replace(/\n/g, "<br>")}</div>
                     </div>
+                    `
+                        : ""
+                    }
 
-                    ${toSection}
-                    ${copyToSection}
+                    ${opts.to ? toSection : ""}
+                    ${opts.copyTo ? copyToSection : ""}
                 </div>
             `;
       }
