@@ -775,10 +775,18 @@
 
           <!-- ── Mail Merge ── -->
           <div class="merge-section">
-            <span class="merge-label">📊 Mail Merge</span>
+            <span
+              class="merge-label"
+              onclick="toggleMailMergeControls()"
+              style="cursor: pointer; user-select: none;"
+              title="Click to show/hide Mail Merge upload"
+            >
+              📊 Mail Merge
+            </span>
             <div
+              id="mailMergeControls"
               style="
-                display: flex;
+                display: none;
                 align-items: center;
                 gap: 8px;
                 flex-wrap: wrap;
@@ -1103,8 +1111,106 @@
           </button>
         </div>
         <div class="panel-body">
+          <div
+            style="
+              display: flex;
+              gap: 6px;
+              align-items: center;
+              padding: 6px 10px;
+              border-bottom: 1px solid #ddd;
+              flex-wrap: wrap;
+            "
+          >
+            <button
+              type="button"
+              id="previewModeLetterBtn"
+              onclick="setPreviewMode('letter')"
+              style="
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+                background: var(--primary, #2c3e50);
+                color: white;
+              "
+            >
+              Notice Preview
+            </button>
+            <button
+              type="button"
+              id="previewModeDataBtn"
+              onclick="setPreviewMode('data')"
+              style="
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+                background: white;
+                color: #333;
+              "
+            >
+              Data Sheet
+            </button>
+            <span style="flex: 1"></span>
+            <input
+              type="file"
+              id="dataSheetFileInput"
+              accept=".xlsx,.xls,.csv"
+              style="display: none"
+              onchange="handleDataSheetUpload(this.files)"
+            />
+            <button
+              type="button"
+              onclick="document.getElementById('dataSheetFileInput').click()"
+              style="
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+                background: #f8f9fa;
+              "
+            >
+              📊 Upload Data Sheet
+            </button>
+          </div>
           <div class="letter-preview">
             <div id="letterPreview"></div>
+          </div>
+          <div
+            id="dataSheetPanel"
+            style="display: none; padding: 10px; overflow: auto;"
+          >
+            <div
+              id="dataSheetTabs"
+              style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;"
+            ></div>
+            <div
+              id="dataSheetHint"
+              style="font-size: 12px; color: #666; margin-bottom: 8px;"
+            >
+              Click into a field (To, Subject, Body, etc.), then click any
+              value below to insert it at your cursor.
+            </div>
+            <input
+              type="text"
+              id="dataSheetSearch"
+              placeholder="Search rows..."
+              oninput="renderDataSheetGrid(this.value)"
+              style="
+                width: 100%;
+                max-width: 300px;
+                padding: 6px 8px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                margin-bottom: 8px;
+                box-sizing: border-box;
+              "
+            />
+            <div id="dataSheetGrid" style="overflow: auto;"></div>
           </div>
         </div>
         <div
@@ -1138,7 +1244,11 @@
         templates: [],
         tables: {},
         tableCounter: 0,
+        dataSheets: {},
       };
+
+      let activeDataSheetName = null;
+      let lastFocusedField = null;
 
       let currentManager = "";
       var isResizing = false;
@@ -1377,6 +1487,13 @@
           text = text.replace(re, row[h] || "");
         });
         return text;
+      }
+
+      function toggleMailMergeControls() {
+        const controls = document.getElementById("mailMergeControls");
+        if (!controls) return;
+        controls.style.display =
+          controls.style.display === "none" ? "flex" : "none";
       }
 
       function handleMergeUpload(event) {
@@ -1763,6 +1880,7 @@
         updatePreview();
         setupFileHandlers();
         setupDragAndDrop();
+        renderDataSheetTabs();
       }
 
       // Data management
@@ -1908,6 +2026,9 @@
         // Load tables
         appData.tables = data.tables || {};
         updateTablesDisplay();
+        appData.dataSheets = data.dataSheets || {};
+        activeDataSheetName = null;
+        renderDataSheetTabs();
 
         // Clear and rebuild dynamic fields
         clearDynamicFields();
@@ -1975,6 +2096,7 @@
             .filter((v) => v),
           principalName: document.getElementById("principalName").value,
           tables: appData.tables,
+          dataSheets: appData.dataSheets,
         };
       }
 
@@ -2003,13 +2125,20 @@
               });
               const sheetName = workbook.SheetNames[0];
               const sheet = workbook.Sheets[sheetName];
+              const rawHTML = XLSX.utils.sheet_to_html(sheet, {
+                header: "",
+                editable: false,
+              });
 
               const tableNum = getNextTableNumber();
               const tableId = `TABLE_${tableNum}`;
+              const cellData = extractCellDataFromRawHTML(rawHTML);
 
               appData.tables[tableId] = {
-                html: processExcelToHTML(sheet),
+                html: buildTableHTMLFromData(cellData, []),
+                cellData: cellData,
                 fileName: file.name,
+                splitAfterRows: [],
               };
 
               updateTablesDisplay();
@@ -2025,37 +2154,393 @@
         });
       }
 
-      function processExcelToHTML(worksheet) {
-        const htmlTable = XLSX.utils.sheet_to_html(worksheet, {
-          header: "",
-          editable: false,
+      // ===== Data Sheet feature =====
+
+      function setPreviewMode(mode) {
+        const letterBtn = document.getElementById("previewModeLetterBtn");
+        const dataBtn = document.getElementById("previewModeDataBtn");
+        const letterEl = document.querySelector(".letter-preview");
+        const dataEl = document.getElementById("dataSheetPanel");
+
+        const activeStyle = "background: var(--primary, #2c3e50); color: white;";
+        const inactiveStyle = "background: white; color: #333;";
+
+        if (mode === "data") {
+          letterEl.style.display = "none";
+          dataEl.style.display = "block";
+          letterBtn.style.cssText = letterBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            inactiveStyle,
+          );
+          dataBtn.style.cssText = dataBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            activeStyle,
+          );
+        } else {
+          letterEl.style.display = "";
+          dataEl.style.display = "none";
+          letterBtn.style.cssText = letterBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            activeStyle,
+          );
+          dataBtn.style.cssText = dataBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            inactiveStyle,
+          );
+        }
+      }
+
+      function handleDataSheetUpload(files) {
+        if (!files || !files.length) return;
+        const file = files[0];
+        const isCsv = /\.csv$/i.test(file.name);
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          try {
+            let workbook;
+            if (isCsv) {
+              workbook = XLSX.read(e.target.result, { type: "string" });
+            } else {
+              const arr = new Uint8Array(e.target.result);
+              workbook = XLSX.read(arr, { type: "array" });
+            }
+
+            const sheets = {};
+            for (let s = 0; s < workbook.SheetNames.length; s++) {
+              const sheetName = workbook.SheetNames[s];
+              const ws = workbook.Sheets[sheetName];
+              const rows = XLSX.utils.sheet_to_json(ws, {
+                header: 1,
+                defval: "",
+                raw: false,
+              });
+              sheets[sheetName] = rows;
+            }
+
+            appData.dataSheets = sheets;
+            activeDataSheetName = workbook.SheetNames[0] || null;
+            renderDataSheetTabs();
+            showToast(`Data sheet uploaded: ${file.name}`);
+          } catch (err) {
+            showToast("Error reading data sheet file", "error");
+          }
+        };
+
+        if (isCsv) {
+          reader.readAsText(file);
+        } else {
+          reader.readAsArrayBuffer(file);
+        }
+      }
+
+      function renderDataSheetTabs() {
+        const tabsEl = document.getElementById("dataSheetTabs");
+        const sheetNames = Object.keys(appData.dataSheets || {});
+
+        if (sheetNames.length === 0) {
+          tabsEl.innerHTML = "";
+          document.getElementById("dataSheetGrid").innerHTML =
+            '<div style="color:#888; font-size:12px;">No data sheet uploaded yet.</div>';
+          return;
+        }
+
+        if (
+          !activeDataSheetName ||
+          sheetNames.indexOf(activeDataSheetName) === -1
+        ) {
+          activeDataSheetName = sheetNames[0];
+        }
+
+        tabsEl.innerHTML = "";
+        sheetNames.forEach((name) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = name;
+          btn.style.cssText =
+            "padding:4px 10px;font-size:12px;border:1px solid #ccc;border-radius:4px;cursor:pointer;" +
+            (name === activeDataSheetName
+              ? "background: var(--primary, #2c3e50); color:white;"
+              : "background:#f0f0f0; color:#333;");
+          btn.addEventListener("click", function () {
+            activeDataSheetName = name;
+            const searchEl = document.getElementById("dataSheetSearch");
+            if (searchEl) searchEl.value = "";
+            renderDataSheetTabs();
+          });
+          tabsEl.appendChild(btn);
         });
 
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = htmlTable;
-        const table = tempDiv.querySelector("table");
+        renderDataSheetGrid();
+      }
 
-        if (!table) return htmlTable;
+      function renderDataSheetGrid(filterText) {
+        const gridEl = document.getElementById("dataSheetGrid");
+        const allRows =
+          (appData.dataSheets && appData.dataSheets[activeDataSheetName]) ||
+          [];
 
-        // Clean and standardize the table
+        if (allRows.length === 0) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px;">This sheet has no data.</div>';
+          return;
+        }
+
+        const term = (filterText || "").trim().toLowerCase();
+        let rows = allRows;
+        if (term) {
+          rows = [allRows[0]].concat(
+            allRows.slice(1).filter((row) =>
+              row.some((cell) =>
+                String(cell == null ? "" : cell)
+                  .toLowerCase()
+                  .indexOf(term) !== -1,
+              ),
+            ),
+          );
+        }
+
+        if (rows.length <= 1 && term) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px; padding-top:6px;">No matching rows.</div>';
+          return;
+        }
+
+        const table = document.createElement("table");
         table.style.cssText =
-          "width: 100%; border-collapse: collapse; margin: 20px 0; font-family: inherit; font-size: 11pt;";
+          "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+        rows.forEach((row, r) => {
+          const tr = document.createElement("tr");
+          row.forEach((cellVal, c) => {
+            const td = document.createElement("td");
+            const val = cellVal === null || cellVal === undefined ? "" : String(cellVal);
+            td.textContent = val;
+            td.style.cssText =
+              "border: 1px solid #ddd; padding: 4px 8px; cursor: pointer; white-space: nowrap;" +
+              (r === 0 ? " font-weight: bold; background: #f0f0f0;" : "");
+            td.addEventListener("mouseenter", function () {
+              this.style.background = "#dff0ff";
+            });
+            td.addEventListener("mouseleave", function () {
+              this.style.background =
+                this.parentElement.rowIndex === 0 ? "#f0f0f0" : "";
+            });
+            td.addEventListener("click", function () {
+              insertDataSheetValue(this.textContent);
+            });
+            tr.appendChild(td);
+          });
+          table.appendChild(tr);
+        });
+
+        gridEl.innerHTML = "";
+        gridEl.appendChild(table);
+      }
+
+      function insertDataSheetValue(text) {
+        insertValueAtCursor(lastFocusedField, text);
+      }
+
+      function insertValueAtCursor(field, text) {
+        if (
+          !field ||
+          !document.body.contains(field) ||
+          (field.tagName !== "TEXTAREA" && field.tagName !== "INPUT")
+        ) {
+          showToast(
+            "Click into a field first, then click a value to insert it.",
+          );
+          return;
+        }
+
+        const start =
+          field.selectionStart != null ? field.selectionStart : field.value.length;
+        const end =
+          field.selectionEnd != null ? field.selectionEnd : field.value.length;
+        const before = field.value.substring(0, start);
+        const after = field.value.substring(end);
+
+        field.value = before + text + after;
+        const newPos = start + text.length;
+        field.focus();
+        field.setSelectionRange(newPos, newPos);
+
+        const evt = new Event("input", { bubbles: true });
+        field.dispatchEvent(evt);
+      }
+
+      document.addEventListener("focusin", function (e) {
+        const t = e.target;
+        if (
+          t.tagName === "TEXTAREA" ||
+          (t.tagName === "INPUT" &&
+            (t.type === "text" || t.type === "" || !t.type))
+        ) {
+          lastFocusedField = t;
+        }
+      });
+
+      function extractCellDataFromRawHTML(rawHTML) {
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = rawHTML;
+        const table = tempDiv.querySelector("table");
+        if (!table) return [];
 
         const rows = table.querySelectorAll("tr");
-        rows.forEach((row, rowIndex) => {
-          const cells = row.querySelectorAll("td, th");
-          cells.forEach((cell) => {
-            const isHeader = rowIndex === 0;
-            const baseStyle =
-              "border: 1px solid #000; padding: 2px; text-align: left; white-space: pre-wrap;";
-            const headerStyle = ""; // No special header style
+        const cellData = [];
 
-            cell.style.cssText = baseStyle + headerStyle;
-            cell.innerHTML = (cell.textContent || "").trim();
-          });
-        });
+        for (let i = 0; i < rows.length; i++) {
+          const cells = rows[i].querySelectorAll("td, th");
+          if (cells.length === 0) continue;
 
-        return table.outerHTML;
+          const rowData = [];
+          for (let j = 0; j < cells.length; j++) {
+            let cleanText = cells[j].textContent || cells[j].innerText || "";
+            cleanText = cleanText.replace(/style="[^"]*"/g, "");
+            cleanText = cleanText.replace(/border:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/padding:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/background-color:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/font-weight:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/text-align:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/white-space:\s*[^;]*;/g, "");
+            rowData.push(cleanText.trim());
+          }
+          cellData.push(rowData);
+        }
+
+        return cellData;
+      }
+
+      function buildTableHTMLFromData(cellData, splitAfterRows) {
+        if (!cellData || cellData.length === 0) return "";
+
+        const tableOpenTag =
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
+        const tableOpenTagSplit =
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 24px auto 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table; page-break-before: always;">';
+        const splitDividerHTML =
+          '<p style="text-align: center; font-weight: bold; margin: 16px 0; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif;">(Table continued)</p>';
+        let cleanedHTML = tableOpenTag;
+
+        let splitRows = [];
+        if (Array.isArray(splitAfterRows)) {
+          for (let s = 0; s < splitAfterRows.length; s++) {
+            const n = parseInt(splitAfterRows[s], 10);
+            if (n > 0 && splitRows.indexOf(n) === -1) splitRows.push(n);
+          }
+        } else {
+          const singleN = parseInt(splitAfterRows, 10);
+          if (singleN > 0) splitRows.push(singleN);
+        }
+        splitRows.sort((a, b) => a - b);
+        let headerRowHTML = "";
+
+        let numCols = 0;
+        for (let r0 = 0; r0 < cellData.length; r0++) {
+          if (cellData[r0].length > 0) {
+            numCols = cellData[r0].length;
+            break;
+          }
+        }
+        const TOTAL_TABLE_WIDTH = 588;
+        const colWidths = [];
+        if (numCols > 0) {
+          const baseWidth = Math.floor(TOTAL_TABLE_WIDTH / numCols);
+          const remainder = TOTAL_TABLE_WIDTH - baseWidth * numCols;
+          for (let c1 = 0; c1 < numCols; c1++) {
+            colWidths.push(baseWidth + (c1 < remainder ? 1 : 0));
+          }
+        }
+
+        for (let i = 0; i < cellData.length; i++) {
+          const cells = cellData[i];
+          if (!cells || cells.length === 0) continue;
+
+          if (splitRows.indexOf(i) !== -1) {
+            cleanedHTML +=
+              "</table>" +
+              splitDividerHTML +
+              tableOpenTagSplit +
+              headerRowHTML;
+          }
+
+          cleanedHTML += "<tr>";
+          let rowHTML = "<tr>";
+
+          for (let j = 0; j < cells.length; j++) {
+            const cleanText = cells[j] || "";
+            const colWidthPx =
+              colWidths.length > j
+                ? colWidths[j]
+                : Math.floor(588 / cells.length);
+            let cellStyle =
+              "border: 1px solid #000; padding: 2px; text-align: center; width: " +
+              colWidthPx +
+              "px;";
+            let cellAttrs = ' style="' + cellStyle;
+
+            if (i === 0) {
+              cellAttrs += " background-color: #f0f0f0;";
+            }
+            cellAttrs += '"';
+
+            const spanStyle =
+              "font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif; font-size: 13pt;" +
+              (i === 0 ? " font-weight: bold;" : "");
+            const cellText =
+              '<span style="' + spanStyle + '">' + cleanText + "</span>";
+
+            const cellHTML = "<td" + cellAttrs + ">" + cellText + "</td>";
+            cleanedHTML += cellHTML;
+            rowHTML += cellHTML;
+          }
+
+          cleanedHTML += "</tr>";
+          rowHTML += "</tr>";
+
+          if (i === 0) {
+            headerRowHTML = rowHTML;
+          }
+        }
+
+        cleanedHTML += "</table>";
+        return cleanedHTML;
+      }
+
+      function getTableCellData(tbl) {
+        if (!tbl) return null;
+        if (tbl.cellData) return tbl.cellData;
+        if (tbl.rawHTML) {
+          tbl.cellData = extractCellDataFromRawHTML(tbl.rawHTML);
+          return tbl.cellData;
+        }
+        return null;
+      }
+
+      function applyTableSplit(tableId, rowNums) {
+        const tbl = appData.tables[tableId];
+        const cellData = getTableCellData(tbl);
+        if (!tbl || !cellData) {
+          showToast("Cannot split this table — original data not found.");
+          return;
+        }
+        tbl.splitAfterRows = rowNums;
+        tbl.html = buildTableHTMLFromData(cellData, rowNums);
+        updatePreview();
+        showToast(
+          rowNums.length > 0
+            ? "Table split after row(s) " + rowNums.join(", ") + "."
+            : "Table splits removed.",
+        );
+      }
+
+      function regenerateTableHTML(tableId) {
+        const tbl = appData.tables[tableId];
+        const cellData = getTableCellData(tbl);
+        if (!tbl || !cellData) return;
+        tbl.html = buildTableHTMLFromData(cellData, tbl.splitAfterRows || []);
+        updatePreview();
       }
 
       function getNextTableNumber() {
@@ -2096,19 +2581,147 @@
           return;
         }
 
-        let html = '<div class="uploaded-files">';
+        let html = "";
         tableKeys.forEach((tableId) => {
-          const table = appData.tables[tableId];
-          html += `
-                    <div class="file-item">
-                        <span>{{${tableId}}} - ${table.fileName}</span>
-                        <button onclick="removeTable('${tableId}')" class="btn btn-danger btn-small">Remove</button>
-                    </div>
-                `;
+          const tbl = appData.tables[tableId];
+          const curSplits = tbl.splitAfterRows || [];
+          html +=
+            '<div style="margin-bottom: 8px;">' +
+            '<span style="display:inline-flex; align-items:center; gap:4px; margin-right: 10px; margin-bottom: 6px; padding: 5px; background: white; border-radius: 3px; border: 1px solid #ddd;">{{' +
+            tableId +
+            "}} - " +
+            tbl.fileName +
+            ' <label style="font-size:11px; color:#555; margin-left:6px;">Split after rows:</label>' +
+            '<input type="text" placeholder="e.g. 8,15" value="' +
+            curSplits.join(",") +
+            '" data-split-table-id="' +
+            tableId +
+            '" class="table-split-input" style="width:70px; padding:2px 4px; font-size:11px;">' +
+            ' <button data-apply-split-id="' +
+            tableId +
+            '" class="table-split-apply-btn" style="cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">Apply</button>' +
+            ' <button data-edit-table-id="' +
+            tableId +
+            '" class="table-edit-toggle-btn" style="cursor: pointer; background: #1565c0; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">✎ Edit Table</button>' +
+            ` <button onclick="removeTable('${tableId}')" class="btn btn-danger btn-small" style="padding: 2px 6px;">Remove</button></span>` +
+            '<div id="tableEditGrid_' +
+            tableId +
+            '" style="display: none; overflow: auto; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px;"></div>' +
+            "</div>";
         });
-        html += "</div>";
 
         container.innerHTML = html;
+
+        const applyBtns = container.querySelectorAll(".table-split-apply-btn");
+        applyBtns.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const tid = this.getAttribute("data-apply-split-id");
+            const input = container.querySelector(
+              `.table-split-input[data-split-table-id="${tid}"]`,
+            );
+            const raw = input ? input.value : "";
+            const rowNums = raw
+              .split(",")
+              .map((v) => parseInt(v.trim(), 10))
+              .filter((v) => v > 0);
+            applyTableSplit(tid, rowNums);
+          });
+        });
+
+        const editBtns = container.querySelectorAll(".table-edit-toggle-btn");
+        editBtns.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const tid = this.getAttribute("data-edit-table-id");
+            const gridEl = document.getElementById("tableEditGrid_" + tid);
+            if (!gridEl) return;
+            if (gridEl.style.display === "none") {
+              gridEl.style.display = "block";
+              this.textContent = "✎ Hide Table";
+              renderEditableTableGrid(tid);
+            } else {
+              gridEl.style.display = "none";
+              this.textContent = "✎ Edit Table";
+            }
+          });
+        });
+      }
+
+      function renderEditableTableGrid(tableId) {
+        const gridEl = document.getElementById("tableEditGrid_" + tableId);
+        if (!gridEl) return;
+        const tbl = appData.tables[tableId];
+        const cellData = getTableCellData(tbl);
+        if (!cellData) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px;">No editable data found for this table.</div>';
+          return;
+        }
+
+        const table = document.createElement("table");
+        table.style.cssText =
+          "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+        for (let r = 0; r < cellData.length; r++) {
+          const tr = document.createElement("tr");
+          for (let c = 0; c < cellData[r].length; c++) {
+            const td = document.createElement("td");
+            td.style.cssText = "border: 1px solid #ddd; padding: 2px;";
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = cellData[r][c];
+            input.style.cssText =
+              "width: 110px; padding: 3px 4px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;" +
+              (r === 0 ? " font-weight: bold; background: #f7f7f7;" : "");
+            input.addEventListener("input", function () {
+              appData.tables[tableId].cellData[r][c] = this.value;
+              regenerateTableHTML(tableId);
+            });
+            td.appendChild(input);
+            tr.appendChild(td);
+          }
+
+          const delTd = document.createElement("td");
+          delTd.style.cssText = "border: none; padding: 2px;";
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.textContent = "🗑";
+          delBtn.title = "Delete row";
+          delBtn.style.cssText =
+            "cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;";
+          delBtn.addEventListener("click", function () {
+            if (appData.tables[tableId].cellData.length <= 1) {
+              showToast("Table must have at least one row.");
+              return;
+            }
+            appData.tables[tableId].cellData.splice(r, 1);
+            regenerateTableHTML(tableId);
+            renderEditableTableGrid(tableId);
+          });
+          delTd.appendChild(delBtn);
+          tr.appendChild(delTd);
+
+          table.appendChild(tr);
+        }
+
+        gridEl.innerHTML = "";
+        gridEl.appendChild(table);
+
+        const addRowBtn = document.createElement("button");
+        addRowBtn.type = "button";
+        addRowBtn.textContent = "+ Add Row";
+        addRowBtn.style.cssText =
+          "margin-top: 6px; cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 4px 10px; font-size: 11px;";
+        addRowBtn.addEventListener("click", function () {
+          const numCols = appData.tables[tableId].cellData[0]
+            ? appData.tables[tableId].cellData[0].length
+            : 1;
+          const newRow = [];
+          for (let k = 0; k < numCols; k++) newRow.push("");
+          appData.tables[tableId].cellData.push(newRow);
+          regenerateTableHTML(tableId);
+          renderEditableTableGrid(tableId);
+        });
+        gridEl.appendChild(addRowBtn);
       }
 
       function removeTable(tableId) {
