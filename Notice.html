@@ -1280,7 +1280,7 @@
           reference: "സൂചന",
           copy: "പകർപ്പ്",
           to: "സ്വീക‍ര്‍ത്താവ്",
-          principal: "പ്രിന്‍സിപ്പാള്‍(i/c)",
+          principal: "",
         },
         en: {
           font: "'Times New Roman', Times, serif",
@@ -1290,7 +1290,7 @@
           reference: "Ref",
           copy: "Copy to",
           to: "To",
-          principal: "Principal(i/c)",
+          principal: "",
         },
       };
 
@@ -2416,9 +2416,9 @@
         if (!cellData || cellData.length === 0) return "";
 
         const tableOpenTag =
-          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; outline: 1px solid #000; outline-offset: -1px; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
         const tableOpenTagSplit =
-          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 24px auto 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table; page-break-before: always;">';
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 24px auto 0 auto; border: 1px solid #000; outline: 1px solid #000; outline-offset: -1px; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table; page-break-before: always;">';
         const splitDividerHTML =
           '<p style="text-align: center; font-weight: bold; margin: 16px 0; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif;">(Table continued)</p>';
         let cleanedHTML = tableOpenTag;
@@ -3215,7 +3215,7 @@
 
                     <div style="text-align: right; margin-bottom: 60px; font-size: 12pt; line-height: 1.6;">
                         <div>${data.principalName}</div>
-                        <div>${L.principal}</div>
+                        <div>${L.principal.replace(/\n/g, "<br>")}</div>
                     </div>
 
                     ${toHTML}
@@ -3455,7 +3455,7 @@
                     
                     <div style="text-align: right; margin: 0 0 15px 0; padding: 0; font-size: 13pt; line-height: 1.3;">
                         <div style="margin: 0; padding: 0;">${data.principalName}</div>
-                        <div style="margin: 0; padding: 0;">${L.principal}</div>
+                        <div style="margin: 0; padding: 0;">${L.principal.replace(/\n/g, "<br>")}</div>
                     </div>
 
                     ${toSection}
