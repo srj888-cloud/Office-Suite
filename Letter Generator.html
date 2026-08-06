@@ -3649,12 +3649,12 @@
         var subjectReferencesHtml = "";
         if (subject || references.length > 0) {
           subjectReferencesHtml =
-            '<div style="margin-bottom: 20px; font-size: 12pt;"><table style="width: 100%; border-collapse: collapse; margin-left: 7ch;">';
+            '<div style="margin-bottom: 20px; font-size: 12pt;"><table style="width: calc(100% - 7ch); border-collapse: collapse; margin-left: 7ch;">';
           if (subject) {
             subjectReferencesHtml +=
               '<tr><td style="border: none; padding: 0; vertical-align: top; width: 80px;">' +
               L.subject +
-              ':</td><td style="border: none; padding: 0; vertical-align: top; line-height: 1.6;">' +
+              ':</td><td style="border: none; padding: 0; vertical-align: top; line-height: 1.6; text-align: justify;">' +
               subject +
               "</td></tr>";
           }
@@ -3683,7 +3683,7 @@
               (subject ? "10px" : "0") +
               ';">' +
               L.reference +
-              ':</td><td style="border: none; padding: 0; vertical-align: top; line-height: 1.6; padding-top: ' +
+              ':</td><td style="border: none; padding: 0; vertical-align: top; line-height: 1.6; text-align: justify; padding-top: ' +
               (subject ? "10px" : "0") +
               ';">' +
               referencesContent +
@@ -3704,7 +3704,7 @@
             '<div style="font-size: 12pt;"><div>' + L.enclosure + ":</div>";
           if (enclosures.length > 1) {
             enclosuresHtml +=
-              '<table style="width:100%;border-collapse:collapse;margin-left:7ch;">';
+              '<table style="width:calc(100% - 7ch);border-collapse:collapse;margin-left:7ch;">';
             for (var i = 0; i < enclosures.length; i++) {
               enclosuresHtml +=
                 '<tr><td style="border:none;padding:0;vertical-align:top;width:28px;line-height:1.6;">' +
@@ -3729,7 +3729,7 @@
             '<div style="font-size: 12pt;"><div>' + L.copy + ":</div>";
           if (copyTo.length > 1) {
             copyToHtml +=
-              '<table style="width:100%;border-collapse:collapse;margin-left:7ch;">';
+              '<table style="width:calc(100% - 7ch);border-collapse:collapse;margin-left:7ch;">';
             for (var i = 0; i < copyTo.length; i++) {
               copyToHtml +=
                 "<tr>" +
