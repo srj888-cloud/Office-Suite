@@ -646,10 +646,18 @@
 
           <!-- ── Mail Merge ── -->
           <div class="merge-section">
-            <span class="merge-label">📊 Mail Merge</span>
+            <span
+              class="merge-label"
+              onclick="toggleMailMergeControls()"
+              style="cursor: pointer; user-select: none;"
+              title="Click to show/hide Mail Merge upload"
+            >
+              📊 Mail Merge
+            </span>
             <div
+              id="mailMergeControls"
               style="
-                display: flex;
+                display: none;
                 align-items: center;
                 gap: 8px;
                 flex-wrap: wrap;
@@ -1844,10 +1852,11 @@
 
                   var tableNum = findNextTableNumber();
                   var tableId = "TABLE_" + tableNum;
+                  var cellData = extractCellDataFromRawHTML(rawHTML);
 
                   data.tables[tableId] = {
-                    html: processRawExcelHTML(rawHTML, []),
-                    rawHTML: rawHTML,
+                    html: buildTableHTMLFromData(cellData, []),
+                    cellData: cellData,
                     fileName: file.name,
                     splitAfterRows: [],
                   };
@@ -1953,6 +1962,13 @@
           text = text.replace(re, row[h] || "");
         });
         return text;
+      }
+
+      function toggleMailMergeControls() {
+        var controls = document.getElementById("mailMergeControls");
+        if (!controls) return;
+        controls.style.display =
+          controls.style.display === "none" ? "flex" : "none";
       }
 
       function handleMergeUpload(event) {
@@ -2754,16 +2770,41 @@
         return out;
       }
 
-      function processRawExcelHTML(rawHTML, splitAfterRows) {
-        // Create a temporary div to work with the HTML
+      function extractCellDataFromRawHTML(rawHTML) {
         var tempDiv = document.createElement("div");
         tempDiv.innerHTML = rawHTML;
 
         var table = tempDiv.querySelector("table");
-        if (!table) return rawHTML;
+        if (!table) return [];
 
-        // Process all cells and extract clean text content
         var rows = table.querySelectorAll("tr");
+        var cellData = [];
+
+        for (var i = 0; i < rows.length; i++) {
+          var cells = rows[i].querySelectorAll("td, th");
+          if (cells.length === 0) continue;
+
+          var rowData = [];
+          for (var j = 0; j < cells.length; j++) {
+            var cleanText = cells[j].textContent || cells[j].innerText || "";
+            cleanText = cleanText.replace(/style="[^"]*"/g, "");
+            cleanText = cleanText.replace(/border:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/padding:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/background-color:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/font-weight:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/text-align:\s*[^;]*;/g, "");
+            cleanText = cleanText.replace(/white-space:\s*[^;]*;/g, "");
+            rowData.push(cleanText.trim());
+          }
+          cellData.push(rowData);
+        }
+
+        return cellData;
+      }
+
+      function buildTableHTMLFromData(cellData, splitAfterRows) {
+        if (!cellData || cellData.length === 0) return "";
+
         var tableOpenTag =
           '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
         var tableOpenTagSplit =
@@ -2771,7 +2812,7 @@
         var splitDividerHTML =
           '<p style="text-align: center; font-weight: bold; margin: 16px 0; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif;">(Table continued)</p>';
         var cleanedHTML = tableOpenTag;
-        // Normalize to a sorted array of unique positive row indices
+
         var splitRows = [];
         if (Array.isArray(splitAfterRows)) {
           for (var s = 0; s < splitAfterRows.length; s++) {
@@ -2787,13 +2828,10 @@
         });
         var headerRowHTML = "";
 
-        // Determine column widths in px that sum to 588 (e-Office/TinyMCE strips
-        // table-level width but preserves per-cell width, based on observed behavior)
         var numCols = 0;
-        for (var r0 = 0; r0 < rows.length; r0++) {
-          var c0 = rows[r0].querySelectorAll("td, th");
-          if (c0.length > 0) {
-            numCols = c0.length;
+        for (var r0 = 0; r0 < cellData.length; r0++) {
+          if (cellData[r0].length > 0) {
+            numCols = cellData[r0].length;
             break;
           }
         }
@@ -2807,14 +2845,10 @@
           }
         }
 
-        for (var i = 0; i < rows.length; i++) {
-          var row = rows[i];
-          var cells = row.querySelectorAll("td, th");
+        for (var i = 0; i < cellData.length; i++) {
+          var cells = cellData[i];
+          if (!cells || cells.length === 0) continue;
 
-          if (cells.length === 0) continue;
-
-          // Manual split point(s): close current table, open a new one before this row,
-          // repeating the header row (row 0) at the top of the new table.
           if (splitRows.indexOf(i) !== -1) {
             cleanedHTML +=
               "</table>" +
@@ -2827,31 +2861,18 @@
           var rowHTML = "<tr>";
 
           for (var j = 0; j < cells.length; j++) {
-            var cell = cells[j];
+            var cleanText = cells[j] || "";
 
-            // Extract only the text content, ignore all HTML/style artifacts
-            var cleanText = cell.textContent || cell.innerText || "";
-
-            // Remove any residual style text that leaked into content
-            cleanText = cleanText.replace(/style="[^"]*"/g, "");
-            cleanText = cleanText.replace(/border:\s*[^;]*;/g, "");
-            cleanText = cleanText.replace(/padding:\s*[^;]*;/g, "");
-            cleanText = cleanText.replace(/background-color:\s*[^;]*;/g, "");
-            cleanText = cleanText.replace(/font-weight:\s*[^;]*;/g, "");
-            cleanText = cleanText.replace(/text-align:\s*[^;]*;/g, "");
-            cleanText = cleanText.replace(/white-space:\s*[^;]*;/g, "");
-            cleanText = cleanText.trim();
-
-            // Use HTML attributes for better copy compatibility
             var colWidthPx =
-              colWidths.length > j ? colWidths[j] : Math.floor(588 / cells.length);
+              colWidths.length > j
+                ? colWidths[j]
+                : Math.floor(588 / cells.length);
             var cellStyle =
               "border: 1px solid #000; padding: 2px; text-align: center; width: " +
               colWidthPx +
               "px;";
             var cellAttrs = ' style="' + cellStyle;
 
-            // Only visual difference for first row
             if (i === 0) {
               cellAttrs += " background-color: #f0f0f0;";
             }
@@ -2879,6 +2900,12 @@
 
         cleanedHTML += "</table>";
         return cleanedHTML;
+      }
+
+      function processRawExcelHTML(rawHTML, splitAfterRows) {
+        var cellData = extractCellDataFromRawHTML(rawHTML);
+        if (cellData.length === 0) return rawHTML;
+        return buildTableHTMLFromData(cellData, splitAfterRows);
       }
 
       function createUniformTable(tableData) {
@@ -3024,6 +3051,7 @@
           var tbl = data.tables[tableId];
           var curSplits = tbl.splitAfterRows || [];
           html +=
+            '<div style="margin-bottom: 8px;">' +
             '<span style="display:inline-flex; align-items:center; gap:4px; margin-right: 10px; margin-bottom: 6px; padding: 5px; background: white; border-radius: 3px;">{{' +
             tableId +
             "}} - " +
@@ -3037,9 +3065,16 @@
             ' <button data-apply-split-id="' +
             tableId +
             '" class="table-split-apply-btn" style="cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">Apply</button>' +
+            ' <button data-edit-table-id="' +
+            tableId +
+            '" class="table-edit-toggle-btn" style="cursor: pointer; background: #1565c0; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">✎ Edit Table</button>' +
             " <button onclick=\"deleteTable('" +
             tableId +
-            '\')" style="margin-left: 5px; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px;">×</button></span>';
+            '\')" style="margin-left: 5px; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px;">×</button></span>' +
+            '<div id="tableEditGrid_' +
+            tableId +
+            '" style="display: none; overflow: auto; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px;"></div>' +
+            "</div>";
         }
         html += "</div>";
 
@@ -3065,22 +3100,142 @@
             applyTableSplit(tid, rowNums);
           });
         }
+
+        // Wire up edit-table toggle buttons
+        var editBtns = container.querySelectorAll(".table-edit-toggle-btn");
+        for (var e = 0; e < editBtns.length; e++) {
+          editBtns[e].addEventListener("click", function () {
+            var tid = this.getAttribute("data-edit-table-id");
+            var gridEl = document.getElementById("tableEditGrid_" + tid);
+            if (!gridEl) return;
+            if (gridEl.style.display === "none") {
+              gridEl.style.display = "block";
+              this.textContent = "✎ Hide Table";
+              renderEditableTableGrid(tid);
+            } else {
+              gridEl.style.display = "none";
+              this.textContent = "✎ Edit Table";
+            }
+          });
+        }
+      }
+
+      function renderEditableTableGrid(tableId) {
+        var gridEl = document.getElementById("tableEditGrid_" + tableId);
+        if (!gridEl) return;
+        var tbl = data.tables[tableId];
+        var cellData = getTableCellData(tbl);
+        if (!cellData) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px;">No editable data found for this table.</div>';
+          return;
+        }
+
+        var table = document.createElement("table");
+        table.style.cssText =
+          "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+        for (var r = 0; r < cellData.length; r++) {
+          var tr = document.createElement("tr");
+          for (var c = 0; c < cellData[r].length; c++) {
+            var td = document.createElement("td");
+            td.style.cssText = "border: 1px solid #ddd; padding: 2px;";
+            var input = document.createElement("input");
+            input.type = "text";
+            input.value = cellData[r][c];
+            input.style.cssText =
+              "width: 110px; padding: 3px 4px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;" +
+              (r === 0 ? " font-weight: bold; background: #f7f7f7;" : "");
+            (function (row, col) {
+              input.addEventListener("input", function () {
+                data.tables[tableId].cellData[row][col] = this.value;
+                regenerateTableHTML(tableId);
+              });
+            })(r, c);
+            td.appendChild(input);
+            tr.appendChild(td);
+          }
+
+          var delTd = document.createElement("td");
+          delTd.style.cssText = "border: none; padding: 2px;";
+          var delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.textContent = "🗑";
+          delBtn.title = "Delete row";
+          delBtn.style.cssText =
+            "cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;";
+          (function (row) {
+            delBtn.addEventListener("click", function () {
+              if (data.tables[tableId].cellData.length <= 1) {
+                showToast("Table must have at least one row.");
+                return;
+              }
+              data.tables[tableId].cellData.splice(row, 1);
+              regenerateTableHTML(tableId);
+              renderEditableTableGrid(tableId);
+            });
+          })(r);
+          delTd.appendChild(delBtn);
+          tr.appendChild(delTd);
+
+          table.appendChild(tr);
+        }
+
+        gridEl.innerHTML = "";
+        gridEl.appendChild(table);
+
+        var addRowBtn = document.createElement("button");
+        addRowBtn.type = "button";
+        addRowBtn.textContent = "+ Add Row";
+        addRowBtn.style.cssText =
+          "margin-top: 6px; cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 4px 10px; font-size: 11px;";
+        addRowBtn.addEventListener("click", function () {
+          var numCols =
+            data.tables[tableId].cellData[0]
+              ? data.tables[tableId].cellData[0].length
+              : 1;
+          var newRow = [];
+          for (var k = 0; k < numCols; k++) newRow.push("");
+          data.tables[tableId].cellData.push(newRow);
+          regenerateTableHTML(tableId);
+          renderEditableTableGrid(tableId);
+        });
+        gridEl.appendChild(addRowBtn);
+      }
+
+      function getTableCellData(tbl) {
+        if (!tbl) return null;
+        if (tbl.cellData) return tbl.cellData;
+        if (tbl.rawHTML) {
+          tbl.cellData = extractCellDataFromRawHTML(tbl.rawHTML);
+          return tbl.cellData;
+        }
+        return null;
       }
 
       function applyTableSplit(tableId, rowNums) {
         var tbl = data.tables[tableId];
-        if (!tbl || !tbl.rawHTML) {
+        var cellData = getTableCellData(tbl);
+        if (!tbl || !cellData) {
           showToast("Cannot split this table \u2014 original data not found.");
           return;
         }
         tbl.splitAfterRows = rowNums;
-        tbl.html = processRawExcelHTML(tbl.rawHTML, rowNums);
+        tbl.html = buildTableHTMLFromData(cellData, rowNums);
         updatePreview();
         showToast(
           rowNums.length > 0
             ? "Table split after row(s) " + rowNums.join(", ") + "."
             : "Table splits removed.",
         );
+      }
+
+      function regenerateTableHTML(tableId) {
+        var tbl = data.tables[tableId];
+        var cellData = getTableCellData(tbl);
+        if (!tbl || !cellData) return;
+        tbl.html = buildTableHTMLFromData(cellData, tbl.splitAfterRows || []);
+        updatePreview();
       }
 
       function deleteTable(tableId) {
