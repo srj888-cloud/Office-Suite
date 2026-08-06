@@ -742,10 +742,18 @@
 
           <!-- ── Mail Merge ── -->
           <div class="merge-section">
-            <span class="merge-label">📊 Mail Merge</span>
+            <span
+              class="merge-label"
+              onclick="toggleMailMergeControls()"
+              style="cursor: pointer; user-select: none;"
+              title="Click to show/hide Mail Merge upload"
+            >
+              📊 Mail Merge
+            </span>
             <div
+              id="mailMergeControls"
               style="
-                display: flex;
+                display: none;
                 align-items: center;
                 gap: 8px;
                 flex-wrap: wrap;
@@ -867,6 +875,23 @@
           <div class="section-divider">📄 Proceedings Body Text</div>
 
           <div class="form-group">
+            <label
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 12px;
+                font-weight: normal;
+                margin: 5px 0;
+              "
+            >
+              <input
+                type="checkbox"
+                id="numberParagraphs"
+                onchange="generateDocument()"
+              />
+              Number each paragraph (1., 2., 3. ...)
+            </label>
             <textarea
               id="orderBodyText"
               rows="8"
@@ -941,6 +966,122 @@
             >
               💾 Download Draft
             </button>
+            <div
+              id="copyOptionsPanel"
+              style="
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 8px 10px;
+                font-size: 12px;
+                background: #f8f9fa;
+              "
+            >
+              <div style="font-weight: bold; margin-bottom: 5px;">
+                Copy Draft — Include Sections
+              </div>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-bottom: 6px;
+                  padding-bottom: 6px;
+                  border-bottom: 1px solid #ddd;
+                  font-weight: bold;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="copySelectAll"
+                  checked
+                  onchange="toggleAllCopyOptions(this.checked)"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Select All / Deselect All
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeTitle"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Title
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeOrderNoDate"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Order No. and Date
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeReference"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Reference
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeBody"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Body
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeSignatory"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Signatory
+              </label>
+              <label
+                style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"
+              >
+                <input
+                  type="checkbox"
+                  id="copyIncludeTo"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                To
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px;">
+                <input
+                  type="checkbox"
+                  id="copyIncludeCopyTo"
+                  checked
+                  onchange="updateCopySelectAllState()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Copy To
+              </label>
+            </div>
             <button
               class="btn btn-primary"
               style="
@@ -1008,8 +1149,106 @@
           </button>
         </div>
         <div class="panel-body">
+          <div
+            style="
+              display: flex;
+              gap: 6px;
+              align-items: center;
+              padding: 6px 10px;
+              border-bottom: 1px solid #ddd;
+              flex-wrap: wrap;
+            "
+          >
+            <button
+              type="button"
+              id="previewModeLetterBtn"
+              onclick="setPreviewMode('letter')"
+              style="
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+                background: var(--primary, #2c3e50);
+                color: white;
+              "
+            >
+              Proceedings Preview
+            </button>
+            <button
+              type="button"
+              id="previewModeDataBtn"
+              onclick="setPreviewMode('data')"
+              style="
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+                background: white;
+                color: #333;
+              "
+            >
+              Data Sheet
+            </button>
+            <span style="flex: 1"></span>
+            <input
+              type="file"
+              id="dataSheetFileInput"
+              accept=".xlsx,.xls,.csv"
+              style="display: none"
+              onchange="handleDataSheetUpload(this.files)"
+            />
+            <button
+              type="button"
+              onclick="document.getElementById('dataSheetFileInput').click()"
+              style="
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+                background: #f8f9fa;
+              "
+            >
+              📊 Upload Data Sheet
+            </button>
+          </div>
           <div class="preview-document" id="documentPreview">
             <!-- Generated document will appear here -->
+          </div>
+          <div
+            id="dataSheetPanel"
+            style="display: none; padding: 10px; overflow: auto;"
+          >
+            <div
+              id="dataSheetTabs"
+              style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;"
+            ></div>
+            <div
+              id="dataSheetHint"
+              style="font-size: 12px; color: #666; margin-bottom: 8px;"
+            >
+              Click into a field (References, Body, To, etc.), then click any
+              value below to insert it at your cursor.
+            </div>
+            <input
+              type="text"
+              id="dataSheetSearch"
+              placeholder="Search rows..."
+              oninput="renderDataSheetGrid(this.value)"
+              style="
+                width: 100%;
+                max-width: 300px;
+                padding: 6px 8px;
+                font-size: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                margin-bottom: 8px;
+                box-sizing: border-box;
+              "
+            />
+            <div id="dataSheetGrid" style="overflow: auto;"></div>
           </div>
         </div>
       </div>
@@ -1021,6 +1260,9 @@
       let toCount = 0;
       let copyToCount = 0;
       let excelFiles = {}; // Store multiple Excel files with unique IDs
+      let dataSheets = {};
+      let activeDataSheetName = null;
+      let lastFocusedField = null;
       let fileIdCounter = 0;
       let tablePlaceholders = {}; // Track table placeholders and their content
       let tablePlaceholderCounter = 0;
@@ -1049,7 +1291,7 @@
           date: "തീയതി",
           paramarsha: "പരാമര്‍ശം:-",
           order: "ഉത്തരവ്",
-          principal: "പ്രിന്‍സിപ്പാള്‍(i/c)",
+          principal: "",
           copy: "പകര്‍പ്പ്",
           to: "സ്വീകര്‍ത്താവ്",
         },
@@ -1061,7 +1303,7 @@
           date: "Date",
           paramarsha: "Read:-",
           order: "ORDER",
-          principal: "Principal(i/c)",
+          principal: "",
           copy: "Copy to",
           to: "To",
         },
@@ -1218,6 +1460,13 @@
           text = text.replace(re, row[h] || "");
         });
         return text;
+      }
+
+      function toggleMailMergeControls() {
+        const controls = document.getElementById("mailMergeControls");
+        if (!controls) return;
+        controls.style.display =
+          controls.style.display === "none" ? "flex" : "none";
       }
 
       function handleMergeUpload(event) {
@@ -1871,6 +2120,7 @@
               data: data,
               uploadDate: new Date().toLocaleString(),
               placeholderId: emptyPlaceholder.id,
+              splitAfterRows: [],
             };
 
             // Update placeholder with content
@@ -1920,10 +2170,18 @@
         Object.values(excelFiles).forEach((file) => {
           const fileDiv = document.createElement("div");
           fileDiv.className = "excel-file-item";
+          const curSplits = file.splitAfterRows || [];
           fileDiv.innerHTML = `
                     <div class="excel-file-info">
                         <h4>📊 ${file.name}</h4>
                         <p>Uploaded: ${file.uploadDate} | Rows: ${file.data.length} | In Table ${file.placeholderId}</p>
+                        <div style="display:flex; align-items:center; gap:4px; flex-wrap: wrap; margin-top: 4px;">
+                          <label style="font-size:11px; color:#555;">Split after rows:</label>
+                          <input type="text" placeholder="e.g. 8,15" value="${curSplits.join(",")}" data-split-file-id="${file.id}" class="table-split-input" style="width:70px; padding:2px 4px; font-size:11px;">
+                          <button data-apply-split-id="${file.id}" class="table-split-apply-btn" style="cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">Apply</button>
+                          <button data-edit-table-id="${file.id}" class="table-edit-toggle-btn" style="cursor: pointer; background: #1565c0; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">✎ Edit Table</button>
+                        </div>
+                        <div id="tableEditGrid_${file.id}" style="display: none; overflow: auto; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 6px;"></div>
                     </div>
                     <div class="file-actions">
                         <button class="btn btn-danger btn-small" onclick="removeTableAndPlaceholder(${file.id})">🗑️ Remove Table</button>
@@ -1931,6 +2189,116 @@
                 `;
           container.appendChild(fileDiv);
         });
+
+        const applyBtns = container.querySelectorAll(".table-split-apply-btn");
+        applyBtns.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const fid = this.getAttribute("data-apply-split-id");
+            const input = container.querySelector(
+              `.table-split-input[data-split-file-id="${fid}"]`,
+            );
+            const raw = input ? input.value : "";
+            const rowNums = raw
+              .split(",")
+              .map((v) => parseInt(v.trim(), 10))
+              .filter((v) => v > 0);
+            applyTableSplit(fid, rowNums);
+          });
+        });
+
+        const editBtns = container.querySelectorAll(".table-edit-toggle-btn");
+        editBtns.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const fid = this.getAttribute("data-edit-table-id");
+            const gridEl = document.getElementById("tableEditGrid_" + fid);
+            if (!gridEl) return;
+            if (gridEl.style.display === "none") {
+              gridEl.style.display = "block";
+              this.textContent = "✎ Hide Table";
+              renderEditableTableGrid(fid);
+            } else {
+              gridEl.style.display = "none";
+              this.textContent = "✎ Edit Table";
+            }
+          });
+        });
+      }
+
+      function renderEditableTableGrid(fileId) {
+        const gridEl = document.getElementById("tableEditGrid_" + fileId);
+        if (!gridEl) return;
+        const file = excelFiles[fileId];
+        if (!file || !file.data) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px;">No editable data found for this table.</div>';
+          return;
+        }
+
+        const table = document.createElement("table");
+        table.style.cssText =
+          "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+        for (let r = 0; r < file.data.length; r++) {
+          const tr = document.createElement("tr");
+          const row = file.data[r] || [];
+          for (let c = 0; c < row.length; c++) {
+            const td = document.createElement("td");
+            td.style.cssText = "border: 1px solid #ddd; padding: 2px;";
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = row[c] == null ? "" : row[c];
+            input.style.cssText =
+              "width: 110px; padding: 3px 4px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;" +
+              (r === 0 ? " font-weight: bold; background: #f7f7f7;" : "");
+            input.addEventListener("input", function () {
+              excelFiles[fileId].data[r][c] = this.value;
+              regenerateTableFromFile(fileId);
+            });
+            td.appendChild(input);
+            tr.appendChild(td);
+          }
+
+          const delTd = document.createElement("td");
+          delTd.style.cssText = "border: none; padding: 2px;";
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.textContent = "🗑";
+          delBtn.title = "Delete row";
+          delBtn.style.cssText =
+            "cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;";
+          delBtn.addEventListener("click", function () {
+            if (excelFiles[fileId].data.length <= 1) {
+              showToast("Table must have at least one row.");
+              return;
+            }
+            excelFiles[fileId].data.splice(r, 1);
+            regenerateTableFromFile(fileId);
+            renderEditableTableGrid(fileId);
+          });
+          delTd.appendChild(delBtn);
+          tr.appendChild(delTd);
+
+          table.appendChild(tr);
+        }
+
+        gridEl.innerHTML = "";
+        gridEl.appendChild(table);
+
+        const addRowBtn = document.createElement("button");
+        addRowBtn.type = "button";
+        addRowBtn.textContent = "+ Add Row";
+        addRowBtn.style.cssText =
+          "margin-top: 6px; cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 4px 10px; font-size: 11px;";
+        addRowBtn.addEventListener("click", function () {
+          const numCols =
+            excelFiles[fileId].data[0] ? excelFiles[fileId].data[0].length : 1;
+          const newRow = [];
+          for (let k = 0; k < numCols; k++) newRow.push("");
+          excelFiles[fileId].data.push(newRow);
+          regenerateTableFromFile(fileId);
+          renderEditableTableGrid(fileId);
+        });
+        gridEl.appendChild(addRowBtn);
       }
 
       function insertFileTable(fileId) {
@@ -2090,49 +2458,373 @@
         return copyItems;
       }
 
+      // ===== Data Sheet feature =====
+
+      function setPreviewMode(mode) {
+        const letterBtn = document.getElementById("previewModeLetterBtn");
+        const dataBtn = document.getElementById("previewModeDataBtn");
+        const letterEl = document.querySelector(".preview-document");
+        const dataEl = document.getElementById("dataSheetPanel");
+
+        const activeStyle = "background: var(--primary, #2c3e50); color: white;";
+        const inactiveStyle = "background: white; color: #333;";
+
+        if (mode === "data") {
+          letterEl.style.display = "none";
+          dataEl.style.display = "block";
+          letterBtn.style.cssText = letterBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            inactiveStyle,
+          );
+          dataBtn.style.cssText = dataBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            activeStyle,
+          );
+        } else {
+          letterEl.style.display = "";
+          dataEl.style.display = "none";
+          letterBtn.style.cssText = letterBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            activeStyle,
+          );
+          dataBtn.style.cssText = dataBtn.style.cssText.replace(
+            /background:[^;]*;\s*color:[^;]*;/,
+            inactiveStyle,
+          );
+        }
+      }
+
+      function handleDataSheetUpload(files) {
+        if (!files || !files.length) return;
+        const file = files[0];
+        const isCsv = /\.csv$/i.test(file.name);
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          try {
+            let workbook;
+            if (isCsv) {
+              workbook = XLSX.read(e.target.result, { type: "string" });
+            } else {
+              const arr = new Uint8Array(e.target.result);
+              workbook = XLSX.read(arr, { type: "array" });
+            }
+
+            const sheets = {};
+            for (let s = 0; s < workbook.SheetNames.length; s++) {
+              const sheetName = workbook.SheetNames[s];
+              const ws = workbook.Sheets[sheetName];
+              const rows = XLSX.utils.sheet_to_json(ws, {
+                header: 1,
+                defval: "",
+                raw: false,
+              });
+              sheets[sheetName] = rows;
+            }
+
+            dataSheets = sheets;
+            activeDataSheetName = workbook.SheetNames[0] || null;
+            renderDataSheetTabs();
+            showToast(`Data sheet uploaded: ${file.name}`);
+          } catch (err) {
+            showToast("Error reading data sheet file");
+          }
+        };
+
+        if (isCsv) {
+          reader.readAsText(file);
+        } else {
+          reader.readAsArrayBuffer(file);
+        }
+      }
+
+      function renderDataSheetTabs() {
+        const tabsEl = document.getElementById("dataSheetTabs");
+        const sheetNames = Object.keys(dataSheets || {});
+
+        if (sheetNames.length === 0) {
+          tabsEl.innerHTML = "";
+          document.getElementById("dataSheetGrid").innerHTML =
+            '<div style="color:#888; font-size:12px;">No data sheet uploaded yet.</div>';
+          return;
+        }
+
+        if (
+          !activeDataSheetName ||
+          sheetNames.indexOf(activeDataSheetName) === -1
+        ) {
+          activeDataSheetName = sheetNames[0];
+        }
+
+        tabsEl.innerHTML = "";
+        sheetNames.forEach((name) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = name;
+          btn.style.cssText =
+            "padding:4px 10px;font-size:12px;border:1px solid #ccc;border-radius:4px;cursor:pointer;" +
+            (name === activeDataSheetName
+              ? "background: var(--primary, #2c3e50); color:white;"
+              : "background:#f0f0f0; color:#333;");
+          btn.addEventListener("click", function () {
+            activeDataSheetName = name;
+            const searchEl = document.getElementById("dataSheetSearch");
+            if (searchEl) searchEl.value = "";
+            renderDataSheetTabs();
+          });
+          tabsEl.appendChild(btn);
+        });
+
+        renderDataSheetGrid();
+      }
+
+      function renderDataSheetGrid(filterText) {
+        const gridEl = document.getElementById("dataSheetGrid");
+        const allRows = (dataSheets && dataSheets[activeDataSheetName]) || [];
+
+        if (allRows.length === 0) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px;">This sheet has no data.</div>';
+          return;
+        }
+
+        const term = (filterText || "").trim().toLowerCase();
+        let rows = allRows;
+        if (term) {
+          rows = [allRows[0]].concat(
+            allRows.slice(1).filter((row) =>
+              row.some((cell) =>
+                String(cell == null ? "" : cell)
+                  .toLowerCase()
+                  .indexOf(term) !== -1,
+              ),
+            ),
+          );
+        }
+
+        if (rows.length <= 1 && term) {
+          gridEl.innerHTML =
+            '<div style="color:#888; font-size:12px; padding-top:6px;">No matching rows.</div>';
+          return;
+        }
+
+        const table = document.createElement("table");
+        table.style.cssText =
+          "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+        rows.forEach((row, r) => {
+          const tr = document.createElement("tr");
+          row.forEach((cellVal, c) => {
+            const td = document.createElement("td");
+            const val = cellVal === null || cellVal === undefined ? "" : String(cellVal);
+            td.textContent = val;
+            td.style.cssText =
+              "border: 1px solid #ddd; padding: 4px 8px; cursor: pointer; white-space: nowrap;" +
+              (r === 0 ? " font-weight: bold; background: #f0f0f0;" : "");
+            td.addEventListener("mouseenter", function () {
+              this.style.background = "#dff0ff";
+            });
+            td.addEventListener("mouseleave", function () {
+              this.style.background =
+                this.parentElement.rowIndex === 0 ? "#f0f0f0" : "";
+            });
+            td.addEventListener("click", function () {
+              insertDataSheetValue(this.textContent);
+            });
+            tr.appendChild(td);
+          });
+          table.appendChild(tr);
+        });
+
+        gridEl.innerHTML = "";
+        gridEl.appendChild(table);
+      }
+
+      function insertDataSheetValue(text) {
+        insertValueAtCursor(lastFocusedField, text);
+      }
+
+      function insertValueAtCursor(field, text) {
+        if (
+          !field ||
+          !document.body.contains(field) ||
+          (field.tagName !== "TEXTAREA" && field.tagName !== "INPUT")
+        ) {
+          showToast(
+            "Click into a field first, then click a value to insert it.",
+          );
+          return;
+        }
+
+        const start =
+          field.selectionStart != null ? field.selectionStart : field.value.length;
+        const end =
+          field.selectionEnd != null ? field.selectionEnd : field.value.length;
+        const before = field.value.substring(0, start);
+        const after = field.value.substring(end);
+
+        field.value = before + text + after;
+        const newPos = start + text.length;
+        field.focus();
+        field.setSelectionRange(newPos, newPos);
+
+        const evt = new Event("input", { bubbles: true });
+        field.dispatchEvent(evt);
+      }
+
+      document.addEventListener("focusin", function (e) {
+        const t = e.target;
+        if (
+          t.tagName === "TEXTAREA" ||
+          (t.tagName === "INPUT" &&
+            (t.type === "text" || t.type === "" || !t.type))
+        ) {
+          lastFocusedField = t;
+        }
+      });
+
       function generateTableFromFile(fileId) {
         const file = excelFiles[fileId];
         if (!file || !file.data || file.data.length === 0) {
           return '<p style="color: red; text-align: center; padding: 20px;">File data not found.</p>';
         }
+        return buildTableHTMLFromData(file.data, file.splitAfterRows || []);
+      }
 
-        let tableHTML = `
-                <div style="text-align: center; margin: 20px auto; width: 100%;">
-                    <table style="width: 100%; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif; margin-left: auto; margin-right: auto; display: table;">
-            `;
+      function buildTableHTMLFromData(cellData, splitAfterRows) {
+        if (!cellData || cellData.length === 0) return "";
 
-        // Process all rows as-is without any special formatting
-        for (let i = 0; i < file.data.length; i++) {
-          const row = file.data[i];
-          if (
-            row &&
-            row.length > 0 &&
-            row.some((cell) => cell && cell.toString().trim())
-          ) {
-            tableHTML += "<tr>";
+        const tableOpenTag =
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; outline: 1px solid #000; outline-offset: -1px; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
+        const tableOpenTagSplit =
+          '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 24px auto 0 auto; border: 1px solid #000; outline: 1px solid #000; outline-offset: -1px; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table; page-break-before: always;">';
+        const splitDividerHTML =
+          '<p style="text-align: center; font-weight: bold; margin: 16px 0; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif;">(Table continued)</p>';
+        let cleanedHTML =
+          '<div style="text-align: center; margin: 20px auto; width: 100%;">' +
+          tableOpenTag;
 
-            // Process each cell in the row
-            for (let j = 0; j < row.length; j++) {
-              const cellValue = row[j] ? row[j].toString().trim() : "";
-              tableHTML += `<td style="border: 1px solid #000; padding: 2px; font-size: 12pt; text-align: center;">${cellValue}</td>`;
-            }
+        let splitRows = [];
+        if (Array.isArray(splitAfterRows)) {
+          for (let s = 0; s < splitAfterRows.length; s++) {
+            const n = parseInt(splitAfterRows[s], 10);
+            if (n > 0 && splitRows.indexOf(n) === -1) splitRows.push(n);
+          }
+        } else {
+          const singleN = parseInt(splitAfterRows, 10);
+          if (singleN > 0) splitRows.push(singleN);
+        }
+        splitRows.sort((a, b) => a - b);
+        let headerRowHTML = "";
 
-            tableHTML += "</tr>";
+        let numCols = 0;
+        for (let r0 = 0; r0 < cellData.length; r0++) {
+          if (cellData[r0] && cellData[r0].length > 0) {
+            numCols = cellData[r0].length;
+            break;
+          }
+        }
+        const TOTAL_TABLE_WIDTH = 588;
+        const colWidths = [];
+        if (numCols > 0) {
+          const baseWidth = Math.floor(TOTAL_TABLE_WIDTH / numCols);
+          const remainder = TOTAL_TABLE_WIDTH - baseWidth * numCols;
+          for (let c1 = 0; c1 < numCols; c1++) {
+            colWidths.push(baseWidth + (c1 < remainder ? 1 : 0));
           }
         }
 
-        tableHTML += `
-                    </table>
-                </div>
-            `;
+        for (let i = 0; i < cellData.length; i++) {
+          const cells = cellData[i];
+          if (!cells || cells.length === 0) continue;
 
-        return tableHTML;
+          if (splitRows.indexOf(i) !== -1) {
+            cleanedHTML +=
+              "</table>" +
+              splitDividerHTML +
+              tableOpenTagSplit +
+              headerRowHTML;
+          }
+
+          cleanedHTML += "<tr>";
+          let rowHTML = "<tr>";
+
+          for (let j = 0; j < cells.length; j++) {
+            const cellValue = cells[j] ? cells[j].toString().trim() : "";
+            const colWidthPx =
+              colWidths.length > j
+                ? colWidths[j]
+                : Math.floor(588 / cells.length);
+            let cellStyle =
+              "border: 1px solid #000; padding: 2px; text-align: center; width: " +
+              colWidthPx +
+              "px;";
+            let cellAttrs = ' style="' + cellStyle;
+
+            if (i === 0) {
+              cellAttrs += " background-color: #f0f0f0;";
+            }
+            cellAttrs += '"';
+
+            const spanStyle =
+              "font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif; font-size: 13pt;" +
+              (i === 0 ? " font-weight: bold;" : "");
+            const cellText =
+              '<span style="' + spanStyle + '">' + cellValue + "</span>";
+
+            const cellHTML = "<td" + cellAttrs + ">" + cellText + "</td>";
+            cleanedHTML += cellHTML;
+            rowHTML += cellHTML;
+          }
+
+          cleanedHTML += "</tr>";
+          rowHTML += "</tr>";
+
+          if (i === 0) {
+            headerRowHTML = rowHTML;
+          }
+        }
+
+        cleanedHTML += "</table></div>";
+        return cleanedHTML;
+      }
+
+      function applyTableSplit(fileId, rowNums) {
+        const file = excelFiles[fileId];
+        if (!file || !file.data) {
+          showToast("Cannot split this table — original data not found.");
+          return;
+        }
+        file.splitAfterRows = rowNums;
+        const placeholder = tablePlaceholders[file.placeholderId];
+        if (placeholder) {
+          placeholder.content = generateTableFromFile(fileId);
+        }
+        generateDocument();
+        showToast(
+          rowNums.length > 0
+            ? "Table split after row(s) " + rowNums.join(", ") + "."
+            : "Table splits removed.",
+        );
+      }
+
+      function regenerateTableFromFile(fileId) {
+        const file = excelFiles[fileId];
+        if (!file) return;
+        const placeholder = tablePlaceholders[file.placeholderId];
+        if (placeholder) {
+          placeholder.content = generateTableFromFile(fileId);
+        }
+        generateDocument();
       }
 
       function processOrderBodyText(text) {
         // Split text into paragraphs first
         let paragraphs = text.split("\n");
         let processedHTML = "";
+        const numberedEl = document.getElementById("numberParagraphs");
+        const numbered = numberedEl && numberedEl.checked;
+        let counter = 0;
 
         for (let i = 0; i < paragraphs.length; i++) {
           let para = paragraphs[i].trim();
@@ -2152,7 +2844,12 @@
             }
           } else if (para) {
             // Regular paragraph - wrap in <p> tags with no bottom margin
-            processedHTML += `<p style="text-indent: 30px; margin: 0; text-align: justify; font-family: ${labels[currentLang].font}; line-height: 1.15; font-size: 13pt;">${para}</p>`;
+            let prefix = "";
+            if (numbered) {
+              counter++;
+              prefix = counter + ". ";
+            }
+            processedHTML += `<p style="text-indent: 30px; margin: 0; text-align: justify; font-family: ${labels[currentLang].font}; line-height: 1.15; font-size: 13pt;">${prefix}${para}</p>`;
           }
           // Remove the else clause that added <br> tags for empty lines
         }
@@ -2249,7 +2946,7 @@
         const _hdrProc = `<h3 style="font-size: 14pt; margin-bottom: 0; text-decoration: underline; font-family: ${L.font};">${_procTitle}</h3>`;
         const documentHTML = `
                 <div class="page-container" style="font-family: ${L.font}; font-size: 13pt;">
-                    <div style="text-align: center; margin-bottom: 20px;">
+                    <div data-copy-section="title" style="text-align: center; margin-bottom: 20px;">
                         ${buildHeaderWithLogo(_hdrProc, "10px", "center")}
                         ${showAttendance ? `<h4 style="font-size: 13pt; margin-bottom: 15px; font-weight: normal; font-family: ${L.font};">(${L.present}: ${principalName})</h4>` : ""}
                         <p style="font-size: 13pt; text-align: justify; margin: 15px 0; font-family: ${L.font};">
@@ -2257,7 +2954,7 @@
                         </p>
                     </div>
 
-                    <div style="text-align: center;">
+                    <div data-copy-section="orderNoDate" style="text-align: center;">
                         <table style="width: 100%; min-width: 100%; max-width: 100%; border-collapse: collapse; font-family: ${L.font}; table-layout: fixed;">
                             <tr>
                                 <td style="width: 60%; border: none; border-bottom: 1px solid #000; padding: 0; line-height: 0; font-size: 1px;">&nbsp;</td>
@@ -2275,7 +2972,7 @@
                     ${
                       referencesHTML
                         ? `
-                    <div style="margin: 20px 0;">
+                    <div data-copy-section="reference" style="margin: 20px 0;">
                         <table style="width: 100%; border-collapse: collapse;">
                             ${referencesHTML}
                         </table>
@@ -2284,6 +2981,7 @@
                         : ""
                     }
 
+                    <div data-copy-section="body">
                     <div style="text-align: center; margin-bottom: 20px;">
                         <h3 style="font-size: 14pt; margin-bottom: 10px; text-decoration: underline; font-family: ${L.font};">${L.order}</h3>
                     </div>
@@ -2297,16 +2995,17 @@
                     `
                         : ""
                     }
+                    </div>
 
-                    <div style="text-align: right; margin: 20px 0 20px 0; font-size: 13pt; font-family: ${L.font};">
+                    <div data-copy-section="signatory" style="text-align: right; margin: 20px 0 20px 0; font-size: 13pt; font-family: ${L.font};">
                         <p style="margin-bottom: 60px;"></p>
-                        <p>${principalName}<br>${L.principal}</p>
+                        <p>${principalName}<br>${L.principal.replace(/\n/g, "<br>")}</p>
                     </div>
 
                     ${
                       toHTML
                         ? `
-                    <div style="margin-top: 30px;">
+                    <div data-copy-section="to" style="margin-top: 30px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 12pt; font-family: ${L.font};">
                             ${toHTML}
                         </table>
@@ -2317,7 +3016,7 @@
                     ${
                       copyToHTML
                         ? `
-                    <div style="margin-top: 20px;">
+                    <div data-copy-section="copyTo" style="margin-top: 20px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 12pt; font-family: ${L.font};">
                             ${copyToHTML}
                         </table>
@@ -2821,6 +3520,8 @@
             showAttendance: document.getElementById("showAttendance").checked,
             documentTitle: document.getElementById("documentTitle").value,
             orderBodyText: document.getElementById("orderBodyText").value,
+            numberParagraphs: document.getElementById("numberParagraphs")
+              .checked,
             references: collectReferences(),
             toItems: collectToItems(),
             copyToItems: collectCopyToItems(),
@@ -2836,10 +3537,13 @@
                         data: file.data,
                         uploadDate: file.uploadDate,
                         placeholderId: file.placeholderId,
+                        splitAfterRows: file.splitAfterRows || [],
                       },
                     ]),
                   )
                 : {},
+            dataSheets: dataSheets,
+            copyOptions: getCopyOptions(),
             exportDate: new Date().toISOString(),
             version: "1.0",
           };
@@ -2906,6 +3610,8 @@
             if (jsonData.orderBodyText)
               document.getElementById("orderBodyText").value =
                 jsonData.orderBodyText;
+            document.getElementById("numberParagraphs").checked =
+              !!jsonData.numberParagraphs;
 
             // Import references
             if (jsonData.references && Array.isArray(jsonData.references)) {
@@ -3001,6 +3707,10 @@
             // Update displays
             displayExcelFiles();
             updatePlaceholderStatus();
+            dataSheets = jsonData.dataSheets || {};
+            activeDataSheetName = null;
+            renderDataSheetTabs();
+            applyCopyOptions(jsonData.copyOptions);
             generateDocument();
 
             showCopySuccess("Template imported successfully!");
@@ -3013,6 +3723,97 @@
         event.target.value = ""; // Clear the input
       }
 
+      const COPY_OPTION_CHECKBOX_IDS = [
+        "copyIncludeTitle",
+        "copyIncludeOrderNoDate",
+        "copyIncludeReference",
+        "copyIncludeBody",
+        "copyIncludeSignatory",
+        "copyIncludeTo",
+        "copyIncludeCopyTo",
+      ];
+
+      function toggleAllCopyOptions(checked) {
+        COPY_OPTION_CHECKBOX_IDS.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.checked = checked;
+        });
+      }
+
+      function updateCopySelectAllState() {
+        let total = 0;
+        let checkedCount = 0;
+        COPY_OPTION_CHECKBOX_IDS.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          total++;
+          if (el.checked) checkedCount++;
+        });
+        const selectAllEl = document.getElementById("copySelectAll");
+        if (!selectAllEl) return;
+        selectAllEl.checked = checkedCount === total;
+        selectAllEl.indeterminate = checkedCount > 0 && checkedCount < total;
+      }
+
+      function getCopyOptions() {
+        function isChecked(id) {
+          const el = document.getElementById(id);
+          return el ? el.checked : true;
+        }
+        return {
+          title: isChecked("copyIncludeTitle"),
+          orderNoDate: isChecked("copyIncludeOrderNoDate"),
+          reference: isChecked("copyIncludeReference"),
+          body: isChecked("copyIncludeBody"),
+          signatory: isChecked("copyIncludeSignatory"),
+          to: isChecked("copyIncludeTo"),
+          copyTo: isChecked("copyIncludeCopyTo"),
+        };
+      }
+
+      function applyCopyOptions(opts) {
+        opts = opts || {};
+        const fields = {
+          copyIncludeTitle: "title",
+          copyIncludeOrderNoDate: "orderNoDate",
+          copyIncludeReference: "reference",
+          copyIncludeBody: "body",
+          copyIncludeSignatory: "signatory",
+          copyIncludeTo: "to",
+          copyIncludeCopyTo: "copyTo",
+        };
+        for (const elId in fields) {
+          const el = document.getElementById(elId);
+          if (!el) continue;
+          const key = fields[elId];
+          el.checked = opts.hasOwnProperty(key) ? !!opts[key] : true;
+        }
+        updateCopySelectAllState();
+      }
+
+      function stripExcludedCopySections(htmlContent) {
+        const opts = getCopyOptions();
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = htmlContent;
+        const sectionMap = {
+          title: opts.title,
+          orderNoDate: opts.orderNoDate,
+          reference: opts.reference,
+          body: opts.body,
+          signatory: opts.signatory,
+          to: opts.to,
+          copyTo: opts.copyTo,
+        };
+        for (const section in sectionMap) {
+          if (!sectionMap[section]) {
+            tempDiv
+              .querySelectorAll(`[data-copy-section="${section}"]`)
+              .forEach((el) => el.remove());
+          }
+        }
+        return tempDiv.innerHTML;
+      }
+
       function copyWithZeroMargins() {
         const documentContent = document.getElementById("documentPreview");
 
@@ -3021,8 +3822,11 @@
           return;
         }
 
-        // Create a clean copy of the content without zoom, margin or padding styles
-        const cleanContent = stripAllMarginsAndPadding(getUnzoomedHTML());
+        // Create a clean copy of the content without zoom, margin or padding styles,
+        // and with any excluded sections removed per the Copy Options panel
+        const cleanContent = stripAllMarginsAndPadding(
+          stripExcludedCopySections(getUnzoomedHTML()),
+        );
 
         // Initialize the enhanced CopyFormatter with completely stripped styles
         const formatter = new CopyFormatter({
@@ -3103,6 +3907,28 @@
         return cleanedHTML;
       }
 
+      function showToast(message) {
+        const toast = document.createElement("div");
+        toast.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: #333;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 6px;
+                    z-index: 10000;
+                    font-family: Arial, sans-serif;
+                    font-size: 13px;
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+                `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 3000);
+      }
+
       function showCopySuccess(
         message = "Document copied with formatting! You can now paste it into Word, Google Docs, or other platforms.",
       ) {
@@ -3180,6 +4006,7 @@
         initializeDefaults();
         setupRealTimePreview(); // Set up real-time preview
         generateDocument(); // Initial document generation
+        renderDataSheetTabs();
       };
     </script>
   </body>
