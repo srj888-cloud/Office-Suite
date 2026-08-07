@@ -875,23 +875,72 @@
           <div class="section-divider">📄 Proceedings Body Text</div>
 
           <div class="form-group">
-            <label
+            <div
               style="
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                font-size: 12px;
-                font-weight: normal;
-                margin: 5px 0;
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 8px 10px;
+                background: #f8f9fa;
+                margin-bottom: 10px;
+                flex-wrap: wrap;
               "
             >
-              <input
-                type="checkbox"
-                id="numberParagraphs"
-                onchange="generateDocument()"
-              />
-              Number each paragraph (1., 2., 3. ...)
-            </label>
+              <label
+                style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 5px;
+                  font-size: 12px;
+                  font-weight: normal;
+                  white-space: nowrap;
+                  flex: 0 0 auto;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="numberParagraphs"
+                  onchange="generateDocument()"
+                />
+                Number each paragraph
+              </label>
+              <div
+                style="
+                  font-size: 11px;
+                  color: #777;
+                  border-left: 1px solid #ddd;
+                  padding-left: 12px;
+                  flex: 1 1 220px;
+                "
+              >
+                <div
+                  style="
+                    font-weight: bold;
+                    color: #444;
+                    font-size: 12px;
+                    margin-bottom: 2px;
+                  "
+                >
+                  Numbering and Bulleting
+                </div>
+                Start a line with <code># </code> for a numbered point (1),
+                <code>## </code> for a sub-point ((a)), <code>### </code> for
+                a sub-sub-point ((i)), or <code>* </code> for a bullet.
+                <div
+                  style="
+                    font-weight: bold;
+                    color: #444;
+                    font-size: 12px;
+                    margin: 6px 0 2px 0;
+                  "
+                >
+                  Paragraph Spacing
+                </div>
+                <code>~ </code> removes the indent for that paragraph.
+              </div>
+            </div>
             <textarea
               id="orderBodyText"
               rows="8"
@@ -2818,43 +2867,200 @@
         generateDocument();
       }
 
-      function processOrderBodyText(text) {
-        // Split text into paragraphs first
-        let paragraphs = text.split("\n");
-        let processedHTML = "";
-        const numberedEl = document.getElementById("numberParagraphs");
-        const numbered = numberedEl && numberedEl.checked;
-        let counter = 0;
+      // ===== Bullets & nested numbering (#, ##, ###, *) =====
 
-        for (let i = 0; i < paragraphs.length; i++) {
-          let para = paragraphs[i].trim();
-
-          // Check if this paragraph contains a table placeholder
-          const tableMatch = para.match(/\[TABLE_(\d+)\]/);
-          if (tableMatch) {
-            const placeholderId = parseInt(tableMatch[1]);
-            const placeholder = tablePlaceholders[placeholderId];
-
-            if (placeholder && placeholder.hasContent) {
-              // Replace with actual table content
-              processedHTML += placeholder.content;
-            } else {
-              // Show empty placeholder
-              processedHTML += `<div style="background: #fff3cd; border: 2px dashed #ffc107; border-radius: 8px; padding: 20px; margin: 15px 0; text-align: center; color: #856404; font-weight: bold; font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;">📋 Table ${placeholderId} - Upload Excel file to fill this table</div>`;
-            }
-          } else if (para) {
-            // Regular paragraph - wrap in <p> tags with no bottom margin
-            let prefix = "";
-            if (numbered) {
-              counter++;
-              prefix = counter + ". ";
-            }
-            processedHTML += `<p style="text-indent: 30px; margin: 0; text-align: justify; font-family: ${labels[currentLang].font}; line-height: 1.15; font-size: 13pt;">${prefix}${para}</p>`;
+      function toRomanLower(num) {
+        const map = [
+          [10, "x"],
+          [9, "ix"],
+          [5, "v"],
+          [4, "iv"],
+          [1, "i"],
+        ];
+        let n = num;
+        let result = "";
+        for (let m = 0; m < map.length; m++) {
+          while (n >= map[m][0]) {
+            result += map[m][1];
+            n -= map[m][0];
           }
-          // Remove the else clause that added <br> tags for empty lines
+        }
+        return result || "i";
+      }
+
+      function toLowerLetter(num) {
+        let n = num;
+        let result = "";
+        while (n > 0) {
+          const rem = (n - 1) % 26;
+          result = String.fromCharCode(97 + rem) + result;
+          n = Math.floor((n - 1) / 26);
+        }
+        return result || "a";
+      }
+
+      function parseBodyIntoBlocks(processedText) {
+        const lines = processedText.split("\n");
+        const blocks = [];
+        let current = null;
+        let level1 = 0;
+        let level2 = 0;
+        let level3 = 0;
+
+        function closeCurrent() {
+          if (current) blocks.push(current);
+          current = null;
         }
 
-        return processedHTML;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+
+          if (line === "") {
+            closeCurrent();
+            continue;
+          }
+
+          // Already-substituted HTML (table content or empty-placeholder block)
+          if (line.indexOf("<") === 0) {
+            closeCurrent();
+            blocks.push({ type: "html", html: line });
+            continue;
+          }
+
+          const markerMatch = line.match(/^(###|##|#|\*)\s*(.*)$/);
+          if (markerMatch) {
+            closeCurrent();
+            const marker = markerMatch[1];
+            const text = markerMatch[2];
+            let type, label;
+            if (marker === "#") {
+              level1++;
+              level2 = 0;
+              level3 = 0;
+              type = "num1";
+              label = "(" + level1 + ")";
+            } else if (marker === "##") {
+              level2++;
+              level3 = 0;
+              type = "num2";
+              label = "(" + toLowerLetter(level2) + ")";
+            } else if (marker === "###") {
+              level3++;
+              type = "num3";
+              label = "(" + toRomanLower(level3) + ")";
+            } else {
+              type = "bullet";
+              label = "\u2022";
+            }
+            current = { type: type, label: label, lines: [text] };
+            continue;
+          }
+
+          if (current) {
+            current.lines.push(line);
+            continue;
+          }
+
+          let noIndent = false;
+          let noSpacer = false;
+          let plainText = line;
+          if (plainText.indexOf("~~") === 0) {
+            noSpacer = true;
+            plainText = plainText.substring(2).replace(/^\s+/, "");
+          } else if (plainText.indexOf("~") === 0) {
+            noIndent = true;
+            plainText = plainText.substring(1).replace(/^\s+/, "");
+          }
+
+          blocks.push({
+            type: "plain",
+            lines: [plainText],
+            noIndent: noIndent,
+            noSpacer: noSpacer,
+          });
+        }
+        closeCurrent();
+        return blocks;
+      }
+
+      function renderBodyBlocksHTML(blocks, numbered, pStyleBase) {
+        let html = "";
+        let plainCounter = 0;
+        const NBSP_PER_LEVEL = 6;
+
+        function labelForBlock(block) {
+          const levelIndex =
+            block.type === "num1"
+              ? 0
+              : block.type === "num2"
+                ? 1
+                : block.type === "num3"
+                  ? 2
+                  : 0;
+          const indentUnits = 1 + levelIndex;
+          const nbspPrefix = "&nbsp;".repeat(indentUnits * NBSP_PER_LEVEL);
+          return nbspPrefix + block.label + " " + block.lines.join("<br>");
+        }
+
+        let i = 0;
+        while (i < blocks.length) {
+          const block = blocks[i];
+
+          if (block.type === "html") {
+            html += block.html;
+            i++;
+            continue;
+          }
+
+          if (block.type === "plain") {
+            let prefix = "";
+            if (numbered) {
+              plainCounter++;
+              prefix = plainCounter + ". ";
+            }
+            const extraStyle = block.noIndent ? " text-indent: 0;" : "";
+            html += `<p style="${pStyleBase}${extraStyle}">${prefix}${block.lines.join("<br>")}</p>`;
+            i++;
+            continue;
+          }
+
+          // Marker block (num1/num2/num3/bullet): group every consecutive
+          // marker block into ONE <p>, joined with <br>. This keeps spacing
+          // between points governed by line-height (survives e-Office's
+          // margin stripping) instead of per-paragraph margin (doesn't).
+          const groupLines = [];
+          while (
+            i < blocks.length &&
+            blocks[i].type !== "plain" &&
+            blocks[i].type !== "html"
+          ) {
+            groupLines.push(labelForBlock(blocks[i]));
+            i++;
+          }
+          html += `<p style="${pStyleBase} text-indent: 0;">${groupLines.join("<br>")}</p>`;
+        }
+
+        return html;
+      }
+
+      function processOrderBodyText(text) {
+        const numberedEl = document.getElementById("numberParagraphs");
+        const numbered = numberedEl && numberedEl.checked;
+
+        // Substitute table placeholders first, so the block parser only
+        // ever sees plain text or already-rendered HTML
+        const substituted = text.replace(/\[TABLE_(\d+)\]/g, (match, idStr) => {
+          const placeholderId = parseInt(idStr);
+          const placeholder = tablePlaceholders[placeholderId];
+          if (placeholder && placeholder.hasContent) {
+            return placeholder.content;
+          }
+          return `<div style="background: #fff3cd; border: 2px dashed #ffc107; border-radius: 8px; padding: 20px; margin: 15px 0; text-align: center; color: #856404; font-weight: bold; font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif;">📋 Table ${placeholderId} - Upload Excel file to fill this table</div>`;
+        });
+
+        const blocks = parseBodyIntoBlocks(substituted);
+        const pStyleBase = `text-indent: 30px; margin: 0; text-align: justify; font-family: ${labels[currentLang].font}; line-height: 1.15; font-size: 13pt;`;
+        return renderBodyBlocksHTML(blocks, numbered, pStyleBase);
       }
 
       function generateDocument() {
