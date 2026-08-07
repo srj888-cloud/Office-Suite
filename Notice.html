@@ -2410,6 +2410,7 @@
             appData.dataSheets = sheets;
             activeDataSheetName = workbook.SheetNames[0] || null;
             renderDataSheetTabs();
+            setPreviewMode("data");
             showToast(`Data sheet uploaded: ${file.name}`);
           } catch (err) {
             showToast("Error reading data sheet file", "error");
