@@ -1528,7 +1528,7 @@
           copy: "പകർപ്പ്",
           enclosure: "ഉള്ളടക്കം",
           principal: "",
-          appellateAuthority: "അപ്പീൽ അധികാരി",
+          appellateAuthority: "അപ്പീൽ അധികാരിയുടെ വിലാസം",
         },
         en: {
           font: "'Times New Roman', Times, serif",
@@ -1543,7 +1543,7 @@
           copy: "Copy to",
           enclosure: "Enclosure",
           principal: "",
-          appellateAuthority: "അപ്പീൽ അധികാരി",
+          appellateAuthority: "Address of Appellate Authority",
         },
       };
 
@@ -1961,14 +1961,14 @@
       function loadData() {
         try {
           data.addresses =
-            JSON.parse(sessionStorage.getItem("ml_addresses")) || [];
+            JSON.parse(localStorage.getItem("ml_addresses")) || [];
           data.copyAddresses =
-            JSON.parse(sessionStorage.getItem("ml_copy_addresses")) || [];
+            JSON.parse(localStorage.getItem("ml_copy_addresses")) || [];
           data.appellateAddresses =
-            JSON.parse(sessionStorage.getItem("ml_appellate_addresses")) ||
+            JSON.parse(localStorage.getItem("ml_appellate_addresses")) ||
             [];
           data.templates =
-            JSON.parse(sessionStorage.getItem("ml_templates")) || [];
+            JSON.parse(localStorage.getItem("ml_templates")) || [];
           // Clear any legacy pre-loaded default addresses
           var legacyTitles = [
             "Director of Collegiate Education",
@@ -1989,19 +1989,19 @@
 
       function saveData() {
         try {
-          sessionStorage.setItem(
+          localStorage.setItem(
             "ml_addresses",
             JSON.stringify(data.addresses),
           );
-          sessionStorage.setItem(
+          localStorage.setItem(
             "ml_copy_addresses",
             JSON.stringify(data.copyAddresses),
           );
-          sessionStorage.setItem(
+          localStorage.setItem(
             "ml_appellate_addresses",
             JSON.stringify(data.appellateAddresses),
           );
-          sessionStorage.setItem(
+          localStorage.setItem(
             "ml_templates",
             JSON.stringify(data.templates),
           );
@@ -2793,7 +2793,7 @@
           'pt;">' +
           '<div style="font-size: ' +
           fontSize +
-          'pt; font-weight: bold; margin: 0; padding: 0;">' +
+          'pt; font-weight: bold; text-decoration: underline; margin: 0; padding: 0;">' +
           L.appellateAuthority +
           "</div>" +
           '<div style="margin: 0; padding: 1px 0 0 0; font-size: ' +
@@ -3378,18 +3378,23 @@
           return;
         }
 
-        var html =
-          '<div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">Uploaded Tables: ';
+        var html = "";
         for (var tableId in data.tables) {
           var tbl = data.tables[tableId];
           var curSplits = tbl.splitAfterRows || [];
+          var tableLabel = tableId.replace("TABLE_", "Table ");
           html +=
-            '<div style="margin-bottom: 8px;">' +
-            '<span style="display:inline-flex; align-items:center; gap:4px; margin-right: 10px; margin-bottom: 6px; padding: 5px; background: white; border-radius: 3px;">{{' +
-            tableId +
-            "}} - " +
+            '<div style="background: rgba(39, 174, 96, 0.08); border: 2px solid #27ae60; border-radius: 10px; padding: 15px; margin: 10px 0;">' +
+            '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">' +
+            '<div style="flex:1; min-width:200px;">' +
+            '<h4 style="margin:0 0 5px 0; color:#27ae60;">\uD83D\uDCCA ' +
             tbl.fileName +
-            ' <label style="font-size:11px; color:#555; margin-left:6px;">Split after rows:</label>' +
+            "</h4>" +
+            '<p style="margin:0; font-size:12px; color:#6c757d;">' +
+            tableLabel +
+            "</p>" +
+            '<div style="display:flex; align-items:center; gap:4px; flex-wrap: wrap; margin-top: 8px;">' +
+            '<label style="font-size:11px; color:#555;">Split after rows:</label>' +
             '<input type="text" placeholder="e.g. 8,15" value="' +
             curSplits.join(",") +
             '" data-split-table-id="' +
@@ -3401,15 +3406,17 @@
             ' <button data-edit-table-id="' +
             tableId +
             '" class="table-edit-toggle-btn" style="cursor: pointer; background: #1565c0; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">✎ Edit Table</button>' +
-            " <button onclick=\"deleteTable('" +
-            tableId +
-            '\')" style="margin-left: 5px; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px;">×</button></span>' +
+            "</div>" +
             '<div id="tableEditGrid_' +
             tableId +
-            '" style="display: none; overflow: auto; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px;"></div>' +
+            '" style="display: none; overflow: auto; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 8px;"></div>' +
+            "</div>" +
+            " <button onclick=\"deleteTable('" +
+            tableId +
+            '\')" style="cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 6px; padding: 6px 12px; flex-shrink: 0;">\u00d7 Remove</button>' +
+            "</div>" +
             "</div>";
         }
-        html += "</div>";
 
         container.innerHTML = html;
 
@@ -3854,18 +3861,7 @@
       function editItem(index) {
         var items = getManagerItems(currentManager);
         var item = items[index];
-
-        var title = prompt("Title:", item.title);
-        if (title === null) return;
-
-        var address = prompt("Address:", item.address);
-        if (address === null) return;
-
-        items[index] = { title: title, address: address };
-        saveData();
-        updateDropdowns();
-        openManager(currentManager);
-        showToast("Item updated");
+        showAddressForm(index, item.title, item.address);
       }
 
       function deleteItem(index) {
@@ -3880,18 +3876,58 @@
       }
 
       function addNewItem() {
-        var title = prompt("Title:");
-        if (!title) return;
+        showAddressForm(-1, "", "");
+      }
 
-        var address = prompt("Address:");
-        if (!address) return;
+      function showAddressForm(index, title, address) {
+        var isEdit = index >= 0;
+        var html =
+          '<div class="form-group">' +
+          '<label>Title:</label>' +
+          '<input type="text" id="addrFormTitle" value="' +
+          (title || "").replace(/"/g, "&quot;") +
+          '" style="width: 100%;">' +
+          "</div>" +
+          '<div class="form-group" style="margin-top: 12px;">' +
+          '<label>Address (press Enter for a new line):</label>' +
+          '<textarea id="addrFormAddress" style="width: 100%; min-height: 100px;">' +
+          (address || "") +
+          "</textarea>" +
+          "</div>" +
+          '<div style="margin-top: 15px; display: flex; gap: 8px;">' +
+          '<button class="btn btn-success" onclick="saveAddressForm(' +
+          index +
+          ')">Save</button>' +
+          '<button class="btn" onclick="openManager(currentManager)">Cancel</button>' +
+          "</div>";
+
+        var title2 =
+          currentManager === "address"
+            ? "Manage Addresses"
+            : currentManager === "appellate"
+              ? "Manage Appellate Authority Addresses"
+              : "Manage Copy Addresses";
+        showModal(title2 + (isEdit ? " — Edit" : " — Add New"), html);
+      }
+
+      function saveAddressForm(index) {
+        var title = document.getElementById("addrFormTitle").value.trim();
+        var address = document.getElementById("addrFormAddress").value.trim();
+        if (!title || !address) {
+          showToast("Both title and address are required");
+          return;
+        }
 
         var items = getManagerItems(currentManager);
-        items.push({ title: title, address: address });
+        if (index >= 0) {
+          items[index] = { title: title, address: address };
+        } else {
+          items.push({ title: title, address: address });
+        }
         saveData();
         updateDropdowns();
         openManager(currentManager);
-        showToast("Item added");
+        showToast(index >= 0 ? "Item updated" : "Item added");
       }
 
       function updatePreview() {
