@@ -991,8 +991,22 @@
                 >
                   Paragraph Spacing
                 </div>
-                <code>~ </code> removes the indent for that paragraph,
-                <code>~~ </code> removes the gap before it.
+                <code>&#126; </code> removes the indent for that paragraph,
+                <code>&#126;&#126; </code> removes the gap before it,
+                <code>&#126;&#126;&#126; </code> removes both.
+                <div
+                  style="
+                    font-weight: bold;
+                    color: #444;
+                    font-size: 12px;
+                    margin: 6px 0 2px 0;
+                  "
+                >
+                  Text Formatting
+                </div>
+                <code>**text**</code> for bold, <code>__text__</code> for
+                underline. Combine both with
+                <code>**__text__**</code>.
               </div>
             </div>
             <textarea
@@ -2630,7 +2644,10 @@
             continue;
           }
 
-          const markerMatch = line.match(/^(###|##|#|\*)\s*(.*)$/);
+          let markerMatch = line.match(/^(###|##|#)\s*(.*)$/);
+          if (!markerMatch) {
+            markerMatch = line.match(/^(\*)\s+(.*)$/);
+          }
           if (markerMatch) {
             closeCurrent();
             const marker = markerMatch[1];
@@ -2667,7 +2684,11 @@
           let noIndent = false;
           let noSpacer = false;
           let plainText = line;
-          if (plainText.indexOf("~~") === 0) {
+          if (plainText.indexOf("~~~") === 0) {
+            noIndent = true;
+            noSpacer = true;
+            plainText = plainText.substring(3).replace(/^\s+/, "");
+          } else if (plainText.indexOf("~~") === 0) {
             noSpacer = true;
             plainText = plainText.substring(2).replace(/^\s+/, "");
           } else if (plainText.indexOf("~") === 0) {
@@ -2686,11 +2707,23 @@
         return blocks;
       }
 
+      function applyInlineFormatting(text) {
+        text = text.replace(/\*\*__(.+?)__\*\*/g, "<b><u>$1</u></b>");
+        text = text.replace(/__\*\*(.+?)\*\*__/g, "<b><u>$1</u></b>");
+        text = text.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+        text = text.replace(/__(.+?)__/g, "<u>$1</u>");
+        return text;
+      }
+
       function renderBodyBlocksHTML(blocks, numbered, pStyleBase) {
         let html = "";
         let plainCounter = 0;
         const NBSP_PER_LEVEL = 6;
         let isFirstTopLevelBlock = true;
+
+        function formatLines(lines) {
+          return lines.map(applyInlineFormatting).join("<br>");
+        }
 
         function labelForBlock(block) {
           const levelIndex =
@@ -2703,7 +2736,7 @@
                   : 0;
           const indentUnits = 1 + levelIndex;
           const nbspPrefix = "&nbsp;".repeat(indentUnits * NBSP_PER_LEVEL);
-          return nbspPrefix + block.label + " " + block.lines.join("<br>");
+          return nbspPrefix + block.label + " " + formatLines(block.lines);
         }
 
         function addSpacerIfNeeded() {
@@ -2740,7 +2773,7 @@
               prefix = plainCounter + ". ";
             }
             const extraStyle = block.noIndent ? " text-indent: 0;" : "";
-            html += `<p style="${pStyleBase}${extraStyle}">${prefix}${block.lines.join("<br>")}</p>`;
+            html += `<p style="${pStyleBase}${extraStyle}">${prefix}${formatLines(block.lines)}</p>`;
             i++;
             continue;
           }
@@ -2764,6 +2797,14 @@
         return html;
       }
 
+      function stripInlineFormatting(text) {
+        text = text.replace(/\*\*__(.+?)__\*\*/g, "$1");
+        text = text.replace(/__\*\*(.+?)\*\*__/g, "$1");
+        text = text.replace(/\*\*(.+?)\*\*/g, "$1");
+        text = text.replace(/__(.+?)__/g, "$1");
+        return text;
+      }
+
       function renderBodyBlocksPlainText(blocks, numbered) {
         let text = "";
         let plainCounter = 0;
@@ -2773,6 +2814,7 @@
           const indentLevel =
             block.type === "num2" ? 1 : block.type === "num3" ? 2 : 0;
           const indentSpaces = "  ".repeat(indentLevel + 1);
+          const cleanLines = block.lines.map(stripInlineFormatting);
 
           if (block.type === "plain") {
             let prefix = "";
@@ -2781,7 +2823,7 @@
               prefix = plainCounter + ". ";
             }
             const lineIndent = block.noIndent ? "" : "  ";
-            text += lineIndent + prefix + block.lines.join("\n    ") + "\n";
+            text += lineIndent + prefix + cleanLines.join("\n    ") + "\n";
             return;
           }
 
@@ -2789,7 +2831,7 @@
             indentSpaces +
             block.label +
             " " +
-            block.lines.join("\n" + indentSpaces + "    ") +
+            cleanLines.join("\n" + indentSpaces + "    ") +
             "\n";
         });
         return text;
