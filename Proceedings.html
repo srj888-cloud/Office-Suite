@@ -2238,7 +2238,7 @@
           fileDiv.innerHTML = `
                     <div class="excel-file-info">
                         <h4>📊 ${file.name}</h4>
-                        <p>Uploaded: ${file.uploadDate} | Rows: ${file.data.length} | In Table ${file.placeholderId}</p>
+                        <p>Table ${file.placeholderId}</p>
                         <div style="display:flex; align-items:center; gap:4px; flex-wrap: wrap; margin-top: 4px;">
                           <label style="font-size:11px; color:#555;">Split after rows:</label>
                           <input type="text" placeholder="e.g. 8,15" value="${curSplits.join(",")}" data-split-file-id="${file.id}" class="table-split-input" style="width:70px; padding:2px 4px; font-size:11px;">
