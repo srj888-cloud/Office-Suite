@@ -1043,6 +1043,13 @@
 
           <!-- To -->
           <div class="dynamic-section" data-label="To">
+            <button
+              type="button"
+              class="btn btn-primary btn-small"
+              onclick="openManager('address')"
+            >
+              ⚙️ Manage Addresses
+            </button>
             <div id="toContainer">
               <!-- To items will be added here -->
             </div>
@@ -2084,11 +2091,11 @@
       function loadStoredData() {
         try {
           appData.addresses =
-            JSON.parse(sessionStorage.getItem("ml_addresses")) || [];
+            JSON.parse(localStorage.getItem("ml_addresses")) || [];
           appData.copyAddresses =
-            JSON.parse(sessionStorage.getItem("ml_copy_addresses")) || [];
+            JSON.parse(localStorage.getItem("ml_copy_addresses")) || [];
           appData.templates =
-            JSON.parse(sessionStorage.getItem("ml_templates")) || [];
+            JSON.parse(localStorage.getItem("ml_templates")) || [];
           // Clear any legacy pre-loaded default copy addresses
           const legacyCopyTitles = ["Office File", "Head Accountant"];
           appData.copyAddresses = appData.copyAddresses.filter(
@@ -2102,15 +2109,15 @@
 
       function saveData() {
         try {
-          sessionStorage.setItem(
+          localStorage.setItem(
             "ml_addresses",
             JSON.stringify(appData.addresses),
           );
-          sessionStorage.setItem(
+          localStorage.setItem(
             "ml_copy_addresses",
             JSON.stringify(appData.copyAddresses),
           );
-          sessionStorage.setItem(
+          localStorage.setItem(
             "ml_templates",
             JSON.stringify(appData.templates),
           );
@@ -3041,28 +3048,23 @@
         tableKeys.forEach((tableId) => {
           const tbl = appData.tables[tableId];
           const curSplits = tbl.splitAfterRows || [];
+          const tableLabel = tableId.replace("TABLE_", "Table ");
           html +=
-            '<div style="margin-bottom: 8px;">' +
-            '<span style="display:inline-flex; align-items:center; gap:4px; margin-right: 10px; margin-bottom: 6px; padding: 5px; background: white; border-radius: 3px; border: 1px solid #ddd;">{{' +
-            tableId +
-            "}} - " +
-            tbl.fileName +
-            ' <label style="font-size:11px; color:#555; margin-left:6px;">Split after rows:</label>' +
-            '<input type="text" placeholder="e.g. 8,15" value="' +
-            curSplits.join(",") +
-            '" data-split-table-id="' +
-            tableId +
-            '" class="table-split-input" style="width:70px; padding:2px 4px; font-size:11px;">' +
-            ' <button data-apply-split-id="' +
-            tableId +
-            '" class="table-split-apply-btn" style="cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">Apply</button>' +
-            ' <button data-edit-table-id="' +
-            tableId +
-            '" class="table-edit-toggle-btn" style="cursor: pointer; background: #1565c0; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">✎ Edit Table</button>' +
-            ` <button onclick="removeTable('${tableId}')" class="btn btn-danger btn-small" style="padding: 2px 6px;">Remove</button></span>` +
-            '<div id="tableEditGrid_' +
-            tableId +
-            '" style="display: none; overflow: auto; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px;"></div>' +
+            '<div style="background: rgba(39, 174, 96, 0.08); border: 2px solid #27ae60; border-radius: 10px; padding: 15px; margin: 10px 0;">' +
+            '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">' +
+            '<div style="flex:1; min-width:200px;">' +
+            `<h4 style="margin:0 0 5px 0; color:#27ae60;">📊 ${tbl.fileName}</h4>` +
+            `<p style="margin:0; font-size:12px; color:#6c757d;">${tableLabel}</p>` +
+            '<div style="display:flex; align-items:center; gap:4px; flex-wrap: wrap; margin-top: 8px;">' +
+            '<label style="font-size:11px; color:#555;">Split after rows:</label>' +
+            `<input type="text" placeholder="e.g. 8,15" value="${curSplits.join(",")}" data-split-table-id="${tableId}" class="table-split-input" style="width:70px; padding:2px 4px; font-size:11px;">` +
+            ` <button data-apply-split-id="${tableId}" class="table-split-apply-btn" style="cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">Apply</button>` +
+            ` <button data-edit-table-id="${tableId}" class="table-edit-toggle-btn" style="cursor: pointer; background: #1565c0; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size:11px;">✎ Edit Table</button>` +
+            "</div>" +
+            `<div id="tableEditGrid_${tableId}" style="display: none; overflow: auto; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 8px;"></div>` +
+            "</div>" +
+            ` <button onclick="removeTable('${tableId}')" style="cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 6px; padding: 6px 12px; flex-shrink: 0;">× Remove</button>` +
+            "</div>" +
             "</div>";
         });
 
@@ -3262,11 +3264,15 @@
         div.id = `to-${toCount}`;
         div.innerHTML = `
                 <div class="dynamic-item-content">
+                    <select class="address-dropdown" onchange="loadAddress(this, 'address')">
+                        <option value="">Select saved address...</option>
+                    </select>
                     <input type="text" id="to-text-${toCount}" class="to-input" placeholder="Enter recipient..." oninput="updatePreview()">
                 </div>
                 <button type="button" class="btn btn-danger" onclick="removeTo(${toCount})">×</button>
             `;
         container.appendChild(div);
+        updateDropdowns();
       }
 
       function removeTo(id) {
@@ -3326,6 +3332,7 @@
       // Address management (only copy addresses needed)
       function updateDropdowns() {
         const copyDropdowns = document.querySelectorAll(".copy-dropdown");
+        const addressDropdowns = document.querySelectorAll(".address-dropdown");
         const templateSelect = document.getElementById("templateSelect");
 
         // Update copy dropdowns
@@ -3334,6 +3341,17 @@
           dropdown.innerHTML =
             '<option value="">Select saved copy address...</option>';
           appData.copyAddresses.forEach((addr, index) => {
+            dropdown.innerHTML += `<option value="${index}">${addr.title}</option>`;
+          });
+          dropdown.value = currentValue;
+        });
+
+        // Update address (To) dropdowns
+        addressDropdowns.forEach((dropdown) => {
+          const currentValue = dropdown.value;
+          dropdown.innerHTML =
+            '<option value="">Select saved address...</option>';
+          appData.addresses.forEach((addr, index) => {
             dropdown.innerHTML += `<option value="${index}">${addr.title}</option>`;
           });
           dropdown.value = currentValue;
@@ -3350,12 +3368,14 @@
       function loadAddress(dropdown, type) {
         if (dropdown.value === "") return;
 
-        const address = appData.copyAddresses[dropdown.value];
+        const addresses = type === "address" ? appData.addresses : appData.copyAddresses;
+        const address = addresses[dropdown.value];
 
         if (address) {
+          const targetClass = type === "address" ? ".to-input" : ".copy-input";
           const target = dropdown
             .closest(".dynamic-item-content")
-            .querySelector(".copy-input");
+            .querySelector(targetClass);
           target.value = address.address;
           updatePreview();
         }
@@ -3409,18 +3429,7 @@
             ? appData.addresses
             : appData.copyAddresses;
         const item = items[index];
-
-        const title = prompt("Title:", item.title);
-        if (title === null) return;
-
-        const address = prompt("Address:", item.address);
-        if (address === null) return;
-
-        items[index] = { title: title.trim(), address: address.trim() };
-        saveData();
-        updateDropdowns();
-        openManager(currentManager);
-        showToast("Item updated");
+        showAddressForm(index, item.title, item.address);
       }
 
       function deleteItem(index) {
@@ -3438,21 +3447,51 @@
       }
 
       function addNewItem() {
-        const title = prompt("Title:");
-        if (!title) return;
+        showAddressForm(-1, "", "");
+      }
 
-        const address = prompt("Address:");
-        if (!address) return;
+      function showAddressForm(index, title, address) {
+        const isEdit = index >= 0;
+        const html =
+          '<div class="form-group">' +
+          "<label>Title:</label>" +
+          `<input type="text" id="addrFormTitle" value="${(title || "").replace(/"/g, "&quot;")}" style="width: 100%;">` +
+          "</div>" +
+          '<div class="form-group" style="margin-top: 12px;">' +
+          "<label>Address (press Enter for a new line):</label>" +
+          `<textarea id="addrFormAddress" style="width: 100%; min-height: 100px;">${address || ""}</textarea>` +
+          "</div>" +
+          '<div style="margin-top: 15px; display: flex; gap: 8px;">' +
+          `<button class="btn btn-success" onclick="saveAddressForm(${index})">Save</button>` +
+          '<button class="btn" onclick="openManager(currentManager)">Cancel</button>' +
+          "</div>";
+
+        const title2 =
+          currentManager === "address" ? "Manage Addresses" : "Manage Copy Addresses";
+        showModal(title2 + (isEdit ? " — Edit" : " — Add New"), html);
+      }
+
+      function saveAddressForm(index) {
+        const title = document.getElementById("addrFormTitle").value.trim();
+        const address = document.getElementById("addrFormAddress").value.trim();
+        if (!title || !address) {
+          showToast("Both title and address are required");
+          return;
+        }
 
         const items =
           currentManager === "address"
             ? appData.addresses
             : appData.copyAddresses;
-        items.push({ title: title.trim(), address: address.trim() });
+        if (index >= 0) {
+          items[index] = { title: title, address: address };
+        } else {
+          items.push({ title: title, address: address });
+        }
         saveData();
         updateDropdowns();
         openManager(currentManager);
-        showToast("Item added");
+        showToast(index >= 0 ? "Item updated" : "Item added");
       }
 
       function autoExpand(el) {
