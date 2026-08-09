@@ -215,6 +215,89 @@
         font-size: 14px;
       }
 
+      .accordion-section {
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 15px;
+        background: var(--light-bg);
+        overflow: hidden;
+      }
+
+      .accordion-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--primary);
+        user-select: none;
+        background: white;
+      }
+
+      .accordion-header:hover {
+        background: #f0f4f8;
+      }
+
+      .accordion-arrow {
+        display: inline-block;
+        transition: transform 0.15s ease;
+        font-size: 11px;
+      }
+
+      .accordion-arrow.open {
+        transform: rotate(90deg);
+      }
+
+      .accordion-count {
+        font-weight: normal;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .accordion-body {
+        padding: 15px;
+      }
+
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        font-size: 16px;
+        color: #5f6b7a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
+        transition: background 0.12s ease;
+      }
+
+      .icon-btn:hover {
+        background: rgba(95, 107, 122, 0.1);
+      }
+
+      .icon-btn:active {
+        background: rgba(95, 107, 122, 0.18);
+      }
+
+      .icon-btn.icon-btn-add {
+        color: #27ae60;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .icon-btn.icon-btn-add:hover {
+        background: rgba(39, 174, 96, 0.12);
+      }
+
+      .icon-btn.icon-btn-add:active {
+        background: rgba(39, 174, 96, 0.2);
+      }
+
       .dynamic-item {
         display: flex;
         gap: 10px;
@@ -894,7 +977,8 @@
           </div>
 
           <!-- References -->
-          <div class="dynamic-section" data-label="References (Optional)">
+          <div class="form-group">
+            <label>References:</label>
             <div id="references">
               <div class="dynamic-item">
                 <textarea
@@ -905,24 +989,19 @@
                     autoExpand(this);
                     updatePreview();
                   "
-                  placeholder="Enter reference (leave blank if not needed)"
+                  placeholder="Enter reference"
                 ></textarea>
                 <button
                   type="button"
-                  class="btn btn-danger btn-small"
-                  onclick="removeField(this, 'references')"
+                  class="icon-btn"
+                  title="Add Reference"
+                  onclick="addField('references', 'ref')"
+                  style="font-size: 18px; color: #27ae60; font-weight: 700;"
                 >
-                  ×
+                  +
                 </button>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-success btn-small"
-              onclick="addField('references', 'ref')"
-            >
-              + Add Reference
-            </button>
           </div>
 
           <!-- Notice/Circular Body with File Upload -->
@@ -930,42 +1009,62 @@
             <label>Notice/Circular Body:</label>
             <div
               style="
-                display: flex;
-                gap: 12px;
-                align-items: flex-start;
                 border: 1px solid #ddd;
                 border-radius: 5px;
                 padding: 8px 10px;
                 background: #f8f9fa;
                 margin-bottom: 10px;
-                flex-wrap: wrap;
               "
             >
-              <label
+              <div
                 style="
-                  display: inline-flex;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <span style="font-weight: bold; font-size: 13px; color: #444;">
+                  Formatting Guide
+                </span>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Show/Hide"
+                  id="togglebtn-formattingGuide"
+                  onclick="toggleSimpleSection('formattingGuide')"
+                >
+                  ▼
+                </button>
+              </div>
+              <label
+                id="formattingGuideLabel"
+                style="
+                  display: none;
                   align-items: center;
                   gap: 5px;
                   font-size: 12px;
                   font-weight: normal;
+                  margin-top: 6px;
                   white-space: nowrap;
-                  flex: 0 0 auto;
                 "
               >
                 <input
                   type="checkbox"
                   id="numberParagraphs"
                   onchange="updatePreview()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
                 />
                 Number each paragraph
               </label>
               <div
+                id="body-formattingGuide"
                 style="
+                  display: none;
                   font-size: 11px;
                   color: #777;
-                  border-left: 1px solid #ddd;
-                  padding-left: 12px;
-                  flex: 1 1 220px;
+                  margin-top: 8px;
+                  padding-top: 8px;
+                  border-top: 1px solid #ddd;
                 "
               >
                 <div
@@ -1042,67 +1141,103 @@
           </div>
 
           <!-- To -->
-          <div class="dynamic-section" data-label="To">
-            <button
-              type="button"
-              class="btn btn-primary btn-small"
-              onclick="openManager('address')"
+          <div class="accordion-section" id="section-to">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: white;
+                font-weight: 600;
+                color: var(--primary);
+              "
             >
-              ⚙️ Manage Addresses
-            </button>
-            <div id="toContainer">
-              <!-- To items will be added here -->
-            </div>
-            <button
-              type="button"
-              class="btn btn-success btn-small"
-              onclick="addTo()"
-            >
-              + Add To
-            </button>
-          </div>
-
-          <!-- Copy To -->
-          <div class="dynamic-section" data-label="Copy To">
-            <button
-              type="button"
-              class="btn btn-primary btn-small"
-              onclick="openManager('copy')"
-            >
-              ⚙️ Manage Copy Addresses
-            </button>
-            <div id="copyTo">
-              <div class="dynamic-item">
-                <div class="dynamic-item-content">
-                  <select
-                    class="copy-dropdown"
-                    onchange="loadAddress(this, 'copy')"
-                  >
-                    <option value="">Select saved copy address...</option>
-                  </select>
-                  <input
-                    type="text"
-                    class="copy-input"
-                    oninput="updatePreview()"
-                    placeholder="Enter copy recipient"
-                  />
-                </div>
+              <span>To</span>
+              <div style="display: flex; gap: 8px;">
                 <button
                   type="button"
-                  class="btn btn-danger btn-small"
-                  onclick="removeField(this, 'copyTo')"
+                  class="icon-btn"
+                  title="Manage Addresses"
+                  onclick="openManager('address')"
                 >
-                  ×
+                  ⚙️
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn-add"
+                  title="Add To"
+                  onclick="addTo()"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Hide"
+                  id="hidebtn-to"
+                  onclick="collapseToggleSection('to')"
+                  style="display: none;"
+                >
+                  ▲
                 </button>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-success btn-small"
-              onclick="addField('copyTo', 'copy')"
+            <div class="accordion-body" id="body-to" style="padding: 0; display: none;">
+            <div id="toContainer">
+              <!-- To items will be added here -->
+            </div>
+            </div>
+          </div>
+
+          <!-- Copy To -->
+          <div class="accordion-section" id="section-copyTo">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: white;
+                font-weight: 600;
+                color: var(--primary);
+              "
             >
-              + Add Copy To
-            </button>
+              <span>Copy To</span>
+              <div style="display: flex; gap: 8px;">
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Manage Copy Addresses"
+                  onclick="openManager('copy')"
+                >
+                  ⚙️
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn-add"
+                  title="Add Copy To"
+                  onclick="addField('copyTo', 'copy')"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Hide"
+                  id="hidebtn-copyTo"
+                  onclick="collapseToggleSection('copyTo')"
+                  style="display: none;"
+                >
+                  ▲
+                </button>
+              </div>
+            </div>
+            <div class="accordion-body" id="body-copyTo" style="padding: 0; display: none;">
+            <div id="copyTo">
+              <!-- Copy To items will be added here -->
+            </div>
+            </div>
           </div>
 
           <input type="hidden" id="principalName" value="" />
@@ -1141,9 +1276,28 @@
                 background: #f8f9fa;
               "
             >
-              <div style="font-weight: bold; margin-bottom: 5px;">
-                Copy Draft — Include Sections
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-weight: bold;">
+                  Copy Draft — Include Sections
+                </span>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Show/Hide"
+                  id="togglebtn-copyOptions"
+                  onclick="toggleSimpleSection('copyOptions')"
+                >
+                  ▼
+                </button>
               </div>
+              <div id="body-copyOptions" style="display: none;">
               <label
                 style="
                   display: flex;
@@ -1246,6 +1400,7 @@
                 />
                 Copy To
               </label>
+              </div>
             </div>
             <button
               type="button"
@@ -2254,16 +2409,22 @@
         if (data.to && data.to.length > 0) {
           data.to.forEach((item) => {
             addTo();
-            document.getElementById(`to-text-${toCount}`).value = item;
+            const _toEl = document.getElementById(`to-text-${toCount}`);
+            _toEl.value = item;
+            autoExpand(_toEl);
           });
+          expandSection("to");
         }
 
         // Load copy addresses
         if (data.copyTo && data.copyTo.length > 0) {
           data.copyTo.forEach((copy, index) => {
             if (index > 0) addField("copyTo", "copy");
-            document.querySelectorAll(".copy-input")[index].value = copy;
+            const _copyEl = document.querySelectorAll(".copy-input")[index];
+            _copyEl.value = copy;
+            autoExpand(_copyEl);
           });
+          expandSection("copyTo");
         }
 
         updatePreview();
@@ -3222,10 +3383,10 @@
             template = `
                         <div class="dynamic-item">
                             <div class="dynamic-item-content">
-                                <select class="copy-dropdown" onchange="loadAddress(this, 'copy')">
+                                <select class="copy-dropdown" onchange="loadAddress(this, 'copy')" style="height: 36px; padding: 0 4px; font-size: 12px;">
                                     <option value="">Select saved copy address...</option>
                                 </select>
-                                <input type="text" class="copy-input" oninput="updatePreview()" placeholder="Enter copy recipient">
+                                <textarea class="copy-input" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" oninput="autoExpand(this); updatePreview();" placeholder="Enter copy recipient"></textarea>
                             </div>
                             <button type="button" class="btn btn-danger btn-small" onclick="removeField(this, '${containerId}')">×</button>
                         </div>
@@ -3235,7 +3396,8 @@
             template = `
                         <div class="dynamic-item">
                             <textarea class="reference-input" rows="1" style="resize:none;overflow:hidden;min-height:36px;" oninput="autoExpand(this);updatePreview()" placeholder="Enter reference"></textarea>
-                            <button type="button" class="btn btn-danger btn-small" onclick="removeField(this, '${containerId}')">×</button>
+                            <button type="button" class="icon-btn" title="Remove" onclick="removeField(this, '${containerId}')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button>
+                            <button type="button" class="icon-btn" title="Add Reference" onclick="addField('${containerId}', 'ref')" style="font-size: 18px; color: #27ae60; font-weight: 700;">+</button>
                         </div>
                     `;
             break;
@@ -3244,6 +3406,7 @@
         container.insertAdjacentHTML("beforeend", template);
         updateDropdowns();
         updatePreview();
+        if (containerId === "copyTo") expandSection("copyTo");
       }
 
       function removeField(button, containerId) {
@@ -3256,6 +3419,20 @@
         }
       }
 
+      function expandSection(key) {
+        const body = document.getElementById(`body-${key}`);
+        const hideBtn = document.getElementById(`hidebtn-${key}`);
+        if (body) body.style.display = "block";
+        if (hideBtn) hideBtn.style.display = "inline-flex";
+      }
+
+      function collapseToggleSection(key) {
+        const body = document.getElementById(`body-${key}`);
+        const hideBtn = document.getElementById(`hidebtn-${key}`);
+        if (body) body.style.display = "none";
+        if (hideBtn) hideBtn.style.display = "none";
+      }
+
       function addTo() {
         toCount++;
         const container = document.getElementById("toContainer");
@@ -3264,18 +3441,24 @@
         div.id = `to-${toCount}`;
         div.innerHTML = `
                 <div class="dynamic-item-content">
-                    <select class="address-dropdown" onchange="loadAddress(this, 'address')">
+                    <select class="address-dropdown" onchange="loadAddress(this, 'address')" style="height: 36px; padding: 0 4px; font-size: 12px;">
                         <option value="">Select saved address...</option>
                     </select>
-                    <input type="text" id="to-text-${toCount}" class="to-input" placeholder="Enter recipient..." oninput="updatePreview()">
+                    <textarea id="to-text-${toCount}" class="to-input" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" placeholder="Enter recipient..." oninput="autoExpand(this); updatePreview();"></textarea>
                 </div>
                 <button type="button" class="btn btn-danger" onclick="removeTo(${toCount})">×</button>
             `;
         container.appendChild(div);
         updateDropdowns();
+        expandSection("to");
       }
 
       function removeTo(id) {
+        const container = document.getElementById("toContainer");
+        if (container.children.length <= 1) {
+          showToast("At least one field is required", "error");
+          return;
+        }
         const div = document.getElementById(`to-${id}`);
         if (div) {
           div.remove();
@@ -3290,13 +3473,11 @@
       }
 
       function clearDynamicFields() {
-        const containers = ["references", "copyTo"];
-        containers.forEach((containerId) => {
-          const container = document.getElementById(containerId);
-          while (container.children.length > 1) {
-            container.removeChild(container.lastChild);
-          }
-        });
+        const container = document.getElementById("references");
+        while (container.children.length > 1) {
+          container.removeChild(container.lastChild);
+        }
+        document.getElementById("copyTo").innerHTML = "";
         document.getElementById("toContainer").innerHTML = "";
         toCount = 0;
       }
@@ -3377,6 +3558,9 @@
             .closest(".dynamic-item-content")
             .querySelector(targetClass);
           target.value = address.address;
+          if (typeof autoExpand === "function" && target.tagName === "TEXTAREA") {
+            autoExpand(target);
+          }
           updatePreview();
         }
       }
@@ -3518,7 +3702,56 @@
         return data;
       }
 
+      const ACCORDION_SECTIONS = ["references", "to", "copyTo"];
+
+      function toggleSimpleSection(key) {
+        const body = document.getElementById(`body-${key}`);
+        const btn = document.getElementById(`togglebtn-${key}`);
+        const companion = document.getElementById(`${key}Label`);
+        if (!body) return;
+        const isOpen = body.style.display !== "none";
+        body.style.display = isOpen ? "none" : "block";
+        if (companion) companion.style.display = isOpen ? "none" : "flex";
+        if (btn) btn.textContent = isOpen ? "▼" : "▲";
+      }
+
+      function toggleAccordionSection(key) {
+        const isOpen = document.getElementById(`body-${key}`).style.display !== "none";
+        ACCORDION_SECTIONS.forEach((k) => {
+          const body = document.getElementById(`body-${k}`);
+          const arrow = document.getElementById(`arrow-${k}`);
+          if (!body || !arrow) return;
+          const shouldOpen = k === key && !isOpen;
+          body.style.display = shouldOpen ? "block" : "none";
+          arrow.classList.toggle("open", shouldOpen);
+        });
+      }
+
+      function updateAccordionCounts() {
+        const refCount = document.querySelectorAll(".reference-input")
+          .length
+          ? Array.from(document.querySelectorAll(".reference-input")).filter(
+              (el) => el.value.trim(),
+            ).length
+          : 0;
+        const toCount = Array.from(
+          document.querySelectorAll(".to-input"),
+        ).filter((el) => el.value.trim()).length;
+        const copyCount = Array.from(
+          document.querySelectorAll(".copy-input"),
+        ).filter((el) => el.value.trim()).length;
+
+        const setCount = (key, n) => {
+          const el = document.getElementById(`count-${key}`);
+          if (el) el.textContent = `(${n})`;
+        };
+        setCount("references", refCount);
+        setCount("to", toCount);
+        setCount("copyTo", copyCount);
+      }
+
       function updatePreview() {
+        updateAccordionCounts();
         document.querySelector(".letter-preview").style.fontFamily =
           labels[currentLang].font;
         const data = applyMergeToData(gatherFormData());
