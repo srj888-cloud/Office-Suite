@@ -667,6 +667,39 @@
         font-size: 0.84rem;
         border-bottom: 1px solid #f4f4f4;
       }
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        font-size: 16px;
+        color: #5f6b7a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
+        transition: background 0.12s ease;
+      }
+      .icon-btn:hover {
+        background: rgba(95, 107, 122, 0.1);
+      }
+      .icon-btn:active {
+        background: rgba(95, 107, 122, 0.18);
+      }
+      .icon-btn.icon-btn-add {
+        color: #27ae60;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .icon-btn.icon-btn-add:hover {
+        background: rgba(39, 174, 96, 0.12);
+      }
+      .icon-btn.icon-btn-add:active {
+        background: rgba(39, 174, 96, 0.2);
+      }
     </style>
   </head>
 
@@ -877,42 +910,62 @@
           <div class="form-group">
             <div
               style="
-                display: flex;
-                gap: 12px;
-                align-items: flex-start;
                 border: 1px solid #ddd;
                 border-radius: 5px;
                 padding: 8px 10px;
                 background: #f8f9fa;
                 margin-bottom: 10px;
-                flex-wrap: wrap;
               "
             >
-              <label
+              <div
                 style="
-                  display: inline-flex;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <span style="font-weight: bold; font-size: 13px; color: #444;">
+                  Formatting Guide
+                </span>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Show/Hide"
+                  id="togglebtn-formattingGuide"
+                  onclick="toggleSimpleSection('formattingGuide')"
+                >
+                  ▼
+                </button>
+              </div>
+              <label
+                id="formattingGuideLabel"
+                style="
+                  display: none;
                   align-items: center;
                   gap: 5px;
                   font-size: 12px;
                   font-weight: normal;
+                  margin-top: 6px;
                   white-space: nowrap;
-                  flex: 0 0 auto;
                 "
               >
                 <input
                   type="checkbox"
                   id="numberParagraphs"
                   onchange="generateDocument()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
                 />
                 Number each paragraph
               </label>
               <div
+                id="body-formattingGuide"
                 style="
+                  display: none;
                   font-size: 11px;
                   color: #777;
-                  border-left: 1px solid #ddd;
-                  padding-left: 12px;
-                  flex: 1 1 220px;
+                  margin-top: 8px;
+                  padding-top: 8px;
+                  border-top: 1px solid #ddd;
                 "
               >
                 <div
@@ -1040,9 +1093,28 @@
                 background: #f8f9fa;
               "
             >
-              <div style="font-weight: bold; margin-bottom: 5px;">
-                Copy Draft — Include Sections
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-weight: bold;">
+                  Copy Draft — Include Sections
+                </span>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Show/Hide"
+                  id="togglebtn-copyOptions"
+                  onclick="toggleSimpleSection('copyOptions')"
+                >
+                  ▼
+                </button>
               </div>
+              <div id="body-copyOptions" style="display: none;">
               <label
                 style="
                   display: flex;
@@ -1145,6 +1217,7 @@
                 />
                 Copy To
               </label>
+              </div>
             </div>
             <button
               class="btn btn-primary"
@@ -2884,6 +2957,17 @@
       }
 
       // ===== Bullets & nested numbering (#, ##, ###, *) =====
+
+      function toggleSimpleSection(key) {
+        const body = document.getElementById(`body-${key}`);
+        const btn = document.getElementById(`togglebtn-${key}`);
+        const companion = document.getElementById(`${key}Label`);
+        if (!body) return;
+        const isOpen = body.style.display !== "none";
+        body.style.display = isOpen ? "none" : "block";
+        if (companion) companion.style.display = isOpen ? "none" : "flex";
+        if (btn) btn.textContent = isOpen ? "▼" : "▲";
+      }
 
       function toRomanLower(num) {
         const map = [
