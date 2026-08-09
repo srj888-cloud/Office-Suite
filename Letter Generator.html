@@ -252,6 +252,45 @@
         background: var(--light-bg);
       }
 
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        font-size: 16px;
+        color: #5f6b7a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
+        transition: background 0.12s ease;
+      }
+
+      .icon-btn:hover {
+        background: rgba(95, 107, 122, 0.1);
+      }
+
+      .icon-btn:active {
+        background: rgba(95, 107, 122, 0.18);
+      }
+
+      .icon-btn.icon-btn-add {
+        color: #27ae60;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .icon-btn.icon-btn-add:hover {
+        background: rgba(39, 174, 96, 0.12);
+      }
+
+      .icon-btn.icon-btn-add:active {
+        background: rgba(39, 174, 96, 0.2);
+      }
+
       .dynamic-item {
         display: flex;
         gap: 10px;
@@ -737,45 +776,53 @@
 
           <input type="hidden" id="fromAddress" />
 
-          <div class="dynamic-section">
-            <label>To Address:</label>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="openManager('address')"
+          <div class="form-group">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
             >
-              Manage Addresses
-            </button>
+              <label style="margin: 0;">To Address:</label>
+              <div style="display: flex; gap: 8px;">
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Manage Addresses"
+                  onclick="openManager('address')"
+                >
+                  ⚙️
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn-add"
+                  title="Add Address"
+                  onclick="addField('toAddresses', 'to')"
+                >
+                  +
+                </button>
+              </div>
+            </div>
             <div id="toAddresses">
               <div class="dynamic-item">
                 <div class="dynamic-item-content">
                   <select
                     class="address-dropdown"
                     onchange="loadAddress(this, 'to')"
+                    style="height: 36px; padding: 0 4px; font-size: 12px;"
                   >
                     <option value="">Select saved address...</option>
                   </select>
                   <textarea
                     class="address-textarea"
-                    oninput="updatePreview()"
+                    rows="2"
+                    style="resize: none; overflow: hidden; min-height: 40px;"
+                    oninput="autoExpand(this); updatePreview();"
                   ></textarea>
                 </div>
-                <button
-                  type="button"
-                  class="btn btn-danger"
-                  onclick="removeField(this, 'toAddresses')"
-                >
-                  ×
-                </button>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="addField('toAddresses', 'to')"
-            >
-              Add Address
-            </button>
           </div>
 
           <div class="form-group">
@@ -792,7 +839,7 @@
             ></textarea>
           </div>
 
-          <div class="dynamic-section">
+          <div class="form-group">
             <label>References:</label>
             <div id="references">
               <div class="dynamic-item">
@@ -808,62 +855,77 @@
                 ></textarea>
                 <button
                   type="button"
-                  class="btn btn-danger"
-                  onclick="removeField(this, 'references')"
+                  class="icon-btn"
+                  title="Add Reference"
+                  onclick="addField('references', 'ref')"
+                  style="font-size: 18px; color: #27ae60; font-weight: 700;"
                 >
-                  ×
+                  +
                 </button>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="addField('references', 'ref')"
-            >
-              Add Reference
-            </button>
           </div>
 
           <div class="form-group">
             <label>Letter Body:</label>
             <div
               style="
-                display: flex;
-                gap: 12px;
-                align-items: flex-start;
                 border: 1px solid #ddd;
                 border-radius: 5px;
                 padding: 8px 10px;
                 background: #f8f9fa;
                 margin-bottom: 10px;
-                flex-wrap: wrap;
               "
             >
-              <label
+              <div
                 style="
-                  display: inline-flex;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <span style="font-weight: bold; font-size: 13px; color: #444;">
+                  Formatting Guide
+                </span>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Show/Hide"
+                  id="togglebtn-formattingGuide"
+                  onclick="toggleSimpleSection('formattingGuide')"
+                >
+                  ▼
+                </button>
+              </div>
+              <label
+                id="formattingGuideLabel"
+                style="
+                  display: none;
                   align-items: center;
                   gap: 5px;
                   font-size: 12px;
                   font-weight: normal;
+                  margin-top: 6px;
                   white-space: nowrap;
-                  flex: 0 0 auto;
                 "
               >
                 <input
                   type="checkbox"
                   id="numberParagraphs"
                   onchange="updatePreview()"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
                 />
                 Number each paragraph
               </label>
               <div
+                id="body-formattingGuide"
                 style="
+                  display: none;
                   font-size: 11px;
                   color: #777;
-                  border-left: 1px solid #ddd;
-                  padding-left: 12px;
-                  flex: 1 1 220px;
+                  margin-top: 8px;
+                  padding-top: 8px;
+                  border-top: 1px solid #ddd;
                 "
               >
                 <div
@@ -943,8 +1005,34 @@
             <div id="uploadedTables"></div>
           </div>
 
-          <div class="dynamic-section">
-            <label>Enclosures:</label>
+          <div
+            style="
+              border: 1px solid #ddd;
+              border-radius: 5px;
+              padding: 8px 10px;
+              background: #f8f9fa;
+              margin-bottom: 10px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              <span style="font-weight: bold; font-size: 13px; color: #444;">Enclosures</span>
+              <button
+                type="button"
+                class="icon-btn"
+                title="Show/Hide"
+                id="togglebtn-enclosures"
+                onclick="toggleSimpleSection('enclosures')"
+              >
+                ▼
+              </button>
+            </div>
+            <div id="body-enclosures" style="display: none;">
             <div id="enclosures">
               <div class="dynamic-item">
                 <div class="dynamic-item-content">
@@ -957,77 +1045,120 @@
                 </div>
                 <button
                   type="button"
-                  class="btn btn-danger"
-                  onclick="removeField(this, 'enclosures')"
+                  class="icon-btn"
+                  title="Add Enclosure"
+                  onclick="addField('enclosures', 'enclosure')"
+                  style="font-size: 18px; color: #27ae60; font-weight: 700;"
                 >
-                  ×
+                  +
                 </button>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="addField('enclosures', 'enclosure')"
-            >
-              Add Enclosure
-            </button>
+            </div>
           </div>
 
-          <div class="dynamic-section">
-            <label>Copy To:</label>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="openManager('copy')"
+          <div
+            style="
+              border: 1px solid #ddd;
+              border-radius: 5px;
+              padding: 8px 10px;
+              background: #f8f9fa;
+              margin-bottom: 10px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
             >
-              Manage Copy Addresses
-            </button>
-            <div id="copyTo">
-              <div class="dynamic-item">
-                <div class="dynamic-item-content">
-                  <select
-                    class="copy-dropdown"
-                    onchange="loadAddress(this, 'copy')"
-                  >
-                    <option value="">Select saved copy address...</option>
-                  </select>
-                  <input
-                    type="text"
-                    class="copy-input"
-                    oninput="updatePreview()"
-                  />
-                </div>
+              <span style="font-weight: bold; font-size: 13px; color: #444;">Copy To</span>
+              <div style="display: flex; gap: 8px;">
                 <button
                   type="button"
-                  class="btn btn-danger"
-                  onclick="removeField(this, 'copyTo')"
+                  class="icon-btn"
+                  title="Manage Copy Addresses"
+                  onclick="openManager('copy')"
                 >
-                  ×
+                  ⚙️
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn-add"
+                  title="Add Copy To"
+                  onclick="addField('copyTo', 'copy')"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Hide"
+                  id="hidebtn-copyTo"
+                  onclick="collapseToggleSection('copyTo')"
+                  style="display: none;"
+                >
+                  ▲
                 </button>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="addField('copyTo', 'copy')"
-            >
-              Add Copy To
-            </button>
+            <div id="body-copyTo" style="display: none;">
+              <div id="copyTo">
+                <!-- Copy To items will be added here -->
+              </div>
+            </div>
           </div>
 
           <div class="dynamic-section">
-            <label
-              style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 8px;
+              "
             >
-              <input
-                type="checkbox"
-                id="includeAppellateAuthority"
-                onchange="toggleAppellateAuthority(); updatePreview();"
-                style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
-              />
-              Include Appellate Authority (RTI) — അപ്പീൽ അധികാരി
-            </label>
-            <div id="appellateAuthorityFields" style="display: none;">
+              <label style="display: flex; align-items: center; gap: 6px; margin: 0; line-height: 1.1; font-size: 13px;">
+                <input
+                  type="checkbox"
+                  id="includeAppellateAuthority"
+                  onchange="onAppellateCheckboxChange(); updatePreview();"
+                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                />
+                Appellate<br />Authority
+              </label>
+              <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
+                <input
+                  type="radio"
+                  name="appellateAuthorityPosition"
+                  value="afterBody"
+                  checked
+                  onchange="saveAppellatePositionPreference(this.value); updatePreview();"
+                />
+                Before Signature
+              </label>
+              <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
+                <input
+                  type="radio"
+                  name="appellateAuthorityPosition"
+                  value="afterClosing"
+                  onchange="saveAppellatePositionPreference(this.value); updatePreview();"
+                />
+                After Signature
+              </label>
+              <button
+                type="button"
+                class="icon-btn"
+                title="Manage Appellate Authority"
+                onclick="toggleSimpleSection('appellateAuthorityFields')"
+                style="margin-left: auto;"
+              >
+                ⚙️
+              </button>
+            </div>
+            <div id="body-appellateAuthorityFields" style="display: none;">
               <button
                 type="button"
                 class="btn btn-primary"
@@ -1038,8 +1169,8 @@
               </button>
               <select
                 class="appellate-dropdown"
-                onchange="loadAddress(this, 'appellate')"
-                style="margin-bottom: 6px;"
+                onchange="loadAddress(this, 'appellate'); saveAppellateAddressPreference();"
+                style="margin-bottom: 6px; width: 100%;"
               >
                 <option value="">
                   Select saved Appellate Authority address...
@@ -1051,27 +1182,6 @@
                 placeholder="Enter Appellate Authority name, designation, address..."
                 style="min-height: 80px; width: 100%; box-sizing: border-box;"
               ></textarea>
-              <div style="margin-top: 6px; font-size: 12px;">
-                <label style="margin-right: 15px;">
-                  <input
-                    type="radio"
-                    name="appellateAuthorityPosition"
-                    value="afterBody"
-                    checked
-                    onchange="updatePreview()"
-                  />
-                  End of Body
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="appellateAuthorityPosition"
-                    value="afterClosing"
-                    onchange="updatePreview()"
-                  />
-                  After Closing (valediction + signature)
-                </label>
-              </div>
             </div>
           </div>
 
@@ -1110,9 +1220,28 @@
                 background: #f8f9fa;
               "
             >
-              <div style="font-weight: bold; margin-bottom: 5px;">
-                Copy Draft — Include Sections
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-weight: bold;">
+                  Copy Draft — Include Sections
+                </span>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Show/Hide"
+                  id="togglebtn-copyOptions"
+                  onclick="toggleSimpleSection('copyOptions')"
+                >
+                  ▼
+                </button>
               </div>
+              <div id="body-copyOptions" style="display: none;">
               <label
                 style="
                   display: flex;
@@ -1296,6 +1425,7 @@
                 />
                 Copy To
               </label>
+              </div>
             </div>
             <button
               type="button"
@@ -1855,8 +1985,10 @@
               if (d.toAddresses && d.toAddresses.length > 0) {
                 for (var i = 0; i < d.toAddresses.length; i++) {
                   if (i > 0) addField("toAddresses", "to");
-                  document.querySelectorAll(".address-textarea")[i].value =
-                    d.toAddresses[i];
+                  var _toEl1 =
+                    document.querySelectorAll(".address-textarea")[i];
+                  _toEl1.value = d.toAddresses[i];
+                  autoExpand(_toEl1);
                 }
               }
 
@@ -1882,9 +2014,10 @@
               // Load copy addresses
               if (d.copyTo && d.copyTo.length > 0) {
                 for (var i = 0; i < d.copyTo.length; i++) {
-                  if (i > 0) addField("copyTo", "copy");
-                  document.querySelectorAll(".copy-input")[i].value =
-                    d.copyTo[i];
+                  addField("copyTo", "copy");
+                  var _copyEl1 = document.querySelectorAll(".copy-input")[i];
+                  _copyEl1.value = d.copyTo[i];
+                  autoExpand(_copyEl1);
                 }
               }
 
@@ -2761,14 +2894,63 @@
         for (var i = 0; i < radios.length; i++) {
           radios[i].checked = radios[i].value === position;
         }
-        toggleAppellateAuthority();
+        // Loading a saved draft does not force the manage container open.
       }
 
-      function toggleAppellateAuthority() {
+      function onAppellateCheckboxChange() {
         var checked = document.getElementById("includeAppellateAuthority")
           .checked;
-        document.getElementById("appellateAuthorityFields").style.display =
-          checked ? "block" : "none";
+        if (!checked) return;
+
+        // Apply the last-saved position preference, if any
+        var prefPosition = localStorage.getItem("ml_appellate_pref_position");
+        if (prefPosition) {
+          var radios = document.querySelectorAll(
+            'input[name="appellateAuthorityPosition"]',
+          );
+          for (var i = 0; i < radios.length; i++) {
+            radios[i].checked = radios[i].value === prefPosition;
+          }
+        }
+
+        var textEl = document.getElementById("appellateAuthorityText");
+        if (textEl.value.trim()) return; // don't overwrite existing text
+
+        // Prefer the address the user last actively selected; fall back to
+        // the most recently saved one in the address book.
+        var prefAddress = localStorage.getItem("ml_appellate_pref_address");
+        var items = data.appellateAddresses;
+
+        if (prefAddress) {
+          textEl.value = prefAddress;
+          if (items) {
+            for (var j = 0; j < items.length; j++) {
+              if (items[j].address === prefAddress) {
+                var dd = document.querySelector(".appellate-dropdown");
+                if (dd) dd.value = j;
+                break;
+              }
+            }
+          }
+          return;
+        }
+
+        if (!items || items.length === 0) return;
+        var last = items[items.length - 1];
+        textEl.value = last.address;
+        var dropdown = document.querySelector(".appellate-dropdown");
+        if (dropdown) dropdown.value = items.length - 1;
+      }
+
+      function saveAppellatePositionPreference(value) {
+        localStorage.setItem("ml_appellate_pref_position", value);
+      }
+
+      function saveAppellateAddressPreference() {
+        var text = document.getElementById("appellateAuthorityText").value;
+        if (text.trim()) {
+          localStorage.setItem("ml_appellate_pref_address", text);
+        }
       }
 
       function getAppellateAuthorityData() {
@@ -3682,6 +3864,31 @@
         }
       }
 
+      function toggleSimpleSection(key) {
+        var body = document.getElementById("body-" + key);
+        var btn = document.getElementById("togglebtn-" + key);
+        var companion = document.getElementById(key + "Label");
+        if (!body) return;
+        var isOpen = body.style.display !== "none";
+        body.style.display = isOpen ? "none" : "block";
+        if (companion) companion.style.display = isOpen ? "none" : "flex";
+        if (btn) btn.textContent = isOpen ? "▼" : "▲";
+      }
+
+      function expandSection(key) {
+        var body = document.getElementById("body-" + key);
+        var hideBtn = document.getElementById("hidebtn-" + key);
+        if (body) body.style.display = "block";
+        if (hideBtn) hideBtn.style.display = "inline-flex";
+      }
+
+      function collapseToggleSection(key) {
+        var body = document.getElementById("body-" + key);
+        var hideBtn = document.getElementById("hidebtn-" + key);
+        if (body) body.style.display = "none";
+        if (hideBtn) hideBtn.style.display = "none";
+      }
+
       function addField(containerId, type) {
         var container = document.getElementById(containerId);
         var template = "";
@@ -3693,24 +3900,31 @@
             "')\">×</button></div>";
         } else if (type === "copy") {
           template =
-            '<div class="dynamic-item"><div class="dynamic-item-content"><select class="copy-dropdown" onchange="loadAddress(this, \'copy\')"><option value="">Select saved copy address...</option></select><input type="text" class="copy-input" oninput="updatePreview()"></div><button type="button" class="btn btn-danger" onclick="removeField(this, \'' +
+            '<div class="dynamic-item"><div class="dynamic-item-content"><select class="copy-dropdown" onchange="loadAddress(this, \'copy\')" style="height: 36px; padding: 0 4px; font-size: 12px;"><option value="">Select saved copy address...</option></select><textarea class="copy-input" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" oninput="autoExpand(this); updatePreview();"></textarea></div><button type="button" class="btn btn-danger" onclick="removeField(this, \'' +
             containerId +
             "')\">×</button></div>";
         } else if (type === "enclosure") {
           template =
-            '<div class="dynamic-item"><div class="dynamic-item-content"><input type="text" class="enclosure-input" oninput="updatePreview()" placeholder="Enter enclosure..."></div><button type="button" class="btn btn-danger" onclick="removeField(this, \'' +
+            '<div class="dynamic-item"><div class="dynamic-item-content"><input type="text" class="enclosure-input" oninput="updatePreview()" placeholder="Enter enclosure..."></div><button type="button" class="icon-btn" title="Remove" onclick="removeField(this, \'' +
             containerId +
-            "')\">×</button></div>";
+            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button><button type="button" class="icon-btn" title="Add Enclosure" onclick="addField(\'' +
+            containerId +
+            "', 'enclosure')\" style=\"font-size: 18px; color: #27ae60; font-weight: 700;\">+</button></div>";
         } else {
           template =
-            '<div class="dynamic-item"><textarea class="reference-input" rows="1" style="resize:none;overflow:hidden;min-height:36px;" oninput="autoExpand(this);updatePreview()" placeholder="Enter reference"></textarea><button type="button" class="btn btn-danger" onclick="removeField(this, \'' +
+            '<div class="dynamic-item"><textarea class="reference-input" rows="1" style="resize:none;overflow:hidden;min-height:36px;" oninput="autoExpand(this);updatePreview()" placeholder="Enter reference"></textarea><button type="button" class="icon-btn" title="Remove" onclick="removeField(this, \'' +
             containerId +
-            "')\">×</button></div>";
+            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button><button type="button" class="icon-btn" title="Add Reference" onclick="addField(\'' +
+            containerId +
+            "', 'ref')\" style=\"font-size: 18px; color: #27ae60; font-weight: 700;\">+</button></div>";
         }
 
         container.insertAdjacentHTML("beforeend", template);
         updateDropdowns();
         showToast("Field added");
+        if (containerId === "copyTo" && typeof expandSection === "function") {
+          expandSection("copyTo");
+        }
       }
 
       function removeField(btn, containerId) {
@@ -3753,6 +3967,9 @@
         }
 
         target.value = address.address;
+        if (target.tagName === "TEXTAREA") {
+          autoExpand(target);
+        }
         updatePreview();
       }
 
@@ -3790,8 +4007,9 @@
         if (d.toAddresses && d.toAddresses.length > 0) {
           for (var i = 0; i < d.toAddresses.length; i++) {
             if (i > 0) addField("toAddresses", "to");
-            document.querySelectorAll(".address-textarea")[i].value =
-              d.toAddresses[i];
+            var _toEl2 = document.querySelectorAll(".address-textarea")[i];
+            _toEl2.value = d.toAddresses[i];
+            autoExpand(_toEl2);
           }
         }
 
@@ -3813,8 +4031,10 @@
 
         if (d.copyTo && d.copyTo.length > 0) {
           for (var i = 0; i < d.copyTo.length; i++) {
-            if (i > 0) addField("copyTo", "copy");
-            document.querySelectorAll(".copy-input")[i].value = d.copyTo[i];
+            addField("copyTo", "copy");
+            var _copyEl2 = document.querySelectorAll(".copy-input")[i];
+            _copyEl2.value = d.copyTo[i];
+            autoExpand(_copyEl2);
           }
         }
 
