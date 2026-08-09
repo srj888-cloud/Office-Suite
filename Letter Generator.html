@@ -1005,34 +1005,8 @@
             <div id="uploadedTables"></div>
           </div>
 
-          <div
-            style="
-              border: 1px solid #ddd;
-              border-radius: 5px;
-              padding: 8px 10px;
-              background: #f8f9fa;
-              margin-bottom: 10px;
-            "
-          >
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              <span style="font-weight: bold; font-size: 13px; color: #444;">Enclosures</span>
-              <button
-                type="button"
-                class="icon-btn"
-                title="Show/Hide"
-                id="togglebtn-enclosures"
-                onclick="toggleSimpleSection('enclosures')"
-              >
-                ▼
-              </button>
-            </div>
-            <div id="body-enclosures" style="display: none;">
+          <div class="form-group">
+            <label>Enclosures:</label>
             <div id="enclosures">
               <div class="dynamic-item">
                 <div class="dynamic-item-content">
@@ -1054,18 +1028,9 @@
                 </button>
               </div>
             </div>
-            </div>
           </div>
 
-          <div
-            style="
-              border: 1px solid #ddd;
-              border-radius: 5px;
-              padding: 8px 10px;
-              background: #f8f9fa;
-              margin-bottom: 10px;
-            "
-          >
+          <div class="form-group">
             <div
               style="
                 display: flex;
@@ -1073,7 +1038,7 @@
                 justify-content: space-between;
               "
             >
-              <span style="font-weight: bold; font-size: 13px; color: #444;">Copy To</span>
+              <label style="margin: 0;">Copy To:</label>
               <div style="display: flex; gap: 8px;">
                 <button
                   type="button"
@@ -1091,26 +1056,42 @@
                 >
                   +
                 </button>
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Hide"
-                  id="hidebtn-copyTo"
-                  onclick="collapseToggleSection('copyTo')"
-                  style="display: none;"
-                >
-                  ▲
-                </button>
               </div>
             </div>
-            <div id="body-copyTo" style="display: none;">
-              <div id="copyTo">
-                <!-- Copy To items will be added here -->
+            <div id="copyTo">
+              <div class="dynamic-item">
+                <div class="dynamic-item-content">
+                  <select
+                    class="copy-dropdown"
+                    onchange="loadAddress(this, 'copy')"
+                    style="height: 36px; padding: 0 4px; font-size: 12px;"
+                  >
+                    <option value="">Select saved copy address...</option>
+                  </select>
+                  <textarea
+                    class="copy-input"
+                    rows="2"
+                    style="resize: none; overflow: hidden; min-height: 40px;"
+                    oninput="autoExpand(this); updatePreview();"
+                  ></textarea>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="dynamic-section">
+            <div
+              style="
+                font-size: 11px;
+                font-weight: bold;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+              "
+            >
+              RTI only
+            </div>
             <div
               style="
                 display: flex;
@@ -2014,7 +1995,7 @@
               // Load copy addresses
               if (d.copyTo && d.copyTo.length > 0) {
                 for (var i = 0; i < d.copyTo.length; i++) {
-                  addField("copyTo", "copy");
+                  if (i > 0) addField("copyTo", "copy");
                   var _copyEl1 = document.querySelectorAll(".copy-input")[i];
                   _copyEl1.value = d.copyTo[i];
                   autoExpand(_copyEl1);
@@ -3895,36 +3876,29 @@
 
         if (type === "to") {
           template =
-            '<div class="dynamic-item"><div class="dynamic-item-content"><select class="address-dropdown" onchange="loadAddress(this, \'to\')"><option value="">Select saved address...</option></select><textarea class="address-textarea" oninput="updatePreview()"></textarea></div><button type="button" class="btn btn-danger" onclick="removeField(this, \'' +
+            '<div class="dynamic-item"><div class="dynamic-item-content"><select class="address-dropdown" onchange="loadAddress(this, \'to\')" style="height: 36px; padding: 0 4px; font-size: 12px;"><option value="">Select saved address...</option></select><textarea class="address-textarea" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" oninput="autoExpand(this); updatePreview();"></textarea></div><button type="button" class="icon-btn" title="Remove" onclick="removeField(this, \'' +
             containerId +
-            "')\">×</button></div>";
+            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button></div>';
         } else if (type === "copy") {
           template =
-            '<div class="dynamic-item"><div class="dynamic-item-content"><select class="copy-dropdown" onchange="loadAddress(this, \'copy\')" style="height: 36px; padding: 0 4px; font-size: 12px;"><option value="">Select saved copy address...</option></select><textarea class="copy-input" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" oninput="autoExpand(this); updatePreview();"></textarea></div><button type="button" class="btn btn-danger" onclick="removeField(this, \'' +
+            '<div class="dynamic-item"><div class="dynamic-item-content"><select class="copy-dropdown" onchange="loadAddress(this, \'copy\')" style="height: 36px; padding: 0 4px; font-size: 12px;"><option value="">Select saved copy address...</option></select><textarea class="copy-input" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" oninput="autoExpand(this); updatePreview();"></textarea></div><button type="button" class="icon-btn" title="Remove" onclick="removeField(this, \'' +
             containerId +
-            "')\">×</button></div>";
+            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button></div>';
         } else if (type === "enclosure") {
           template =
             '<div class="dynamic-item"><div class="dynamic-item-content"><input type="text" class="enclosure-input" oninput="updatePreview()" placeholder="Enter enclosure..."></div><button type="button" class="icon-btn" title="Remove" onclick="removeField(this, \'' +
             containerId +
-            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button><button type="button" class="icon-btn" title="Add Enclosure" onclick="addField(\'' +
-            containerId +
-            "', 'enclosure')\" style=\"font-size: 18px; color: #27ae60; font-weight: 700;\">+</button></div>";
+            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button></div>';
         } else {
           template =
             '<div class="dynamic-item"><textarea class="reference-input" rows="1" style="resize:none;overflow:hidden;min-height:36px;" oninput="autoExpand(this);updatePreview()" placeholder="Enter reference"></textarea><button type="button" class="icon-btn" title="Remove" onclick="removeField(this, \'' +
             containerId +
-            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button><button type="button" class="icon-btn" title="Add Reference" onclick="addField(\'' +
-            containerId +
-            "', 'ref')\" style=\"font-size: 18px; color: #27ae60; font-weight: 700;\">+</button></div>";
+            '\')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button></div>';
         }
 
         container.insertAdjacentHTML("beforeend", template);
         updateDropdowns();
         showToast("Field added");
-        if (containerId === "copyTo" && typeof expandSection === "function") {
-          expandSection("copyTo");
-        }
       }
 
       function removeField(btn, containerId) {
@@ -4031,7 +4005,7 @@
 
         if (d.copyTo && d.copyTo.length > 0) {
           for (var i = 0; i < d.copyTo.length; i++) {
-            addField("copyTo", "copy");
+            if (i > 0) addField("copyTo", "copy");
             var _copyEl2 = document.querySelectorAll(".copy-input")[i];
             _copyEl2.value = d.copyTo[i];
             autoExpand(_copyEl2);
