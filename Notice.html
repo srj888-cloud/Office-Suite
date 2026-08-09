@@ -303,10 +303,6 @@
         gap: 10px;
         margin-bottom: 15px;
         align-items: flex-start;
-        background: white;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       }
 
       .dynamic-item-content {
@@ -1141,19 +1137,15 @@
           </div>
 
           <!-- To -->
-          <div class="accordion-section" id="section-to">
+          <div class="form-group">
             <div
               style="
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 12px 16px;
-                background: white;
-                font-weight: 600;
-                color: var(--primary);
               "
             >
-              <span>To</span>
+              <label style="margin: 0;">To:</label>
               <div style="display: flex; gap: 8px;">
                 <button
                   type="button"
@@ -1171,39 +1163,40 @@
                 >
                   +
                 </button>
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Hide"
-                  id="hidebtn-to"
-                  onclick="collapseToggleSection('to')"
-                  style="display: none;"
-                >
-                  ▲
-                </button>
               </div>
             </div>
-            <div class="accordion-body" id="body-to" style="padding: 0; display: none;">
             <div id="toContainer">
-              <!-- To items will be added here -->
-            </div>
+              <div class="dynamic-item">
+                <div class="dynamic-item-content">
+                  <select
+                    class="address-dropdown"
+                    onchange="loadAddress(this, 'address')"
+                    style="height: 36px; padding: 0 4px; font-size: 12px;"
+                  >
+                    <option value="">Select saved address...</option>
+                  </select>
+                  <textarea
+                    class="to-input"
+                    rows="2"
+                    style="resize: none; overflow: hidden; min-height: 40px;"
+                    placeholder="Enter recipient..."
+                    oninput="autoExpand(this); updatePreview();"
+                  ></textarea>
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Copy To -->
-          <div class="accordion-section" id="section-copyTo">
+          <div class="form-group">
             <div
               style="
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 12px 16px;
-                background: white;
-                font-weight: 600;
-                color: var(--primary);
               "
             >
-              <span>Copy To</span>
+              <label style="margin: 0;">Copy To:</label>
               <div style="display: flex; gap: 8px;">
                 <button
                   type="button"
@@ -1221,22 +1214,26 @@
                 >
                   +
                 </button>
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Hide"
-                  id="hidebtn-copyTo"
-                  onclick="collapseToggleSection('copyTo')"
-                  style="display: none;"
-                >
-                  ▲
-                </button>
               </div>
             </div>
-            <div class="accordion-body" id="body-copyTo" style="padding: 0; display: none;">
             <div id="copyTo">
-              <!-- Copy To items will be added here -->
-            </div>
+              <div class="dynamic-item">
+                <div class="dynamic-item-content">
+                  <select
+                    class="copy-dropdown"
+                    onchange="loadAddress(this, 'copy')"
+                    style="height: 36px; padding: 0 4px; font-size: 12px;"
+                  >
+                    <option value="">Select saved copy address...</option>
+                  </select>
+                  <textarea
+                    class="copy-input"
+                    rows="2"
+                    style="resize: none; overflow: hidden; min-height: 40px;"
+                    oninput="autoExpand(this); updatePreview();"
+                  ></textarea>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2407,13 +2404,15 @@
 
         // Load to items
         if (data.to && data.to.length > 0) {
-          data.to.forEach((item) => {
-            addTo();
-            const _toEl = document.getElementById(`to-text-${toCount}`);
+          data.to.forEach((item, idx) => {
+            if (idx > 0) addTo();
+            const _toEl =
+              idx === 0
+                ? document.querySelectorAll(".to-input")[0]
+                : document.getElementById(`to-text-${toCount}`);
             _toEl.value = item;
             autoExpand(_toEl);
           });
-          expandSection("to");
         }
 
         // Load copy addresses
@@ -2424,7 +2423,6 @@
             _copyEl.value = copy;
             autoExpand(_copyEl);
           });
-          expandSection("copyTo");
         }
 
         updatePreview();
@@ -3388,7 +3386,7 @@
                                 </select>
                                 <textarea class="copy-input" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" oninput="autoExpand(this); updatePreview();" placeholder="Enter copy recipient"></textarea>
                             </div>
-                            <button type="button" class="btn btn-danger btn-small" onclick="removeField(this, '${containerId}')">×</button>
+                            <button type="button" class="icon-btn" title="Remove" onclick="removeField(this, '${containerId}')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button>
                         </div>
                     `;
             break;
@@ -3397,7 +3395,6 @@
                         <div class="dynamic-item">
                             <textarea class="reference-input" rows="1" style="resize:none;overflow:hidden;min-height:36px;" oninput="autoExpand(this);updatePreview()" placeholder="Enter reference"></textarea>
                             <button type="button" class="icon-btn" title="Remove" onclick="removeField(this, '${containerId}')" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button>
-                            <button type="button" class="icon-btn" title="Add Reference" onclick="addField('${containerId}', 'ref')" style="font-size: 18px; color: #27ae60; font-weight: 700;">+</button>
                         </div>
                     `;
             break;
@@ -3406,7 +3403,6 @@
         container.insertAdjacentHTML("beforeend", template);
         updateDropdowns();
         updatePreview();
-        if (containerId === "copyTo") expandSection("copyTo");
       }
 
       function removeField(button, containerId) {
@@ -3446,11 +3442,10 @@
                     </select>
                     <textarea id="to-text-${toCount}" class="to-input" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" placeholder="Enter recipient..." oninput="autoExpand(this); updatePreview();"></textarea>
                 </div>
-                <button type="button" class="btn btn-danger" onclick="removeTo(${toCount})">×</button>
+                <button type="button" class="icon-btn" title="Remove" onclick="removeTo(${toCount})" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button>
             `;
         container.appendChild(div);
         updateDropdowns();
-        expandSection("to");
       }
 
       function removeTo(id) {
