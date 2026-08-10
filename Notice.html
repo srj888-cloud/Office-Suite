@@ -7,7 +7,7 @@
     <style>
       :root {
         --primary: #2c3e50;
-        --secondary: #3498db;
+        --secondary: #9b59b6;
         --success: #27ae60;
         --danger: #e74c3c;
         --warning: #f39c12;
@@ -52,7 +52,7 @@
       }
 
       .panel-header {
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        background: linear-gradient(135deg, #9b59b6, #7d3c98);
         color: white;
         padding: 25px;
         font-size: 1.3rem;
@@ -131,7 +131,7 @@
       textarea:focus,
       select:focus {
         border-color: var(--secondary);
-        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        box-shadow: 0 0 0 4px rgba(155, 89, 182, 0.15);
         outline: none;
       }
 
@@ -160,8 +160,13 @@
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, var(--secondary), #2980b9);
-        color: white;
+        background: white;
+        color: var(--secondary);
+        border: 1.5px solid var(--secondary);
+      }
+
+      .btn-primary:hover {
+        background: rgba(155, 89, 182, 0.08);
       }
 
       .btn-success {
@@ -180,7 +185,7 @@
       }
 
       .btn-import {
-        background: linear-gradient(135deg, #f39c12, #e67e22);
+        background: linear-gradient(135deg, var(--secondary), #7d3c98);
         color: white;
       }
 
@@ -600,7 +605,7 @@
       }
 
       .lang-btn.lang-active {
-        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        background: linear-gradient(135deg, var(--secondary), #7d3c98);
         color: white;
       }
 
@@ -959,7 +964,7 @@
 
           <!-- Subject -->
           <div class="form-group">
-            <label>Subject:</label>
+            <label>Subject (Optional):</label>
             <textarea
               id="subject"
               rows="1"
@@ -1127,10 +1132,10 @@
               />
               <button
                 type="button"
-                class="btn btn-success btn-small"
+                class="btn btn-import btn-small"
                 onclick="document.getElementById('excelUpload').click()"
               >
-                📈 Upload Excel
+                Upload Excel
               </button>
             </div>
             <div id="uploadedTables"></div>
@@ -1142,28 +1147,18 @@
               style="
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
+                gap: 6px;
               "
             >
               <label style="margin: 0;">To:</label>
-              <div style="display: flex; gap: 8px;">
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Manage Addresses"
-                  onclick="openManager('address')"
-                >
-                  ⚙️
-                </button>
-                <button
-                  type="button"
-                  class="icon-btn icon-btn-add"
-                  title="Add To"
-                  onclick="addTo()"
-                >
-                  +
-                </button>
-              </div>
+              <button
+                type="button"
+                class="icon-btn"
+                title="Manage Addresses"
+                onclick="openManager('address')"
+              >
+                ⚙️
+              </button>
             </div>
             <div id="toContainer">
               <div class="dynamic-item">
@@ -1183,6 +1178,15 @@
                     oninput="autoExpand(this); updatePreview();"
                   ></textarea>
                 </div>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Add To"
+                  onclick="addTo()"
+                  style="font-size: 18px; color: #27ae60; font-weight: 700;"
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
@@ -1193,28 +1197,18 @@
               style="
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
+                gap: 6px;
               "
             >
               <label style="margin: 0;">Copy To:</label>
-              <div style="display: flex; gap: 8px;">
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Manage Copy Addresses"
-                  onclick="openManager('copy')"
-                >
-                  ⚙️
-                </button>
-                <button
-                  type="button"
-                  class="icon-btn icon-btn-add"
-                  title="Add Copy To"
-                  onclick="addField('copyTo', 'copy')"
-                >
-                  +
-                </button>
-              </div>
+              <button
+                type="button"
+                class="icon-btn"
+                title="Manage Copy Addresses"
+                onclick="openManager('copy')"
+              >
+                ⚙️
+              </button>
             </div>
             <div id="copyTo">
               <div class="dynamic-item">
@@ -1233,6 +1227,15 @@
                     oninput="autoExpand(this); updatePreview();"
                   ></textarea>
                 </div>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Add Copy To"
+                  onclick="addField('copyTo', 'copy')"
+                  style="font-size: 18px; color: #27ae60; font-weight: 700;"
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
