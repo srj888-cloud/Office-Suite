@@ -2110,8 +2110,11 @@
         if (!p) return;
         var name =
           currentLang === "en"
-            ? p.principalNameEn || p.principalName
-            : p.principalName;
+            ? p.approverNameEn ||
+              p.principalNameEn ||
+              p.approverName ||
+              p.principalName
+            : p.approverName || p.principalName;
         if (name) document.getElementById("principalName").value = name;
         if (p.designation) labels.ml.principal = p.designation;
         if (p.designationEn) labels.en.principal = p.designationEn;
@@ -2380,7 +2383,10 @@
         document.getElementById("letterBody").value = data.letterBody || "";
         const _p = getOfficeProfile();
         document.getElementById("principalName").value =
-          data.principalName || (_p && _p.principalName) || "";
+          data.approverName ||
+          data.principalName ||
+          (_p && (_p.approverName || _p.principalName)) ||
+          "";
 
         // Load tables
         appData.tables = data.tables || {};
@@ -2463,7 +2469,7 @@
           copyTo: Array.from(document.querySelectorAll(".copy-input"))
             .map((input) => input.value.trim())
             .filter((v) => v),
-          principalName: document.getElementById("principalName").value,
+          approverName: document.getElementById("principalName").value,
           tables: appData.tables,
           dataSheets: appData.dataSheets,
           copyOptions: getCopyOptions(),
@@ -3492,7 +3498,9 @@
         autoExpand(subjectElClear);
         document.getElementById("letterBody").value = "";
         document.getElementById("principalName").value =
-          _cp && _cp.principalName ? _cp.principalName : "";
+          _cp && (_cp.approverName || _cp.principalName)
+            ? _cp.approverName || _cp.principalName
+            : "";
 
         // Clear dynamic fields
         clearDynamicFields();
@@ -3687,7 +3695,7 @@
         data.noticeTitle = mergeSubstitute(data.noticeTitle || "");
         data.subject = mergeSubstitute(data.subject || "");
         data.letterBody = mergeSubstitute(data.letterBody || "");
-        data.principalName = mergeSubstitute(data.principalName || "");
+        data.approverName = mergeSubstitute(data.approverName || "");
         data.references = (data.references || []).map(function (r) {
           return mergeSubstitute(r);
         });
@@ -3939,7 +3947,7 @@
                     <div style="margin-bottom: 60px;"></div>
 
                     <div style="text-align: right; margin-bottom: 60px; font-size: 12pt; line-height: 1.6;">
-                        <div>${data.principalName}</div>
+                        <div>${data.approverName}</div>
                         <div>${L.principal.replace(/\n/g, "<br>")}</div>
                     </div>
 
@@ -4256,7 +4264,7 @@
                     <div style="margin: 0 0 5px 0; padding: 0;"></div>
                     
                     <div style="text-align: right; margin: 0 0 15px 0; padding: 0; font-size: 13pt; line-height: 1.3;">
-                        <div style="margin: 0; padding: 0;">${data.principalName}</div>
+                        <div style="margin: 0; padding: 0;">${data.approverName}</div>
                         <div style="margin: 0; padding: 0;">${L.principal.replace(/\n/g, "<br>")}</div>
                     </div>
                     `
@@ -4344,7 +4352,7 @@ ${L.number}: ${data.refNumber}                                            ${L.da
 ${data.noticeTitle ? `                                    ${data.noticeTitle}\n\n` : ""}${hasSubject ? `  ${L.subject}: ${data.subject}\n` : ""}${references}
 ${bodyText}
 
-                                                        ${data.principalName}
+                                                        ${data.approverName}
                                                         ${L.principal}
 
 ${toText}${toText ? "\n" : ""}${copyTo}`;
