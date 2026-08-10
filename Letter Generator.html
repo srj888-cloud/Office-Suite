@@ -44,7 +44,7 @@
       }
 
       .panel-header {
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        background: linear-gradient(135deg, #3498db, #2980b9);
         color: white;
         padding: 20px;
         font-size: 1.3rem;
@@ -151,8 +151,13 @@
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, var(--secondary), #2980b9);
-        color: white;
+        background: white;
+        color: var(--secondary);
+        border: 1.5px solid var(--secondary);
+      }
+
+      .btn-primary:hover {
+        background: rgba(52, 152, 219, 0.08);
       }
 
       .btn-success {
@@ -166,7 +171,7 @@
       }
 
       .btn-import {
-        background: linear-gradient(135deg, #f39c12, #e67e22);
+        background: linear-gradient(135deg, var(--secondary), #2980b9);
         color: white;
       }
 
@@ -781,28 +786,18 @@
               style="
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
+                gap: 6px;
               "
             >
               <label style="margin: 0;">To Address:</label>
-              <div style="display: flex; gap: 8px;">
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Manage Addresses"
-                  onclick="openManager('address')"
-                >
-                  ⚙️
-                </button>
-                <button
-                  type="button"
-                  class="icon-btn icon-btn-add"
-                  title="Add Address"
-                  onclick="addField('toAddresses', 'to')"
-                >
-                  +
-                </button>
-              </div>
+              <button
+                type="button"
+                class="icon-btn"
+                title="Manage Addresses"
+                onclick="openManager('address')"
+              >
+                ⚙️
+              </button>
             </div>
             <div id="toAddresses">
               <div class="dynamic-item">
@@ -821,6 +816,15 @@
                     oninput="autoExpand(this); updatePreview();"
                   ></textarea>
                 </div>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Add Address"
+                  onclick="addField('toAddresses', 'to')"
+                  style="font-size: 18px; color: #27ae60; font-weight: 700;"
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
@@ -994,7 +998,7 @@
                 class="btn"
                 onclick="document.getElementById('excelUpload').click()"
                 style="
-                  background: linear-gradient(135deg, #66bb6a, #4caf50);
+                  background: linear-gradient(135deg, var(--secondary), #2980b9);
                   color: white;
                   margin: 0;
                 "
@@ -1035,28 +1039,18 @@
               style="
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
+                gap: 6px;
               "
             >
               <label style="margin: 0;">Copy To:</label>
-              <div style="display: flex; gap: 8px;">
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Manage Copy Addresses"
-                  onclick="openManager('copy')"
-                >
-                  ⚙️
-                </button>
-                <button
-                  type="button"
-                  class="icon-btn icon-btn-add"
-                  title="Add Copy To"
-                  onclick="addField('copyTo', 'copy')"
-                >
-                  +
-                </button>
-              </div>
+              <button
+                type="button"
+                class="icon-btn"
+                title="Manage Copy Addresses"
+                onclick="openManager('copy')"
+              >
+                ⚙️
+              </button>
             </div>
             <div id="copyTo">
               <div class="dynamic-item">
@@ -1075,69 +1069,94 @@
                     oninput="autoExpand(this); updatePreview();"
                   ></textarea>
                 </div>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Add Copy To"
+                  onclick="addField('copyTo', 'copy')"
+                  style="font-size: 18px; color: #27ae60; font-weight: 700;"
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
 
-          <div class="dynamic-section">
-            <div
-              style="
-                font-size: 11px;
-                font-weight: bold;
-                color: #888;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 4px;
-              "
-            >
-              RTI only
-            </div>
+          <div class="form-group">
             <div
               style="
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                flex-wrap: wrap;
-                margin-bottom: 8px;
+                gap: 8px;
+                margin-bottom: 4px;
               "
             >
-              <label style="display: flex; align-items: center; gap: 6px; margin: 0; line-height: 1.1; font-size: 13px;">
-                <input
-                  type="checkbox"
-                  id="includeAppellateAuthority"
-                  onchange="onAppellateCheckboxChange(); updatePreview();"
-                  style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
-                />
-                Appellate<br />Authority
-              </label>
-              <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
-                <input
-                  type="radio"
-                  name="appellateAuthorityPosition"
-                  value="afterBody"
-                  checked
-                  onchange="saveAppellatePositionPreference(this.value); updatePreview();"
-                />
-                Before Signature
-              </label>
-              <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
-                <input
-                  type="radio"
-                  name="appellateAuthorityPosition"
-                  value="afterClosing"
-                  onchange="saveAppellatePositionPreference(this.value); updatePreview();"
-                />
-                After Signature
-              </label>
+              <div
+                style="
+                  font-size: 11px;
+                  font-weight: bold;
+                  color: #888;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+              >
+                RTI only
+              </div>
               <button
                 type="button"
                 class="icon-btn"
                 title="Manage Appellate Authority"
                 onclick="toggleSimpleSection('appellateAuthorityFields')"
-                style="margin-left: auto;"
               >
                 ⚙️
               </button>
+            </div>
+            <div
+              style="
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 8px 10px;
+                background: #f8f9fa;
+                margin-bottom: 10px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                "
+              >
+                <label style="display: flex; align-items: center; gap: 6px; margin: 0; line-height: 1.1; font-size: 13px;">
+                  <input
+                    type="checkbox"
+                    id="includeAppellateAuthority"
+                    onchange="onAppellateCheckboxChange(); updatePreview();"
+                    style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
+                  />
+                  Appellate<br />Authority
+                </label>
+                <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
+                  <input
+                    type="radio"
+                    name="appellateAuthorityPosition"
+                    value="afterBody"
+                    checked
+                    onchange="saveAppellatePositionPreference(this.value); updatePreview();"
+                  />
+                  Before Signature
+                </label>
+                <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
+                  <input
+                    type="radio"
+                    name="appellateAuthorityPosition"
+                    value="afterClosing"
+                    onchange="saveAppellatePositionPreference(this.value); updatePreview();"
+                  />
+                  After Signature
+                </label>
+              </div>
             </div>
             <div id="body-appellateAuthorityFields" style="display: none;">
               <button
