@@ -1862,8 +1862,11 @@
         if (!p) return;
         var name =
           currentLang === "en"
-            ? p.principalNameEn || p.principalName
-            : p.principalName;
+            ? p.approverNameEn ||
+              p.principalNameEn ||
+              p.approverName ||
+              p.principalName
+            : p.approverName || p.principalName;
         var college =
           currentLang === "en" ? p.officeNameEn || p.officeName : p.officeName;
         if (name) document.getElementById("principalName").value = name;
