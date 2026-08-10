@@ -879,7 +879,7 @@
             </li>
             <li>
               <strong>പ്രത്യേകതകൾ</strong><br />
-             Alignment തെറ്റാതെ ഡ്രാഫ്റ്റുകൾ തയ്യാറാക്കാം, Mail Merge, Direct Copy Paste from the uploaded excel file.
+             മലയാളത്തിലും ഇംഗ്ലീഷിലും ഡ്രാഫ്റ്റുകൾ തയ്യാറാക്കി Alignment തെറ്റാതെ eoffice ൽ പകർത്താം, Mail Merge, Direct Copy Paste from the uploaded excel file.
             </li>
 
             <li>
@@ -1150,7 +1150,11 @@
         reader.onload = function (e) {
           try {
             var profile = JSON.parse(e.target.result);
-            if (!profile.officeName && !profile.principalName) {
+            if (
+              !profile.officeName &&
+              !profile.approverName &&
+              !profile.principalName
+            ) {
               alert("Invalid profile file. Please use the sample as a guide.");
               return;
             }
@@ -1183,8 +1187,8 @@
           officeNameEn: "Name of Office",
           officeAddress: "വിലാസം (ലൈൻ 1)\nഫോണ്‍ നം., ഇമെയില്‍ (ലൈന്‍ 2)",
           officeAddressEn: "Address (Line 1)\nPhone No., email (Line 2)",
-          principalName: "ഓഫീസ് മേധാവിയുടെ പേര്",
-          principalNameEn: "Name of the Head of Office",
+          approverName: "ഓഫീസ് മേധാവിയുടെ പേര്",
+          approverNameEn: "Name of the Head of Office",
           designation: "ഉദ്യോഗപ്പേര്",
           designationEn: "Designation",
           fromAddress: "ഉദ്യോഗപ്പേര്\nലൈന്‍2\nലൈന്‍3",
@@ -1233,3 +1237,4 @@
     </script>
   </body>
 </html>
+R
