@@ -1885,7 +1885,7 @@
             letterBody: document.getElementById("letterBody").value,
             enclosures: enclosures,
             copyTo: copyTo,
-            principalName: document.getElementById("principalName").value,
+            approverName: document.getElementById("principalName").value,
             tables: data.tables,
             numberParagraphs: document.getElementById("numberParagraphs")
               .checked,
@@ -1957,7 +1957,7 @@
               autoExpand(_subEl);
               document.getElementById("letterBody").value = d.letterBody || "";
               document.getElementById("principalName").value =
-                d.principalName || "";
+                d.approverName || d.principalName || "";
 
               data.tables = d.tables || {};
               updateTablesDisplay();
@@ -2435,8 +2435,11 @@
         if (!p) return;
         var name =
           currentLang === "en"
-            ? p.principalNameEn || p.principalName
-            : p.principalName;
+            ? p.approverNameEn ||
+              p.principalNameEn ||
+              p.approverName ||
+              p.principalName
+            : p.approverName || p.principalName;
         if (name) document.getElementById("principalName").value = name;
         if (p.designation) labels.ml.principal = p.designation;
         if (p.designationEn) labels.en.principal = p.designationEn;
@@ -3978,7 +3981,8 @@
         document.getElementById("fromAddress").value = d.fromAddress || "";
         document.getElementById("subject").value = d.subject || "";
         document.getElementById("letterBody").value = d.letterBody || "";
-        document.getElementById("principalName").value = d.principalName || "";
+        document.getElementById("principalName").value =
+          d.approverName || d.principalName || "";
 
         data.tables = d.tables || {};
         updateTablesDisplay();
