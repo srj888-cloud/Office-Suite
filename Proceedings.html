@@ -7,7 +7,7 @@
     <style>
       :root {
         --primary: #2c3e50;
-        --secondary: #3498db;
+        --secondary: #16a085;
         --success: #27ae60;
         --danger: #e74c3c;
         --warning: #f39c12;
@@ -52,7 +52,7 @@
       }
 
       .panel-header {
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        background: linear-gradient(135deg, #16a085, #138d75);
         color: white;
         padding: 25px;
         font-size: 1.3rem;
@@ -128,7 +128,7 @@
       textarea:focus,
       select:focus {
         border-color: var(--secondary);
-        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        box-shadow: 0 0 0 4px rgba(22, 160, 133, 0.15);
         outline: none;
       }
 
@@ -150,7 +150,7 @@
         align-items: center;
         gap: 8px;
         color: white;
-        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        background: linear-gradient(135deg, var(--secondary), #138d75);
       }
 
       .btn:hover {
@@ -159,8 +159,13 @@
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, var(--secondary), #2980b9);
-        color: white;
+        background: white;
+        color: var(--secondary);
+        border: 1.5px solid var(--secondary);
+      }
+
+      .btn-primary:hover {
+        background: rgba(22, 160, 133, 0.08);
       }
 
       .btn-success {
@@ -179,12 +184,12 @@
       }
 
       .btn-info {
-        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        background: linear-gradient(135deg, var(--secondary), #138d75);
         color: white;
       }
 
       .btn-import {
-        background: linear-gradient(135deg, #f39c12, #e67e22);
+        background: linear-gradient(135deg, var(--secondary), #138d75);
         color: white;
       }
 
@@ -505,7 +510,7 @@
       }
 
       .lang-btn.lang-active {
-        background: linear-gradient(135deg, var(--secondary), #2980b9);
+        background: linear-gradient(135deg, var(--secondary), #138d75);
         color: white;
       }
 
@@ -874,7 +879,7 @@
             <input
               type="text"
               id="orderNumber"
-              placeholder="File No."
+              placeholder="Dept. Code/....."
               value=""
               oninput="generateDocument()"
             />
@@ -1026,9 +1031,9 @@
             >
           </div>
 
-          <div class="content-actions">
+          <div style="display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap;">
             <button class="btn btn-info btn-small" onclick="showFileUpload()">
-              📁 Upload Excel File
+              Upload Excel
             </button>
           </div>
 
