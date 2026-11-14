@@ -5,7 +5,7 @@ No installation. No internet. Just open the HTML file in a browser.
 
 Features
 Three ready-to-use apps — Letter Generator, Proceedings, and Circular/Notice
-Office Profile — Upload your office details once; all apps fill in automatically
+Office Profile — Fill in your office details once on the home page; all apps fill in automatically (Export / Import JSON to move them to another computer)
 Live preview — See the formatted document update in real time as you type
 Header & Logo — Add your office logo (Top or Left position) or a full header image
 Mail Merge — Upload an Excel/CSV file to generate multiple drafts in one go
@@ -16,7 +16,7 @@ Open source — The entire code is a single HTML file, fully inspectable
 How to use
 Download the ZIP and extract it
 Open index.html in Chrome or Edge
-Upload your office profile JSON (use Download Sample to get the template)
+Fill in the Office Profile form (Malayalam and English) and click Save Profile
 Launch any app and start drafting
 Developed by
 Sreejith M, Head Accountant

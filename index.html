@@ -173,11 +173,6 @@
         border-radius: 15px;
         padding: 1.5rem 2rem;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
         border-left: 5px solid var(--secondary);
       }
 
@@ -185,36 +180,209 @@
         border-left-color: var(--success);
       }
 
-      .profile-info h3 {
+      .profile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        width: 100%;
+        padding: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .profile-toggle:hover .profile-title {
+        color: var(--secondary);
+      }
+
+      .profile-head-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+      }
+
+      .profile-title {
+        display: block;
         font-size: 1rem;
+        font-weight: 700;
         color: var(--primary);
         margin-bottom: 0.25rem;
       }
 
-      .profile-info p {
+      .profile-subtitle {
+        display: block;
         font-size: 0.85rem;
         color: #7f8c8d;
-        margin: 0;
       }
 
-      .profile-actions {
+      /* Office Profile form */
+      .profile-form {
+        margin-top: 1.25rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #ecf0f1;
+      }
+
+      .profile-form[hidden] {
+        display: none;
+      }
+
+      .pf-row {
+        display: grid;
+        grid-template-columns: 200px 1fr 1fr;
+        gap: 0.5rem 1rem;
+        align-items: start;
+        padding: 0.75rem 0;
+      }
+
+      .pf-row + .pf-row {
+        border-top: 1px dashed #ecf0f1;
+      }
+
+      .pf-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--primary);
+        padding-top: 1.3rem;
+      }
+
+      .pf-label small {
+        display: block;
+        font-weight: 400;
+        font-size: 0.82rem;
+        color: #7f8c8d;
+      }
+
+      .pf-hint {
+        display: block;
+        font-weight: 400;
+        font-size: 0.75rem;
+        color: #95a5a6;
+        font-style: italic;
+        margin-top: 0.15rem;
+      }
+
+      .pf-field {
         display: flex;
-        gap: 0.75rem;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+      }
+
+      .pf-lang {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #95a5a6;
+      }
+
+      .pf-field input,
+      .pf-field textarea {
+        width: 100%;
+        padding: 0.55rem 0.75rem;
+        border: 1.5px solid #d5dbdb;
+        border-radius: 8px;
+        background: #fbfcfc;
+        color: var(--primary);
+        font-size: 0.92rem;
+        line-height: 1.45;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .pf-field textarea {
+        resize: vertical;
+      }
+
+      .pf-field input::placeholder,
+      .pf-field textarea::placeholder {
+        color: #b2babb;
+      }
+
+      .pf-field input:focus,
+      .pf-field textarea:focus {
+        outline: none;
+        border-color: var(--secondary);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+      }
+
+      .pf-field.invalid input {
+        border-color: var(--accent);
+      }
+
+      .pf-actions {
+        display: flex;
         flex-wrap: wrap;
         align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #ecf0f1;
+      }
+
+      .pf-spacer {
+        flex: 1;
+      }
+
+      .pf-status {
+        min-height: 1.2em;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .pf-status.dirty {
+        color: #d35400;
+      }
+
+      .pf-status.ok {
+        color: var(--success);
+      }
+
+      .pf-status.error {
+        color: var(--accent);
+      }
+
+      .btn-outline {
+        background: white;
+        color: var(--primary);
+        box-shadow: inset 0 0 0 1.5px #bdc3c7;
+      }
+
+      .btn-sm:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      @media (max-width: 760px) {
+        .pf-row {
+          grid-template-columns: 1fr 1fr;
+        }
+        .pf-label {
+          grid-column: 1 / -1;
+          padding-top: 0;
+        }
       }
 
       @media (max-width: 560px) {
-        .profile-card {
-          flex-direction: column;
-          align-items: flex-start;
+        .profile-toggle {
+          flex-wrap: wrap;
         }
-        .profile-actions {
-          width: 100%;
+        .pf-row {
+          grid-template-columns: 1fr;
         }
-        .profile-actions .btn-sm {
+        .pf-actions .btn-sm {
           flex: 1 1 calc(50% - 0.375rem);
           text-align: center;
+        }
+        .pf-spacer {
+          display: none;
         }
         header {
           padding: 1.25rem 1rem;
@@ -494,41 +662,82 @@
 
     <div class="profile-section">
       <div class="profile-card" id="profileCard">
-        <div class="profile-info">
-          <h3 id="profileTitle">No Office Profile Loaded</h3>
-          <p id="profileSubtitle">
-            Upload a profile JSON file so all apps load your office details
-            automatically.
-          </p>
-        </div>
-        <div class="profile-actions">
-          <span class="profile-badge inactive" id="profileBadge"
-            >Not configured</span
-          >
-          <input
-            type="file"
-            id="profileUpload"
-            accept=".json"
-            style="display: none"
-          />
-          <button
-            class="btn-sm btn-upload"
-            onclick="document.getElementById('profileUpload').click()"
-          >
-            Upload Profile
-          </button>
-          <button class="btn-sm btn-sample" onclick="downloadSample()">
-            Download Sample
-          </button>
-          <button
-            class="btn-sm btn-clear"
-            id="clearBtn"
-            onclick="clearProfile()"
-            style="display: none"
-          >
-            Clear Profile
-          </button>
-        </div>
+        <button
+          type="button"
+          class="profile-toggle"
+          id="profileToggle"
+          onclick="toggleProfileForm()"
+          aria-expanded="true"
+          aria-controls="profileForm"
+        >
+          <span class="profile-info">
+            <span class="profile-title" id="profileTitle">Office Profile</span>
+            <span class="profile-subtitle" id="profileSubtitle"></span>
+          </span>
+          <span class="profile-head-right">
+            <span class="profile-badge inactive" id="profileBadge"
+              >Not configured</span
+            >
+            <em id="profileChevron" class="header-settings-chevron open"
+              >▼</em
+            >
+          </span>
+        </button>
+        <form
+          id="profileForm"
+          class="profile-form"
+          onsubmit="saveProfile(event)"
+          novalidate
+        >
+          <div id="profileFields"></div>
+          <div class="pf-status" id="profileStatus" role="status"></div>
+          <div class="pf-actions">
+            <button type="submit" class="btn-sm btn-sample">
+              Save Profile
+            </button>
+            <button
+              type="button"
+              class="btn-sm btn-outline"
+              id="resetBtn"
+              onclick="resetProfileForm()"
+              disabled
+            >
+              Undo Changes
+            </button>
+            <button
+              type="button"
+              class="btn-sm btn-clear"
+              id="clearBtn"
+              onclick="clearProfile()"
+              style="display: none"
+            >
+              Clear Profile
+            </button>
+            <span class="pf-spacer"></span>
+            <input
+              type="file"
+              id="profileUpload"
+              accept=".json,application/json"
+              style="display: none"
+            />
+            <button
+              type="button"
+              class="btn-sm btn-outline"
+              onclick="document.getElementById('profileUpload').click()"
+              title="Load details from a profile file saved earlier"
+            >
+              Import JSON
+            </button>
+            <button
+              type="button"
+              class="btn-sm btn-outline"
+              onclick="exportProfile()"
+              title="Save these details as a file, to use on another computer"
+            >
+              Export JSON
+            </button>
+          </div>
+        </form>
       </div>
       <!-- Header & Logo Settings -->
       <div class="header-settings-card">
@@ -894,12 +1103,14 @@
               ഉപയോഗിക്കാം.
             </li>
             <li>
-              <strong>ഓഫീസ് പ്രൊഫൈൽ അപ്‌ലോഡ് ചെയ്യുക</strong><br />
-              ഇതിനായി <em>Download Sample</em> ബട്ടൺ വഴി മാതൃക JSON ഫയൽ ഡൗൺലോഡ്
-              ചെയ്യുക. ഇത് Notepad ഉപയോഗിച്ച് തുറക്കുക. ഓഫീസ് വിവരങ്ങൾ
-              പൂരിപ്പിച്ച് <em>Upload Profile</em> വഴി upload ചെയ്യുക.
-              വിവരങ്ങള്‍ അടുത്ത വരിയിലേക്ക് വരണമെങ്കില്‍ \n എന്ന് Type ചെയ്യുക.
-              File Upload ചെയ്താല്‍ Profile Active എന്ന് കാണിക്കും.
+              <strong>ഓഫീസ് പ്രൊഫൈൽ തയ്യാറാക്കുക</strong><br />
+              മുകളിലെ <em>Office Profile</em> ഭാഗത്ത് ഓഫീസ് വിവരങ്ങൾ
+              മലയാളത്തിലും ഇംഗ്ലീഷിലും പൂരിപ്പിച്ച് <em>Save Profile</em>
+              ക്ലിക്ക് ചെയ്യുക. വിലാസം പോലുള്ള ബോക്സുകളില്‍ അടുത്ത വരിയിലേക്ക്
+              പോകാന്‍ Enter അമര്‍ത്തിയാല്‍ മതി. Save ചെയ്താല്‍ Profile Active
+              എന്ന് കാണിക്കും. വിവരങ്ങള്‍ മാറ്റാന്‍ Office Profile ല്‍ ക്ലിക്ക്
+              ചെയ്യുക. മറ്റൊരു കമ്പ്യൂട്ടറിലേക്ക് മാറ്റാന്‍ <em>Export JSON</em>,
+              <em>Import JSON</em> എന്നിവ ഉപയോഗിക്കാം.
             </li>
             <li>
               <strong>Logo ചേർക്കുക</strong><br />
@@ -1112,35 +1323,332 @@
         ["letter", "proceedings", "notice"].forEach(idxRefreshModeUI);
       }
 
-      function renderProfileStatus() {
-        var raw = localStorage.getItem("officeProfile");
+      /* ── Office Profile form ──
+         Saved to localStorage "officeProfile" with the same keys the apps
+         read (officeName / officeNameEn, …), so the apps need no changes. */
+      var PROFILE_FIELDS = [
+        {
+          key: "officeName",
+          label: "Office Name",
+          labelMl: "ഓഫീസിന്റെ പേര്",
+          phMl: "ഓഫീസിന്റെ പേര്",
+          phEn: "Name of Office",
+        },
+        {
+          key: "officeAddress",
+          label: "Office Address",
+          labelMl: "വിലാസം",
+          hint: "Used in Letters and Notices",
+          rows: 3,
+          phMl: "വിലാസം (ലൈൻ 1)\nഫോണ്‍ നം., ഇമെയില്‍ (ലൈന്‍ 2)",
+          phEn: "Address (Line 1)\nPhone No., email (Line 2)",
+        },
+        {
+          key: "approverName",
+          legacyKey: "principalName",
+          label: "Head of Office",
+          labelMl: "ഓഫീസ് മേധാവിയുടെ പേര്",
+          phMl: "ഓഫീസ് മേധാവിയുടെ പേര്",
+          phEn: "Name of the Head of Office",
+        },
+        {
+          key: "designation",
+          label: "Designation",
+          labelMl: "ഉദ്യോഗപ്പേര്",
+          phMl: "ഉദ്യോഗപ്പേര്",
+          phEn: "Designation",
+        },
+        {
+          key: "fromAddress",
+          label: "From Address",
+          labelMl: "അയക്കുന്നയാളുടെ വിലാസം",
+          hint: "Used in Letters",
+          rows: 3,
+          phMl: "ഉദ്യോഗപ്പേര്\nലൈന്‍2\nലൈന്‍3",
+          phEn: "Designation\nLine2\nLine3",
+        },
+        {
+          key: "proceedingsTitle",
+          label: "Proceedings Title",
+          labelMl: "നടപടിക്രമത്തിന്റെ ശീര്‍ഷകം",
+          hint: "Used in Proceedings",
+          phMl: "നടപടിക്രമത്തിന്റെ ശീര്‍ഷകം",
+          phEn: "Header of the Proceedings",
+        },
+      ];
+      var PROFILE_LANGS = [
+        { suffix: "", lang: "ml", name: "മലയാളം", aria: "Malayalam" },
+        { suffix: "En", lang: "en", name: "English", aria: "English" },
+      ];
+      var profileSnapshot = "";
+      var profileDirty = false;
+      var skipUnloadPrompt = false;
+
+      function profileInput(key) {
+        return document.getElementById("pf_" + key);
+      }
+
+      function eachProfileInput(fn) {
+        PROFILE_FIELDS.forEach(function (f) {
+          PROFILE_LANGS.forEach(function (l) {
+            fn(f, l, profileInput(f.key + l.suffix));
+          });
+        });
+      }
+
+      function buildProfileForm() {
+        var wrap = document.getElementById("profileFields");
+        PROFILE_FIELDS.forEach(function (f) {
+          var row = document.createElement("div");
+          row.className = "pf-row";
+          row.setAttribute("role", "group");
+          row.setAttribute("aria-labelledby", "pfl_" + f.key);
+
+          var label = document.createElement("div");
+          label.className = "pf-label";
+          label.id = "pfl_" + f.key;
+          label.appendChild(document.createTextNode(f.label));
+          var ml = document.createElement("small");
+          ml.textContent = f.labelMl;
+          label.appendChild(ml);
+          if (f.hint) {
+            var hint = document.createElement("span");
+            hint.className = "pf-hint";
+            hint.textContent = f.hint;
+            label.appendChild(hint);
+          }
+          row.appendChild(label);
+
+          PROFILE_LANGS.forEach(function (l) {
+            var field = document.createElement("label");
+            field.className = "pf-field";
+            var tag = document.createElement("span");
+            tag.className = "pf-lang";
+            tag.textContent = l.name;
+            tag.setAttribute("aria-hidden", "true");
+            var input = document.createElement(f.rows ? "textarea" : "input");
+            if (f.rows) input.rows = f.rows;
+            else input.type = "text";
+            input.id = "pf_" + f.key + l.suffix;
+            input.name = f.key + l.suffix;
+            input.lang = l.lang;
+            input.autocomplete = "off";
+            input.spellcheck = false;
+            input.placeholder = l.suffix ? f.phEn : f.phMl;
+            input.setAttribute("aria-label", f.label + " (" + l.aria + ")");
+            input.addEventListener("input", onProfileInput);
+            field.appendChild(tag);
+            field.appendChild(input);
+            row.appendChild(field);
+          });
+          wrap.appendChild(row);
+        });
+      }
+
+      function readStoredProfile() {
+        try {
+          var raw = localStorage.getItem("officeProfile");
+          if (!raw) return null;
+          var p = JSON.parse(raw);
+          return p && typeof p === "object" && !Array.isArray(p) ? p : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function cleanValue(v) {
+        return String(v == null ? "" : v)
+          .replace(/\r\n?/g, "\n")
+          .split("\n")
+          .map(function (line) {
+            return line.replace(/\s+$/, "");
+          })
+          .join("\n")
+          .trim();
+      }
+
+      function fillProfileForm(p) {
+        p = p || {};
+        eachProfileInput(function (f, l, input) {
+          var v = p[f.key + l.suffix];
+          if ((v == null || v === "") && f.legacyKey) {
+            v = p[f.legacyKey + l.suffix];
+          }
+          input.value = v == null ? "" : String(v);
+        });
+        clearProfileErrors();
+      }
+
+      function readProfileForm() {
+        var out = {};
+        eachProfileInput(function (f, l, input) {
+          out[f.key + l.suffix] = cleanValue(input.value);
+        });
+        return out;
+      }
+
+      function hasProfileIdentity(p) {
+        return !!(
+          p.officeName ||
+          p.officeNameEn ||
+          p.approverName ||
+          p.approverNameEn ||
+          p.principalName ||
+          p.principalNameEn
+        );
+      }
+
+      function setProfileStatus(text, kind) {
+        var el = document.getElementById("profileStatus");
+        el.textContent = text || "";
+        el.className = "pf-status" + (kind ? " " + kind : "");
+      }
+
+      function clearProfileErrors() {
+        document
+          .querySelectorAll("#profileFields .pf-field.invalid")
+          .forEach(function (el) {
+            el.classList.remove("invalid");
+          });
+      }
+
+      function updateProfileDirty() {
+        profileDirty = JSON.stringify(readProfileForm()) !== profileSnapshot;
+        document.getElementById("resetBtn").disabled = !profileDirty;
+        var status = document.getElementById("profileStatus");
+        if (profileDirty && !status.classList.contains("error")) {
+          setProfileStatus("Unsaved changes", "dirty");
+        } else if (!profileDirty && status.classList.contains("dirty")) {
+          setProfileStatus("");
+        }
+      }
+
+      function onProfileInput() {
+        if (document.getElementById("profileStatus").classList.contains("error")) {
+          clearProfileErrors();
+          setProfileStatus("");
+        }
+        updateProfileDirty();
+      }
+
+      function takeProfileSnapshot() {
+        profileSnapshot = JSON.stringify(readProfileForm());
+        updateProfileDirty();
+      }
+
+      function setProfileOpen(open) {
+        document.getElementById("profileForm").hidden = !open;
+        document
+          .getElementById("profileToggle")
+          .setAttribute("aria-expanded", open ? "true" : "false");
+        document
+          .getElementById("profileChevron")
+          .classList.toggle("open", open);
+      }
+
+      function toggleProfileForm() {
+        setProfileOpen(document.getElementById("profileForm").hidden);
+      }
+
+      function renderProfileStatus(note) {
+        var p = readStoredProfile();
         var card = document.getElementById("profileCard");
         var title = document.getElementById("profileTitle");
         var subtitle = document.getElementById("profileSubtitle");
         var badge = document.getElementById("profileBadge");
         var clearBtn = document.getElementById("clearBtn");
 
-        if (raw) {
-          try {
-            var p = JSON.parse(raw);
-            card.classList.add("loaded");
-            title.textContent =
-              p.officeNameEn || p.officeName || "Office Profile Loaded";
-            subtitle.textContent = "";
-            badge.textContent = "Profile Active";
-            badge.className = "profile-badge active";
-            clearBtn.style.display = "inline-block";
-          } catch (e) {
-            localStorage.removeItem("officeProfile");
-          }
+        if (p) {
+          card.classList.add("loaded");
+          title.textContent =
+            p.officeNameEn || p.officeName || "Office Profile";
+          var who = [
+            p.approverNameEn ||
+              p.approverName ||
+              p.principalNameEn ||
+              p.principalName,
+            p.designationEn || p.designation,
+          ].filter(Boolean);
+          subtitle.textContent =
+            note ||
+            (who.length ? who.join(", ") + " · " : "") +
+              "Click to view or edit";
+          badge.textContent = "Profile Active";
+          badge.className = "profile-badge active";
+          clearBtn.style.display = "inline-block";
         } else {
           card.classList.remove("loaded");
-          title.textContent = "No Office Profile Loaded";
+          title.textContent = "Office Profile";
           subtitle.textContent =
-            "Upload a profile JSON file so all apps load your office details automatically.";
+            "Fill in your office details and click Save Profile. All apps will use them automatically.";
           badge.textContent = "Not configured";
           badge.className = "profile-badge inactive";
           clearBtn.style.display = "none";
+        }
+      }
+
+      function saveProfile(event) {
+        if (event) event.preventDefault();
+        var values = readProfileForm();
+        if (!hasProfileIdentity(values)) {
+          ["officeName", "officeNameEn"].forEach(function (k) {
+            profileInput(k).parentNode.classList.add("invalid");
+          });
+          setProfileStatus(
+            "Enter at least the Office Name or the Head of Office name.",
+            "error",
+          );
+          profileInput("officeName").focus();
+          return false;
+        }
+
+        // Keep any extra keys from an older profile, replace the form's keys.
+        var profile = readStoredProfile() || {};
+        PROFILE_FIELDS.forEach(function (f) {
+          PROFILE_LANGS.forEach(function (l) {
+            delete profile[f.key + l.suffix];
+            if (f.legacyKey) delete profile[f.legacyKey + l.suffix];
+          });
+        });
+        Object.keys(values).forEach(function (k) {
+          if (values[k]) profile[k] = values[k];
+        });
+
+        try {
+          localStorage.setItem("officeProfile", JSON.stringify(profile));
+        } catch (e) {
+          setProfileStatus(
+            "Could not save. The browser may be blocking local storage.",
+            "error",
+          );
+          return false;
+        }
+        fillProfileForm(profile);
+        takeProfileSnapshot();
+        setProfileStatus("");
+        renderProfileStatus("✓ Saved. All apps will now use these details.");
+        setProfileOpen(false);
+        return true;
+      }
+
+      function resetProfileForm() {
+        fillProfileForm(readStoredProfile());
+        setProfileStatus("");
+        updateProfileDirty();
+      }
+
+      function clearProfile() {
+        if (
+          confirm(
+            "Remove the saved office profile? Apps will show empty fields until you save a new profile.",
+          )
+        ) {
+          localStorage.removeItem("officeProfile");
+          fillProfileForm(null);
+          takeProfileSnapshot();
+          setProfileStatus("");
+          renderProfileStatus();
+          setProfileOpen(true);
         }
       }
 
@@ -1149,68 +1657,84 @@
         if (!file) return;
         var reader = new FileReader();
         reader.onload = function (e) {
+          var profile;
           try {
-            var profile = JSON.parse(e.target.result);
-            if (
-              !profile.officeName &&
-              !profile.approverName &&
-              !profile.principalName
-            ) {
-              alert("Invalid profile file. Please use the sample as a guide.");
-              return;
-            }
-            localStorage.setItem("officeProfile", JSON.stringify(profile));
-            renderProfileStatus();
+            profile = JSON.parse(e.target.result);
           } catch (err) {
             alert(
-              "Could not read the file. Make sure it is a valid JSON file.",
+              "Could not read the file. Make sure it is a profile JSON file.",
             );
+            return;
+          }
+          if (
+            !profile ||
+            typeof profile !== "object" ||
+            !hasProfileIdentity(profile)
+          ) {
+            alert(
+              "This file does not look like an office profile. It needs at least an office name or head of office name.",
+            );
+            return;
+          }
+          fillProfileForm(profile);
+          setProfileOpen(true);
+          updateProfileDirty();
+          if (profileDirty) {
+            setProfileStatus(
+              "Loaded from " +
+                file.name +
+                ". Check the details and click Save Profile.",
+              "dirty",
+            );
+          } else {
+            setProfileStatus("This file matches the saved profile.", "ok");
           }
         };
         reader.readAsText(file);
         event.target.value = "";
       };
 
-      function clearProfile() {
-        if (
-          confirm(
-            "Remove the current office profile? Apps will show empty fields until a new profile is uploaded.",
-          )
-        ) {
-          localStorage.removeItem("officeProfile");
-          renderProfileStatus();
+      function exportProfile() {
+        var values = readProfileForm();
+        var out = {};
+        Object.keys(values).forEach(function (k) {
+          if (values[k]) out[k] = values[k];
+        });
+        if (!Object.keys(out).length) {
+          setProfileStatus("Nothing to export yet. Fill in the form first.", "error");
+          return;
         }
-      }
-
-      function downloadSample() {
-        var sample = {
-          officeName: "ഓഫീസിന്റെ പേര്",
-          officeNameEn: "Name of Office",
-          officeAddress: "വിലാസം (ലൈൻ 1)\nഫോണ്‍ നം., ഇമെയില്‍ (ലൈന്‍ 2)",
-          officeAddressEn: "Address (Line 1)\nPhone No., email (Line 2)",
-          approverName: "ഓഫീസ് മേധാവിയുടെ പേര്",
-          approverNameEn: "Name of the Head of Office",
-          designation: "ഉദ്യോഗപ്പേര്",
-          designationEn: "Designation",
-          fromAddress: "ഉദ്യോഗപ്പേര്\nലൈന്‍2\nലൈന്‍3",
-          fromAddressEn: "Designation\nLine2\nLine3",
-          proceedingsTitle: "നടപടിക്രമത്തിന്റെ ശീര്‍ഷകം",
-          proceedingsTitleEn: "Header of the Proceedings",
-        };
-        var blob = new Blob([JSON.stringify(sample, null, 2)], {
+        var blob = new Blob([JSON.stringify(out, null, 2)], {
           type: "application/json",
         });
         var url = URL.createObjectURL(blob);
         var a = document.createElement("a");
         a.href = url;
-        a.download = "office_profile_sample.json";
+        a.download = "office_profile.json";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }
 
+      window.addEventListener("beforeunload", function (e) {
+        if (profileDirty && !skipUnloadPrompt) {
+          e.preventDefault();
+          e.returnValue = "";
+        }
+      });
+
       function launchApp(url) {
+        if (
+          profileDirty &&
+          !confirm(
+            "Your office profile changes are not saved.\n\nClick Cancel to go back and save them, or OK to open the app without them.",
+          )
+        ) {
+          setProfileOpen(true);
+          return false;
+        }
+        skipUnloadPrompt = true;
         var raw = localStorage.getItem("officeProfile");
         if (raw) {
           try {
@@ -1233,9 +1757,19 @@
         ch.classList.toggle("open", !open);
       }
 
-      renderProfileStatus();
+      buildProfileForm();
+      (function initProfile() {
+        var stored = readStoredProfile();
+        if (!stored) localStorage.removeItem("officeProfile");
+        fillProfileForm(stored);
+        takeProfileSnapshot();
+        renderProfileStatus();
+        setProfileOpen(!stored);
+      })();
+      window.addEventListener("pageshow", function () {
+        skipUnloadPrompt = false;
+      });
       idxInitHeaderSettings();
     </script>
   </body>
 </html>
-R
