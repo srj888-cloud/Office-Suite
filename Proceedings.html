@@ -715,6 +715,101 @@
       .icon-btn.icon-btn-add:active {
         background: rgba(39, 174, 96, 0.2);
       }
+
+      /* To / Copy To rows (same pattern as the Letter app) */
+      .dynamic-item-content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .dynamic-item-content select {
+        width: 100%;
+        height: 36px;
+        padding: 0 6px;
+        font-size: 12px;
+      }
+
+      /* Address manager dialog */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+      }
+
+      .modal-content {
+        background: white;
+        margin: 5vh auto;
+        border-radius: 15px;
+        width: 92%;
+        max-width: 700px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      }
+
+      .modal-header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .modal-close:hover {
+        opacity: 0.75;
+      }
+
+      .modal-body {
+        padding: 22px 24px;
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      .addr-card {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        background: #f9fbfb;
+      }
+
+      .addr-card h4 {
+        margin: 0 0 6px;
+        color: var(--primary);
+      }
+
+      .addr-card pre {
+        margin: 0 0 8px;
+        font-family: inherit;
+        font-size: 13px;
+        white-space: pre-wrap;
+        color: #555;
+      }
+
+      .addr-empty {
+        color: #888;
+        font-size: 13px;
+        margin-bottom: 12px;
+      }
     </style>
   </head>
 
@@ -1054,25 +1149,37 @@
             multiple
           />
 
-          <div class="section-divider">📬 To</div>
+          <div class="section-divider">
+            📬 To
+            <button
+              type="button"
+              class="icon-btn"
+              title="Manage saved addresses"
+              onclick="openManager('address')"
+            >
+              ⚙️
+            </button>
+          </div>
 
           <div id="toContainer">
-            <!-- To items will be added here -->
+            <!-- To rows: saved-address dropdown + text (see addTo) -->
           </div>
 
-          <button class="btn btn-success btn-small" onclick="addTo()">
-            + Add To
-          </button>
-
-          <div class="section-divider">📮 Copy To</div>
+          <div class="section-divider">
+            📮 Copy To
+            <button
+              type="button"
+              class="icon-btn"
+              title="Manage saved copy addresses"
+              onclick="openManager('copy')"
+            >
+              ⚙️
+            </button>
+          </div>
 
           <div id="copyToContainer">
-            <!-- Copy to items will be added here -->
+            <!-- Copy To rows: saved-address dropdown + text (see addCopyTo) -->
           </div>
-
-          <button class="btn btn-success btn-small" onclick="addCopyTo()">
-            + Add Copy To
-          </button>
 
           <div
             style="
@@ -1405,6 +1512,31 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Address manager dialog -->
+    <div
+      id="modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      onclick="if (event.target === this) closeModal()"
+    >
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Manage Addresses</h3>
+          <button
+            type="button"
+            class="modal-close"
+            title="Close"
+            onclick="closeModal()"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
     <script>
       let referenceCount = 0;
       let toCount = 0;
@@ -1976,7 +2108,13 @@
       };
 
       function switchTemplate() {
-        const selectedTemplate = document.getElementById("documentType").value;
+        const typeSelect = document.getElementById("documentType");
+        // An imported draft adds its own entry to this dropdown with no
+        // template behind it; fall back to the standard template then.
+        if (!templates[typeSelect.value]) {
+          typeSelect.value = Object.keys(templates)[0];
+        }
+        const selectedTemplate = typeSelect.value;
         currentTemplate = selectedTemplate;
         const template = templates[selectedTemplate];
 
@@ -2070,84 +2208,287 @@
         }
       }
 
+      /* ── To / Copy To (same pattern as the Letter app) ──
+         Each row: a saved-address dropdown and a text box. The first row
+         has "+" to add a row; the others have "×" to remove it. Text box
+         ids stay to-text-N / copy-text-N, which the template and draft
+         loaders fill in after calling addTo() / addCopyTo(). */
+      function escapeHtml(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function buildAddressRow(kind, n, isFirst) {
+        const isTo = kind === "to";
+        const row = document.createElement("div");
+        row.className = "dynamic-item";
+        row.id = (isTo ? "to-" : "copyto-") + n;
+        const addFn = isTo ? "addTo()" : "addCopyTo()";
+        const removeFn = (isTo ? "removeTo(" : "removeCopyTo(") + n + ")";
+        const actionBtn = isFirst
+          ? `<button type="button" class="icon-btn" title="${isTo ? "Add To" : "Add Copy To"}" onclick="${addFn}" style="font-size: 18px; color: #27ae60; font-weight: 700;">+</button>`
+          : `<button type="button" class="icon-btn" title="Remove" onclick="${removeFn}" style="font-size: 18px; color: #e74c3c; font-weight: 700;">×</button>`;
+        row.innerHTML = `
+          <div class="dynamic-item-content">
+            <select class="${isTo ? "address-dropdown" : "copy-dropdown"}" onchange="loadAddress(this, '${isTo ? "address" : "copy"}')">
+              <option value="">${isTo ? "Select saved address..." : "Select saved copy address..."}</option>
+            </select>
+            <textarea id="${isTo ? "to-text-" : "copy-text-"}${n}" class="${isTo ? "to-input" : "copy-input"}" rows="2" style="resize: none; overflow: hidden; min-height: 40px;" placeholder="${isTo ? "Enter recipient..." : "Enter copy to recipient..."}"></textarea>
+          </div>
+          ${actionBtn}
+        `;
+        const text = row.querySelector("textarea");
+        text.addEventListener("input", () => autoExpand(text));
+        text.addEventListener("input", debounce(generateDocument, 300));
+        return row;
+      }
+
       function addTo() {
         toCount++;
         const container = document.getElementById("toContainer");
-        const div = document.createElement("div");
-        div.className = "copy-item";
-        div.id = `to-${toCount}`;
-        div.innerHTML = `
-          <div class="copy-header">
-            <h4>To ${toCount}</h4>
-            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removeTo(${toCount})">Remove</button>
-          </div>
-          <div class="form-group">
-            <input type="text" id="to-text-${toCount}" placeholder="Enter recipient...">
-          </div>
-        `;
-        container.appendChild(div);
-        const field = document.getElementById(`to-text-${toCount}`);
-        if (field) field.addEventListener("input", generateDocument);
+        const isFirst = container.children.length === 0;
+        container.appendChild(buildAddressRow("to", toCount, isFirst));
+        fillAddressDropdowns();
       }
 
       function removeTo(id) {
-        const div = document.getElementById(`to-${id}`);
-        if (div) {
-          div.remove();
+        const row = document.getElementById(`to-${id}`);
+        if (row) {
+          row.remove();
           generateDocument();
         }
       }
 
       function collectToItems() {
-        const items = [];
-        const container = document.getElementById("toContainer");
-        container.querySelectorAll(".copy-item").forEach((div) => {
-          const id = div.id.split("-")[1];
-          const text = document.getElementById(`to-text-${id}`)?.value || "";
-          if (text.trim()) items.push(mergeSubstitute(text.trim()));
-        });
-        return items;
+        return Array.from(document.querySelectorAll("#toContainer .to-input"))
+          .map((el) => el.value.trim())
+          .filter(Boolean)
+          .map((v) => mergeSubstitute(v));
       }
 
       function addCopyTo() {
         copyToCount++;
         const container = document.getElementById("copyToContainer");
-
-        const copyDiv = document.createElement("div");
-        copyDiv.className = "copy-item";
-        copyDiv.id = `copyto-${copyToCount}`;
-
-        copyDiv.innerHTML = `
-                <div class="copy-header">
-                    <h4>Copy To ${copyToCount}</h4>
-                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removeCopyTo(${copyToCount})">Remove</button>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="copy-text-${copyToCount}" placeholder="Enter copy to recipient in Malayalam...">
-                </div>
-            `;
-
-        container.appendChild(copyDiv);
-
-        // Add real-time preview update
-        const newCopyField = document.getElementById(
-          `copy-text-${copyToCount}`,
-        );
-        if (newCopyField) {
-          newCopyField.addEventListener(
-            "input",
-            debounce(generateDocument, 300),
-          );
-        }
+        const isFirst = container.children.length === 0;
+        container.appendChild(buildAddressRow("copy", copyToCount, isFirst));
+        fillAddressDropdowns();
       }
 
       function removeCopyTo(id) {
-        const copyDiv = document.getElementById(`copyto-${id}`);
-        if (copyDiv) {
-          copyDiv.remove();
+        const row = document.getElementById(`copyto-${id}`);
+        if (row) {
+          row.remove();
           generateDocument();
         }
       }
+
+      // Keeps one row in each list (so its "+" button is always there) and
+      // sizes text boxes that the template / draft loaders filled in.
+      function ensureAddressRows() {
+        if (!document.getElementById("toContainer").children.length) addTo();
+        if (!document.getElementById("copyToContainer").children.length)
+          addCopyTo();
+        document
+          .querySelectorAll("#toContainer textarea, #copyToContainer textarea")
+          .forEach((el) => {
+            if (el.value && el.scrollHeight > el.clientHeight) autoExpand(el);
+          });
+      }
+
+      /* ── Saved addresses ──
+         Shared with the Letter and Notice apps through the same browser
+         storage keys, so an address saved in one app shows in all three. */
+      const addressBook = { addresses: [], copyAddresses: [] };
+      let currentManager = "address";
+
+      function readAddressList(key) {
+        try {
+          const list = JSON.parse(localStorage.getItem(key));
+          return Array.isArray(list) ? list : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function loadAddressBook() {
+        addressBook.addresses = readAddressList("ml_addresses");
+        addressBook.copyAddresses = readAddressList("ml_copy_addresses");
+      }
+
+      function managerKey(type) {
+        return type === "address" ? "ml_addresses" : "ml_copy_addresses";
+      }
+
+      function managerItems(type) {
+        return type === "address"
+          ? addressBook.addresses
+          : addressBook.copyAddresses;
+      }
+
+      // Re-reads the list first so a change made in another app's tab is
+      // not overwritten, then applies the change and saves.
+      function updateAddressList(type, change) {
+        const items = readAddressList(managerKey(type));
+        change(items);
+        try {
+          localStorage.setItem(managerKey(type), JSON.stringify(items));
+        } catch (e) {
+          showToast("Could not save. Browser storage may be blocked.");
+          return false;
+        }
+        loadAddressBook();
+        fillAddressDropdowns();
+        return true;
+      }
+
+      function fillAddressDropdowns() {
+        [
+          [".address-dropdown", addressBook.addresses, "Select saved address..."],
+          [".copy-dropdown", addressBook.copyAddresses, "Select saved copy address..."],
+        ].forEach(([selector, items, placeholder]) => {
+          document.querySelectorAll(selector).forEach((dropdown) => {
+            const current = dropdown.value;
+            dropdown.innerHTML =
+              `<option value="">${placeholder}</option>` +
+              items
+                .map(
+                  (item, i) =>
+                    `<option value="${i}">${escapeHtml(item.title)}</option>`,
+                )
+                .join("");
+            dropdown.value = current;
+          });
+        });
+      }
+
+      function loadAddress(dropdown, type) {
+        if (dropdown.value === "") return;
+        const item = managerItems(type)[dropdown.value];
+        if (!item) return;
+        const target = dropdown
+          .closest(".dynamic-item-content")
+          .querySelector("textarea");
+        target.value = item.address;
+        autoExpand(target);
+        generateDocument();
+      }
+
+      function managerTitle(type) {
+        return type === "address" ? "Manage Addresses" : "Manage Copy Addresses";
+      }
+
+      function openManager(type) {
+        currentManager = type;
+        loadAddressBook();
+        const items = managerItems(type);
+        let html = items.length
+          ? ""
+          : '<p class="addr-empty">No saved addresses yet.</p>';
+        items.forEach((item, i) => {
+          html += `
+            <div class="addr-card">
+              <h4>${escapeHtml(item.title)}</h4>
+              <pre>${escapeHtml(item.address)}</pre>
+              <button type="button" class="btn btn-primary btn-small" onclick="editItem(${i})">Edit</button>
+              <button type="button" class="btn btn-danger btn-small" onclick="deleteItem(${i})">Delete</button>
+            </div>`;
+        });
+        html += `<button type="button" class="btn btn-small" onclick="showAddressForm(-1)">+ Add New ${type === "address" ? "Address" : "Copy Address"}</button>`;
+        showModal(managerTitle(type), html);
+      }
+
+      function editItem(index) {
+        showAddressForm(index);
+      }
+
+      function deleteItem(index) {
+        const item = managerItems(currentManager)[index];
+        if (!item || !confirm(`Delete "${item.title}"?`)) return;
+        if (
+          updateAddressList(currentManager, (items) => {
+            const at = items.findIndex(
+              (x) => x.title === item.title && x.address === item.address,
+            );
+            if (at !== -1) items.splice(at, 1);
+          })
+        ) {
+          openManager(currentManager);
+          showToast("Address deleted");
+        }
+      }
+
+      function showAddressForm(index) {
+        const item = index >= 0 ? managerItems(currentManager)[index] : null;
+        const html = `
+          <div class="form-group">
+            <label for="addrFormTitle">Title</label>
+            <input type="text" id="addrFormTitle" value="${escapeHtml(item ? item.title : "")}" placeholder="Short name shown in the dropdown">
+          </div>
+          <div class="form-group">
+            <label for="addrFormAddress">Address (press Enter for a new line)</label>
+            <textarea id="addrFormAddress" rows="5">${escapeHtml(item ? item.address : "")}</textarea>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-small" onclick="saveAddressForm(${index})">Save</button>
+            <button type="button" class="btn btn-primary btn-small" onclick="openManager(currentManager)">Cancel</button>
+          </div>`;
+        showModal(
+          managerTitle(currentManager) + (item ? " — Edit" : " — Add New"),
+          html,
+        );
+        document.getElementById("addrFormTitle").focus();
+      }
+
+      function saveAddressForm(index) {
+        const title = document.getElementById("addrFormTitle").value.trim();
+        const address = document.getElementById("addrFormAddress").value.trim();
+        if (!title || !address) {
+          showToast("Both title and address are required");
+          return;
+        }
+        const old = index >= 0 ? managerItems(currentManager)[index] : null;
+        if (
+          updateAddressList(currentManager, (items) => {
+            const at = old
+              ? items.findIndex(
+                  (x) => x.title === old.title && x.address === old.address,
+                )
+              : -1;
+            if (at !== -1) items[at] = { title, address };
+            else items.push({ title, address });
+          })
+        ) {
+          openManager(currentManager);
+          showToast(old ? "Address updated" : "Address added");
+        }
+      }
+
+      function showModal(title, html) {
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalBody").innerHTML = html;
+        document.getElementById("modal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("modal").style.display = "none";
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      // Pick up addresses saved in the Letter or Notice app in another tab.
+      window.addEventListener("storage", (e) => {
+        if (e.key === "ml_addresses" || e.key === "ml_copy_addresses") {
+          loadAddressBook();
+          fillAddressDropdowns();
+        }
+      });
+
+      loadAddressBook();
 
       // New function to insert table placeholder
       function insertTablePlaceholder() {
@@ -2609,19 +2950,12 @@
       }
 
       function collectCopyToItems() {
-        const copyItems = [];
-        const container = document.getElementById("copyToContainer");
-        const copyDivs = container.querySelectorAll(".copy-item");
-
-        copyDivs.forEach((div) => {
-          const id = div.id.split("-")[1];
-          const text = document.getElementById(`copy-text-${id}`)?.value || "";
-          if (text.trim()) {
-            copyItems.push(mergeSubstitute(text.trim()));
-          }
-        });
-
-        return copyItems;
+        return Array.from(
+          document.querySelectorAll("#copyToContainer .copy-input"),
+        )
+          .map((el) => el.value.trim())
+          .filter(Boolean)
+          .map((v) => mergeSubstitute(v));
       }
 
       // ===== Data Sheet feature =====
@@ -3234,6 +3568,7 @@
       }
 
       function generateDocument() {
+        ensureAddressRows();
         const L = labels[currentLang];
         const orderNumber = mergeSubstitute(
           document.getElementById("orderNumber").value,
@@ -3295,7 +3630,7 @@
             toHTML += `
                         <tr>
                             <td style="width: 30px; border: none;"></td>
-                            <td style="padding: 2px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${prefix}${item}</td>
+                            <td style="padding: 2px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${prefix}${item.replace(/\n/g, "<br>")}</td>
                         </tr>
                     `;
           });
@@ -3310,7 +3645,7 @@
             copyToHTML += `
                         <tr>
                             <td style="width: 30px; border: none;"></td>
-                            <td style="padding: 2px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${prefix}${item}</td>
+                            <td style="padding: 2px 5px; border: none; font-size: 13pt; font-family: ${L.font};">${prefix}${item.replace(/\n/g, "<br>")}</td>
                         </tr>
                     `;
           });
