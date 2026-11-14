@@ -1082,108 +1082,50 @@
             </div>
           </div>
 
-          <!-- Shown only when the Letter app is opened with the RTI profile
-               (index.html adds ?mode=rti). See isRtiMode(). -->
+          <!-- Appellate Authority: shown only when the Letter app is opened
+               with the RTI profile (index.html adds ?mode=rti), and then
+               always printed. The address is filled in from the RTI tab of
+               Office Profile on the home page. See isRtiMode(). -->
           <div class="form-group" id="rtiOnlySection" style="display: none">
             <div
               style="
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                margin-bottom: 4px;
+                gap: 6px 14px;
+                flex-wrap: wrap;
+                margin-bottom: 6px;
               "
             >
-              <div
-                style="
-                  font-size: 11px;
-                  font-weight: bold;
-                  color: #888;
-                  text-transform: uppercase;
-                  letter-spacing: 0.5px;
-                "
-              >
-                RTI only
-              </div>
-              <button
-                type="button"
-                class="icon-btn"
-                title="Manage Appellate Authority"
-                onclick="toggleSimpleSection('appellateAuthorityFields')"
-              >
-                ⚙️
-              </button>
+              <label style="margin: 0;">Appellate Authority:</label>
+              <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px; font-weight: normal;">
+                <input
+                  type="radio"
+                  name="appellateAuthorityPosition"
+                  value="afterBody"
+                  checked
+                  onchange="saveAppellatePositionPreference(this.value); updatePreview();"
+                />
+                Before Signature
+              </label>
+              <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px; font-weight: normal;">
+                <input
+                  type="radio"
+                  name="appellateAuthorityPosition"
+                  value="afterClosing"
+                  onchange="saveAppellatePositionPreference(this.value); updatePreview();"
+                />
+                After Signature
+              </label>
             </div>
-            <div
-              style="
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                padding: 8px 10px;
-                background: #f8f9fa;
-                margin-bottom: 10px;
-              "
-            >
-              <div
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 10px;
-                  flex-wrap: wrap;
-                "
-              >
-                <label style="display: flex; align-items: center; gap: 6px; margin: 0; line-height: 1.1; font-size: 13px;">
-                  <input
-                    type="checkbox"
-                    id="includeAppellateAuthority"
-                    onchange="onAppellateCheckboxChange(); updatePreview();"
-                    style="width: 16px; height: 16px; flex: 0 0 auto; margin: 0;"
-                  />
-                  Appellate<br />Authority
-                </label>
-                <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
-                  <input
-                    type="radio"
-                    name="appellateAuthorityPosition"
-                    value="afterBody"
-                    checked
-                    onchange="saveAppellatePositionPreference(this.value); updatePreview();"
-                  />
-                  Before Signature
-                </label>
-                <label style="display: flex; align-items: center; gap: 4px; margin: 0; font-size: 13px;">
-                  <input
-                    type="radio"
-                    name="appellateAuthorityPosition"
-                    value="afterClosing"
-                    onchange="saveAppellatePositionPreference(this.value); updatePreview();"
-                  />
-                  After Signature
-                </label>
-              </div>
-            </div>
-            <div id="body-appellateAuthorityFields" style="display: none;">
-              <button
-                type="button"
-                class="btn btn-primary"
-                onclick="openManager('appellate')"
-                style="margin-bottom: 6px;"
-              >
-                Manage Appellate Authority Addresses
-              </button>
-              <select
-                class="appellate-dropdown"
-                onchange="loadAddress(this, 'appellate'); saveAppellateAddressPreference();"
-                style="margin-bottom: 6px; width: 100%;"
-              >
-                <option value="">
-                  Select saved Appellate Authority address...
-                </option>
-              </select>
-              <textarea
-                id="appellateAuthorityText"
-                oninput="updatePreview()"
-                placeholder="Enter Appellate Authority name, designation, address..."
-                style="min-height: 80px; width: 100%; box-sizing: border-box;"
-              ></textarea>
+            <textarea
+              id="appellateAuthorityText"
+              oninput="autoExpand(this); updatePreview()"
+              placeholder="Save the Appellate Authority in the RTI tab of Office Profile on the home page, or type it here..."
+              style="min-height: 80px; width: 100%; box-sizing: border-box; resize: none; overflow: hidden;"
+            ></textarea>
+            <div style="font-size: 11px; color: #888; margin-top: 4px;">
+              Saved in the RTI tab of Office Profile on the home page. Changes
+              here apply to this letter only.
             </div>
           </div>
 
@@ -1690,6 +1632,7 @@
         document.querySelector(".letter-preview").style.fontFamily =
           labels[lang].font;
         loadOfficeProfile();
+        fillAppellateFromProfile();
         updatePreview();
       }
 
@@ -1923,6 +1866,10 @@
         loadData();
         preloadDefaults();
         loadOfficeProfile();
+        if (isRtiMode()) {
+          applyAppellatePositionPreference();
+          fillAppellateFromProfile();
+        }
         updateDropdowns();
         updatePreview();
         renderDataSheetTabs();
@@ -2889,87 +2836,77 @@
         }
       });
 
-      function applyAppellateAuthorityData(aa) {
-        aa = aa || {};
-        document.getElementById("includeAppellateAuthority").checked =
-          !!aa.enabled;
-        document.getElementById("appellateAuthorityText").value =
-          aa.text || "";
-        var position = aa.position === "afterClosing" ? "afterClosing" : "afterBody";
+      /* ── Appellate Authority (RTI letters only) ──
+         The address comes from the RTI tab of Office Profile on the home
+         page (appellateAuthority / appellateAuthorityEn), in the letter's
+         current language. It can be edited here for one letter. */
+      function getProfileAppellate(lang) {
+        var p = getOfficeProfile() || {};
+        var ml = p.appellateAuthority || "";
+        var en = p.appellateAuthorityEn || "";
+        var text = (lang || currentLang) === "en" ? en || ml : ml || en;
+        if (text) return text;
+        // Older versions saved Appellate Authority addresses in this app.
+        var legacy = localStorage.getItem("ml_appellate_pref_address");
+        if (legacy) return legacy;
+        var items = data.appellateAddresses || [];
+        return items.length ? items[items.length - 1].address : "";
+      }
+
+      // Fills the box from the profile unless the user has typed their own
+      // text: an empty box, or one still holding a profile value (for
+      // example the other language's), is refilled.
+      function fillAppellateFromProfile() {
+        if (!isRtiMode()) return;
+        var el = document.getElementById("appellateAuthorityText");
+        var current = el.value.trim();
+        var known = [getProfileAppellate("ml"), getProfileAppellate("en")];
+        if (!current || known.indexOf(current) !== -1) {
+          el.value = getProfileAppellate();
+        }
+        autoExpand(el);
+      }
+
+      function setAppellatePosition(position) {
         var radios = document.querySelectorAll(
           'input[name="appellateAuthorityPosition"]',
         );
         for (var i = 0; i < radios.length; i++) {
           radios[i].checked = radios[i].value === position;
         }
-        // Loading a saved draft does not force the manage container open.
       }
 
-      function onAppellateCheckboxChange() {
-        var checked = document.getElementById("includeAppellateAuthority")
-          .checked;
-        if (!checked) return;
+      function applyAppellatePositionPreference() {
+        var pref = localStorage.getItem("ml_appellate_pref_position");
+        setAppellatePosition(pref === "afterClosing" ? "afterClosing" : "afterBody");
+      }
 
-        // Apply the last-saved position preference, if any
-        var prefPosition = localStorage.getItem("ml_appellate_pref_position");
-        if (prefPosition) {
-          var radios = document.querySelectorAll(
-            'input[name="appellateAuthorityPosition"]',
+      // Used when a saved draft or template is loaded. Its own address and
+      // position win; an empty address falls back to the profile.
+      function applyAppellateAuthorityData(aa) {
+        aa = aa || {};
+        document.getElementById("appellateAuthorityText").value = aa.text || "";
+        if (aa.position) {
+          setAppellatePosition(
+            aa.position === "afterClosing" ? "afterClosing" : "afterBody",
           );
-          for (var i = 0; i < radios.length; i++) {
-            radios[i].checked = radios[i].value === prefPosition;
-          }
+        } else {
+          applyAppellatePositionPreference();
         }
-
-        var textEl = document.getElementById("appellateAuthorityText");
-        if (textEl.value.trim()) return; // don't overwrite existing text
-
-        // Prefer the address the user last actively selected; fall back to
-        // the most recently saved one in the address book.
-        var prefAddress = localStorage.getItem("ml_appellate_pref_address");
-        var items = data.appellateAddresses;
-
-        if (prefAddress) {
-          textEl.value = prefAddress;
-          if (items) {
-            for (var j = 0; j < items.length; j++) {
-              if (items[j].address === prefAddress) {
-                var dd = document.querySelector(".appellate-dropdown");
-                if (dd) dd.value = j;
-                break;
-              }
-            }
-          }
-          return;
-        }
-
-        if (!items || items.length === 0) return;
-        var last = items[items.length - 1];
-        textEl.value = last.address;
-        var dropdown = document.querySelector(".appellate-dropdown");
-        if (dropdown) dropdown.value = items.length - 1;
+        fillAppellateFromProfile();
       }
 
       function saveAppellatePositionPreference(value) {
         localStorage.setItem("ml_appellate_pref_position", value);
       }
 
-      function saveAppellateAddressPreference() {
-        var text = document.getElementById("appellateAuthorityText").value;
-        if (text.trim()) {
-          localStorage.setItem("ml_appellate_pref_address", text);
-        }
-      }
-
       function getAppellateAuthorityData() {
-        var enabled = document.getElementById("includeAppellateAuthority")
-          .checked;
         var text = document.getElementById("appellateAuthorityText").value.trim();
         var posEl = document.querySelector(
           'input[name="appellateAuthorityPosition"]:checked',
         );
         var position = posEl ? posEl.value : "afterBody";
-        return { enabled: enabled, text: text, position: position };
+        return { enabled: isRtiMode() && !!text, text: text, position: position };
       }
 
       // True when opened from index.html with the RTI profile chosen.

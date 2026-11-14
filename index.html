@@ -820,9 +820,11 @@
           >
             <p class="pf-note">
               Used only in the <strong>Letter</strong> app, for RTI replies.
-              Only these three details change; office name and address come
-              from the Office tab. A field left empty here uses the Office
-              value. Choose <strong>RTI</strong> on the Letter card to use it.
+              Head of Office, Designation and From Address replace the Office
+              values (an empty field keeps the Office value); office name and
+              address come from the Office tab. The Appellate Authority is
+              printed in every RTI reply. Choose <strong>RTI</strong> on the
+              Letter card to use it.
             </p>
             <div id="rtiFields"></div>
           </div>
@@ -1280,9 +1282,11 @@
             <li>
               <strong>RTI പ്രൊഫൈൽ</strong><br />
               വിവരാവകാശ മറുപടികള്‍ക്കായി Office Profile ലെ <em>RTI</em> ടാബില്‍
-              Head of Office, Designation, From Address എന്നിവ മാത്രം
-              പൂരിപ്പിച്ച് Save ചെയ്യുക. ബാക്കി വിവരങ്ങള്‍ Office ടാബില്‍
-              നിന്ന് എടുക്കും. RTI മറുപടി തയ്യാറാക്കുമ്പോള്‍ Letter കാര്‍ഡിലെ
+              Head of Office, Designation, From Address, Appellate Authority
+              എന്നിവ മലയാളത്തിലും ഇംഗ്ലീഷിലും പൂരിപ്പിച്ച് Save ചെയ്യുക. ബാക്കി
+              വിവരങ്ങള്‍ Office ടാബില്‍ നിന്ന് എടുക്കും. Appellate Authority
+              എല്ലാ RTI മറുപടികളിലും സ്വയം ചേര്‍ക്കും; Signature ന് മുമ്പോ
+              ശേഷമോ എന്ന് Letter ല്‍ തിരഞ്ഞെടുക്കാം. RTI മറുപടി തയ്യാറാക്കുമ്പോള്‍ Letter കാര്‍ഡിലെ
               <em>Profile</em> എന്നതില്‍ <em>RTI</em> തിരഞ്ഞെടുത്ത് Letter
               തുറക്കുക. RTI പ്രൊഫൈൽ Letter ല്‍ മാത്രമേ ബാധകമാകൂ. Browser അടച്ച്
               വീണ്ടും തുറക്കുമ്പോള്‍ ഇത് Office profile ലേക്ക് തിരികെ മാറും.
@@ -1580,6 +1584,15 @@
           rows: 3,
           phMl: "സ്റ്റേറ്റ് പബ്ലിക് ഇൻഫർമേഷൻ ഓഫീസർ\nലൈന്‍2\nലൈന്‍3",
           phEn: "State Public Information Officer\nLine2\nLine3",
+        },
+        {
+          key: "appellateAuthority",
+          label: "Appellate Authority",
+          labelMl: "അപ്പീല്‍ അധികാരി",
+          hint: "Printed in every RTI reply",
+          rows: 4,
+          phMl: "അപ്പീല്‍ അധികാരിയുടെ പേര്\nഉദ്യോഗപ്പേര്\nവിലാസം",
+          phEn: "Name of the Appellate Authority\nDesignation\nAddress",
         },
       ];
       var PROFILES = {
