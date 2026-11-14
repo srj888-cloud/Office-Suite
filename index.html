@@ -2097,18 +2097,20 @@
           return false;
         }
         skipUnloadPrompt = true;
+        var params = [];
         var profile = getLaunchProfile(url);
         if (profile) {
           try {
             var raw = JSON.stringify(profile);
             var b64 = btoa(unescape(encodeURIComponent(raw)));
-            window.location.href = url + "?profile=" + encodeURIComponent(b64);
-          } catch (e) {
-            window.location.href = url;
-          }
-        } else {
-          window.location.href = url;
+            params.push("profile=" + encodeURIComponent(b64));
+          } catch (e) {}
         }
+        // Tells the Letter app to show its "RTI only" section.
+        if (RTI_APPS.indexOf(url) !== -1 && getActiveProfile() === "rti") {
+          params.push("mode=rti");
+        }
+        window.location.href = url + (params.length ? "?" + params.join("&") : "");
         return false;
       }
 

@@ -1082,7 +1082,9 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <!-- Shown only when the Letter app is opened with the RTI profile
+               (index.html adds ?mode=rti). See isRtiMode(). -->
+          <div class="form-group" id="rtiOnlySection" style="display: none">
             <div
               style="
                 display: flex;
@@ -1915,6 +1917,9 @@
 
       // Initialize when page loads
       window.onload = function () {
+        document.getElementById("rtiOnlySection").style.display = isRtiMode()
+          ? ""
+          : "none";
         loadData();
         preloadDefaults();
         loadOfficeProfile();
@@ -2967,9 +2972,20 @@
         return { enabled: enabled, text: text, position: position };
       }
 
+      // True when opened from index.html with the RTI profile chosen.
+      function isRtiMode() {
+        try {
+          return new URLSearchParams(window.location.search).get("mode") === "rti";
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // The Appellate Authority block is RTI-only: outside RTI mode it is
+      // left out of the letter, though a loaded draft keeps its setting.
       function buildAppellateAuthorityHTML(L, fontSize, marginBottom) {
         var aa = getAppellateAuthorityData();
-        if (!aa.enabled || !aa.text) return "";
+        if (!isRtiMode() || !aa.enabled || !aa.text) return "";
         return (
           '<div style="margin: 15px 0 ' +
           marginBottom +
@@ -2992,7 +3008,7 @@
 
       function buildAppellateAuthorityPlainText(L) {
         var aa = getAppellateAuthorityData();
-        if (!aa.enabled || !aa.text) return "";
+        if (!isRtiMode() || !aa.enabled || !aa.text) return "";
         return (
           L.appellateAuthority +
           ":\n" +
