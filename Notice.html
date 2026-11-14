@@ -782,6 +782,193 @@
       .merge-data-row.active td {
         background: #d5f5e3 !important;
       }
+      /* ── Saved-address picker (tick boxes) ──
+         Same styles in Letter, Notice and Proceedings; colours follow each
+         app's --primary / --secondary. */
+      .ap-open-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+        padding: 4px 10px;
+        border: 1.5px solid var(--secondary, #3498db);
+        border-radius: 999px;
+        background: white;
+        color: var(--secondary, #3498db);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .ap-open-btn:hover {
+        background: var(--secondary, #3498db);
+        color: white;
+      }
+
+      .ap-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(0, 0, 0, 0.55);
+        align-items: flex-start;
+        justify-content: center;
+        padding: 6vh 12px 12px;
+      }
+
+      .ap-overlay.open {
+        display: flex;
+      }
+
+      .ap-dialog {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 560px;
+        max-height: 84vh;
+        background: white;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .ap-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        color: white;
+        background: linear-gradient(
+          135deg,
+          var(--primary, #2c3e50),
+          var(--secondary, #3498db)
+        );
+      }
+
+      .ap-head h3 {
+        margin: 0;
+        font-size: 1.05rem;
+        color: white;
+      }
+
+      .ap-x {
+        border: none;
+        background: none;
+        color: white;
+        font-size: 26px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .ap-search {
+        width: 100%;
+        margin: 0;
+        padding: 9px 12px;
+        border: none;
+        border-bottom: 1px solid #e5e8eb;
+        font-size: 14px;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      .ap-search:focus {
+        background: #f7fbfe;
+      }
+
+      .ap-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 0;
+      }
+
+      .ap-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 0;
+        padding: 9px 18px;
+        cursor: pointer;
+        font-weight: normal;
+      }
+
+      .ap-item:hover {
+        background: #f4f7f9;
+      }
+
+      .ap-item input {
+        flex: 0 0 auto;
+        width: 17px;
+        height: 17px;
+        margin: 2px 0 0;
+        accent-color: var(--secondary, #3498db);
+        cursor: pointer;
+      }
+
+      .ap-item strong {
+        display: block;
+        font-size: 14px;
+        color: var(--primary, #2c3e50);
+      }
+
+      .ap-addr {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 12.5px;
+        color: #6c757d;
+        white-space: pre-line;
+      }
+
+      .ap-item[hidden] {
+        display: none;
+      }
+
+      .ap-empty {
+        margin: 0;
+        padding: 18px;
+        font-size: 13px;
+        color: #6c757d;
+      }
+
+      .ap-foot {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 18px;
+        border-top: 1px solid #e5e8eb;
+      }
+
+      .ap-count {
+        flex: 1;
+        font-size: 13px;
+        color: #6c757d;
+      }
+
+      .ap-btn {
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1.5px solid var(--secondary, #3498db);
+        background: white;
+        color: var(--secondary, #3498db);
+      }
+
+      .ap-btn.ap-apply {
+        background: var(--secondary, #3498db);
+        color: white;
+      }
+
+      .ap-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   </head>
@@ -1159,6 +1346,14 @@
               >
                 ⚙️
               </button>
+              <button
+                type="button"
+                class="ap-open-btn"
+                title="Tick saved addresses to add them"
+                onclick="pickAddresses('to')"
+              >
+                ☑ Pick saved
+              </button>
             </div>
             <div id="toContainer">
               <div class="dynamic-item">
@@ -1208,6 +1403,14 @@
                 onclick="openManager('copy')"
               >
                 ⚙️
+              </button>
+              <button
+                type="button"
+                class="ap-open-btn"
+                title="Tick saved addresses to add them"
+                onclick="pickAddresses('copy')"
+              >
+                ☑ Pick saved
               </button>
             </div>
             <div id="copyTo">
@@ -2293,8 +2496,9 @@
           appData.templates = [];
         }
 
-        // Remove addresses as they're not needed for notices/circulars
-        appData.addresses = [];
+        // Saved To addresses are kept: Notice has a To section, and the
+        // list is shared with the Letter and Proceedings apps. (This used to
+        // empty the list on every load, erasing them in all three apps.)
 
         saveData();
       }
@@ -4498,6 +4702,237 @@ ${toText}${toText ? "\n" : ""}${copyTo}`;
         document.addEventListener("DOMContentLoaded", initializeApp);
       } else {
         initializeApp();
+      }
+
+      /* ── Saved-address picker (tick boxes) ──
+         Same code in Letter, Notice and Proceedings. Lists the saved
+         addresses (shared browser storage: ml_addresses for To,
+         ml_copy_addresses for Copy To) with tick boxes. Addresses already
+         in the form start ticked. On Apply, newly ticked ones fill empty
+         rows or new rows, and unticked ones are removed (the first row is
+         only emptied, since it holds the "+" button). Each app passes its
+         own container and add-row function; see pickAddresses(). */
+      var AddressPicker = (function () {
+        var root = null;
+        var state = null;
+
+        function readList(key) {
+          try {
+            var list = JSON.parse(localStorage.getItem(key));
+            return Array.isArray(list) ? list : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function norm(s) {
+          return String(s == null ? "" : s)
+            .replace(/\r\n?/g, "\n")
+            .trim();
+        }
+
+        function esc(s) {
+          return String(s == null ? "" : s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function rowsOf(container) {
+          return Array.prototype.filter.call(container.children, function (r) {
+            return !!r.querySelector("textarea");
+          });
+        }
+
+        function textOf(row) {
+          return norm(row.querySelector("textarea").value);
+        }
+
+        function build() {
+          root = document.createElement("div");
+          root.className = "ap-overlay";
+          root.innerHTML =
+            '<div class="ap-dialog" role="dialog" aria-modal="true" aria-labelledby="apTitle">' +
+            '<div class="ap-head"><h3 id="apTitle"></h3>' +
+            '<button type="button" class="ap-x" title="Close" aria-label="Close">&times;</button></div>' +
+            '<input type="search" class="ap-search" placeholder="Search saved addresses..." aria-label="Search saved addresses" />' +
+            '<div class="ap-list" role="group" aria-labelledby="apTitle"></div>' +
+            '<div class="ap-foot"><span class="ap-count" role="status"></span>' +
+            '<button type="button" class="ap-btn ap-cancel">Cancel</button>' +
+            '<button type="button" class="ap-btn ap-apply">Apply</button></div>' +
+            "</div>";
+          document.body.appendChild(root);
+          root.addEventListener("click", function (e) {
+            if (e.target === root) close();
+          });
+          root.querySelector(".ap-x").onclick = close;
+          root.querySelector(".ap-cancel").onclick = close;
+          root.querySelector(".ap-apply").onclick = apply;
+          root.querySelector(".ap-search").oninput = filter;
+          root.querySelector(".ap-list").onchange = updateCount;
+          root.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") close();
+          });
+        }
+
+        function boxes() {
+          return Array.prototype.slice.call(
+            root.querySelectorAll('.ap-list input[type="checkbox"]'),
+          );
+        }
+
+        function updateCount() {
+          var n = boxes().filter(function (b) {
+            return b.checked;
+          }).length;
+          root.querySelector(".ap-count").textContent = state.items.length
+            ? n + " selected"
+            : "";
+        }
+
+        function filter() {
+          var q = norm(root.querySelector(".ap-search").value).toLowerCase();
+          root.querySelectorAll(".ap-item").forEach(function (el) {
+            el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1;
+          });
+        }
+
+        function open(cfg) {
+          if (!root) build();
+          state = cfg;
+          state.items = readList(cfg.storageKey);
+          var present = rowsOf(cfg.container).map(textOf);
+          state.initial = {};
+          var html = "";
+          state.items.forEach(function (item, i) {
+            var on = present.indexOf(norm(item.address)) !== -1;
+            if (on) state.initial[i] = true;
+            html +=
+              '<label class="ap-item"><input type="checkbox" value="' +
+              i +
+              '"' +
+              (on ? " checked" : "") +
+              " /><span><strong>" +
+              esc(item.title) +
+              '</strong><span class="ap-addr">' +
+              esc(item.address) +
+              "</span></span></label>";
+          });
+          if (!html) {
+            html =
+              '<p class="ap-empty">No saved addresses yet. Use the ⚙️ button next to the heading to save some.</p>';
+          }
+          root.querySelector("#apTitle").textContent = cfg.title;
+          root.querySelector(".ap-list").innerHTML = html;
+          var search = root.querySelector(".ap-search");
+          search.value = "";
+          search.hidden = state.items.length < 6;
+          root.querySelector(".ap-apply").disabled = !state.items.length;
+          updateCount();
+          root.classList.add("open");
+          (search.hidden
+            ? root.querySelector(".ap-list input") || root.querySelector(".ap-x")
+            : search
+          ).focus();
+        }
+
+        function close() {
+          if (root) root.classList.remove("open");
+        }
+
+        function clearOrRemove(row, container) {
+          if (rowsOf(container)[0] === row) {
+            row.querySelector("textarea").value = "";
+            var sel = row.querySelector("select");
+            if (sel) sel.value = "";
+            if (typeof autoExpand === "function")
+              autoExpand(row.querySelector("textarea"));
+          } else {
+            row.remove();
+          }
+        }
+
+        function fill(row, item) {
+          var text = row.querySelector("textarea");
+          text.value = item.address;
+          var sel = row.querySelector("select");
+          if (sel) {
+            var match = Array.prototype.find.call(sel.options, function (o) {
+              return o.value !== "" && o.textContent === item.title;
+            });
+            sel.value = match ? match.value : "";
+          }
+          if (typeof autoExpand === "function") autoExpand(text);
+        }
+
+        function apply() {
+          var cfg = state;
+          var c = cfg.container;
+          var checked = {};
+          boxes().forEach(function (b) {
+            if (b.checked) checked[b.value] = true;
+          });
+          var added = 0;
+          var removed = 0;
+
+          // Unticked: take out the rows that hold exactly that address.
+          Object.keys(cfg.initial).forEach(function (i) {
+            if (checked[i]) return;
+            var addr = norm(cfg.items[i].address);
+            rowsOf(c).forEach(function (row) {
+              if (textOf(row) === addr) {
+                clearOrRemove(row, c);
+                removed++;
+              }
+            });
+          });
+
+          // Ticked: fill an empty row, or add one.
+          Object.keys(checked).forEach(function (i) {
+            var item = cfg.items[i];
+            var addr = norm(item.address);
+            var rows = rowsOf(c);
+            if (rows.some(function (r) { return textOf(r) === addr; })) return;
+            var target = rows.filter(function (r) { return !textOf(r); })[0];
+            if (!target) {
+              cfg.addRow();
+              rows = rowsOf(c);
+              target = rows[rows.length - 1];
+            }
+            if (!target) return;
+            fill(target, item);
+            added++;
+          });
+
+          close();
+          cfg.refresh();
+          if (cfg.toast && (added || removed)) {
+            var parts = [];
+            if (added) parts.push(added + " added");
+            if (removed) parts.push(removed + " removed");
+            cfg.toast("Addresses: " + parts.join(", "));
+          }
+        }
+
+        return { open: open, close: close };
+      })();
+
+      function pickAddresses(kind) {
+        var isTo = kind === "to";
+        AddressPicker.open({
+          title: isTo ? "Pick To Addresses" : "Pick Copy To Addresses",
+          storageKey: isTo ? "ml_addresses" : "ml_copy_addresses",
+          container: document.getElementById(isTo ? "toContainer" : "copyTo"),
+          addRow: function () {
+            if (isTo) addTo();
+            else addField("copyTo", "copy");
+          },
+          refresh: updatePreview,
+          toast: function (message) {
+            showToast(message);
+          },
+        });
       }
     </script>
   </body>
