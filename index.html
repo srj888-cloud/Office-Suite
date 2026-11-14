@@ -229,6 +229,98 @@
         display: none;
       }
 
+      .pf-tabs {
+        display: flex;
+        gap: 0.25rem;
+        margin-top: 0.75rem;
+        border-bottom: 2px solid #ecf0f1;
+      }
+
+      .pf-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1.1rem;
+        margin-bottom: -2px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        background: none;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .pf-tab:hover {
+        color: var(--primary);
+      }
+
+      .pf-tab.active {
+        color: var(--secondary);
+        border-bottom-color: var(--secondary);
+      }
+
+      .pf-tab-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+      }
+
+      .pf-tab-dot[hidden] {
+        display: none;
+      }
+
+      .pf-note {
+        margin: 0.9rem 0 0.25rem;
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+        background: #f4f8fb;
+        color: #5d6d7e;
+        font-size: 0.83rem;
+        line-height: 1.5;
+      }
+
+      .draft-as {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem 0.75rem;
+        margin: -0.75rem 0 1.5rem;
+      }
+
+      .draft-as-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      .draft-as .idx-mode-btn {
+        padding: 6px 14px;
+      }
+
+      .draft-as .idx-mode-btn:disabled {
+        color: #b2babb;
+        cursor: not-allowed;
+      }
+
+      .draft-as-note {
+        flex-basis: 100%;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        color: #7f8c8d;
+      }
+
+      .draft-as-note:empty {
+        display: none;
+      }
+
+      .draft-as-note.rti {
+        color: #d35400;
+        font-weight: 600;
+      }
+
       .pf-row {
         display: grid;
         grid-template-columns: 200px 1fr 1fr;
@@ -689,7 +781,51 @@
           onsubmit="saveProfile(event)"
           novalidate
         >
-          <div id="profileFields"></div>
+          <div class="pf-tabs" role="tablist" aria-label="Profile type">
+            <button
+              type="button"
+              role="tab"
+              class="pf-tab active"
+              id="tab_office"
+              aria-selected="true"
+              aria-controls="panel_office"
+              onclick="showProfileTab('office')"
+              onkeydown="onProfileTabKey(event)"
+            >
+              Office
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="pf-tab"
+              id="tab_rti"
+              aria-selected="false"
+              aria-controls="panel_rti"
+              tabindex="-1"
+              onclick="showProfileTab('rti')"
+              onkeydown="onProfileTabKey(event)"
+            >
+              RTI
+              <span class="pf-tab-dot" id="rtiDot" title="Saved" hidden></span>
+            </button>
+          </div>
+          <div role="tabpanel" id="panel_office" aria-labelledby="tab_office">
+            <div id="profileFields"></div>
+          </div>
+          <div
+            role="tabpanel"
+            id="panel_rti"
+            aria-labelledby="tab_rti"
+            hidden
+          >
+            <p class="pf-note">
+              Used only in the <strong>Letter</strong> app, for RTI replies.
+              Only these three details change; office name and address come
+              from the Office tab. A field left empty here uses the Office
+              value. Choose <strong>RTI</strong> on the Letter card to use it.
+            </p>
+            <div id="rtiFields"></div>
+          </div>
           <div class="pf-status" id="profileStatus" role="status"></div>
           <div class="pf-actions">
             <button type="submit" class="btn-sm btn-sample">
@@ -1011,6 +1147,35 @@
               Draft formal office letters with auto-filled office details and
               mail-merge support.
             </p>
+            <div class="draft-as" id="draftAs">
+              <span class="draft-as-label" id="draftAsLabel">Profile</span>
+              <div
+                class="idx-mode-group"
+                role="group"
+                aria-labelledby="draftAsLabel"
+              >
+                <button
+                  type="button"
+                  class="idx-mode-btn active"
+                  data-profile="office"
+                  aria-pressed="true"
+                  onclick="setActiveProfile('office')"
+                >
+                  Office
+                </button>
+                <button
+                  type="button"
+                  class="idx-mode-btn"
+                  id="draftAsRti"
+                  data-profile="rti"
+                  aria-pressed="false"
+                  onclick="setActiveProfile('rti')"
+                >
+                  RTI
+                </button>
+              </div>
+              <span class="draft-as-note" id="draftAsNote" role="status"></span>
+            </div>
             <a
               href="#"
               class="btn"
@@ -1111,6 +1276,16 @@
               എന്ന് കാണിക്കും. വിവരങ്ങള്‍ മാറ്റാന്‍ Office Profile ല്‍ ക്ലിക്ക്
               ചെയ്യുക. മറ്റൊരു കമ്പ്യൂട്ടറിലേക്ക് മാറ്റാന്‍ <em>Export JSON</em>,
               <em>Import JSON</em> എന്നിവ ഉപയോഗിക്കാം.
+            </li>
+            <li>
+              <strong>RTI പ്രൊഫൈൽ</strong><br />
+              വിവരാവകാശ മറുപടികള്‍ക്കായി Office Profile ലെ <em>RTI</em> ടാബില്‍
+              Head of Office, Designation, From Address എന്നിവ മാത്രം
+              പൂരിപ്പിച്ച് Save ചെയ്യുക. ബാക്കി വിവരങ്ങള്‍ Office ടാബില്‍
+              നിന്ന് എടുക്കും. RTI മറുപടി തയ്യാറാക്കുമ്പോള്‍ Letter കാര്‍ഡിലെ
+              <em>Profile</em> എന്നതില്‍ <em>RTI</em> തിരഞ്ഞെടുത്ത് Letter
+              തുറക്കുക. RTI പ്രൊഫൈൽ Letter ല്‍ മാത്രമേ ബാധകമാകൂ. Browser അടച്ച്
+              വീണ്ടും തുറക്കുമ്പോള്‍ ഇത് Office profile ലേക്ക് തിരികെ മാറും.
             </li>
             <li>
               <strong>Logo ചേർക്കുക</strong><br />
@@ -1324,8 +1499,13 @@
       }
 
       /* ── Office Profile form ──
-         Saved to localStorage "officeProfile" with the same keys the apps
-         read (officeName / officeNameEn, …), so the apps need no changes. */
+         Office profile: localStorage "officeProfile", same keys the apps read
+         (officeName / officeNameEn, …), so the apps need no changes.
+         RTI profile: localStorage "rtiProfile", only Head of Office,
+         Designation and From Address. When RTI is chosen on the Letter card,
+         launchApp() passes the Letter app the office profile with those
+         fields replaced by the RTI values. Other apps always get the office
+         profile. */
       var PROFILE_FIELDS = [
         {
           key: "officeName",
@@ -1376,6 +1556,46 @@
           phEn: "Header of the Proceedings",
         },
       ];
+      var RTI_FIELDS = [
+        {
+          key: "approverName",
+          label: "Head of Office",
+          labelMl: "ഓഫീസ് മേധാവിയുടെ പേര്",
+          hint: "The officer who signs RTI replies",
+          phMl: "പേര്",
+          phEn: "Name",
+        },
+        {
+          key: "designation",
+          label: "Designation",
+          labelMl: "ഉദ്യോഗപ്പേര്",
+          phMl: "സ്റ്റേറ്റ് പബ്ലിക് ഇൻഫർമേഷൻ ഓഫീസർ",
+          phEn: "State Public Information Officer",
+        },
+        {
+          key: "fromAddress",
+          label: "From Address",
+          labelMl: "അയക്കുന്നയാളുടെ വിലാസം",
+          hint: "Used in Letters",
+          rows: 3,
+          phMl: "സ്റ്റേറ്റ് പബ്ലിക് ഇൻഫർമേഷൻ ഓഫീസർ\nലൈന്‍2\nലൈന്‍3",
+          phEn: "State Public Information Officer\nLine2\nLine3",
+        },
+      ];
+      var PROFILES = {
+        office: {
+          storageKey: "officeProfile",
+          prefix: "pf_",
+          container: "profileFields",
+          fields: PROFILE_FIELDS,
+        },
+        rti: {
+          storageKey: "rtiProfile",
+          prefix: "rf_",
+          container: "rtiFields",
+          fields: RTI_FIELDS,
+        },
+      };
       var PROFILE_LANGS = [
         { suffix: "", lang: "ml", name: "മലയാളം", aria: "Malayalam" },
         { suffix: "En", lang: "en", name: "English", aria: "English" },
@@ -1383,30 +1603,33 @@
       var profileSnapshot = "";
       var profileDirty = false;
       var skipUnloadPrompt = false;
+      var currentProfileTab = "office";
+      var activeProfileFallback = "office";
 
-      function profileInput(key) {
-        return document.getElementById("pf_" + key);
+      function profileInput(key, id) {
+        return document.getElementById(PROFILES[id || "office"].prefix + key);
       }
 
-      function eachProfileInput(fn) {
-        PROFILE_FIELDS.forEach(function (f) {
+      function eachProfileInput(id, fn) {
+        PROFILES[id].fields.forEach(function (f) {
           PROFILE_LANGS.forEach(function (l) {
-            fn(f, l, profileInput(f.key + l.suffix));
+            fn(f, l, profileInput(f.key + l.suffix, id));
           });
         });
       }
 
-      function buildProfileForm() {
-        var wrap = document.getElementById("profileFields");
-        PROFILE_FIELDS.forEach(function (f) {
+      function buildProfileForm(id) {
+        var cfg = PROFILES[id];
+        var wrap = document.getElementById(cfg.container);
+        cfg.fields.forEach(function (f) {
           var row = document.createElement("div");
           row.className = "pf-row";
           row.setAttribute("role", "group");
-          row.setAttribute("aria-labelledby", "pfl_" + f.key);
+          row.setAttribute("aria-labelledby", cfg.prefix + "l_" + f.key);
 
           var label = document.createElement("div");
           label.className = "pf-label";
-          label.id = "pfl_" + f.key;
+          label.id = cfg.prefix + "l_" + f.key;
           label.appendChild(document.createTextNode(f.label));
           var ml = document.createElement("small");
           ml.textContent = f.labelMl;
@@ -1429,13 +1652,16 @@
             var input = document.createElement(f.rows ? "textarea" : "input");
             if (f.rows) input.rows = f.rows;
             else input.type = "text";
-            input.id = "pf_" + f.key + l.suffix;
-            input.name = f.key + l.suffix;
+            input.id = cfg.prefix + f.key + l.suffix;
+            input.name = cfg.prefix + f.key + l.suffix;
             input.lang = l.lang;
             input.autocomplete = "off";
             input.spellcheck = false;
             input.placeholder = l.suffix ? f.phEn : f.phMl;
-            input.setAttribute("aria-label", f.label + " (" + l.aria + ")");
+            input.setAttribute(
+              "aria-label",
+              (id === "rti" ? "RTI " : "") + f.label + " (" + l.aria + ")",
+            );
             input.addEventListener("input", onProfileInput);
             field.appendChild(tag);
             field.appendChild(input);
@@ -1445,9 +1671,9 @@
         });
       }
 
-      function readStoredProfile() {
+      function readStoredProfile(id) {
         try {
-          var raw = localStorage.getItem("officeProfile");
+          var raw = localStorage.getItem(PROFILES[id || "office"].storageKey);
           if (!raw) return null;
           var p = JSON.parse(raw);
           return p && typeof p === "object" && !Array.isArray(p) ? p : null;
@@ -1467,9 +1693,9 @@
           .trim();
       }
 
-      function fillProfileForm(p) {
+      function fillProfileForm(id, p) {
         p = p || {};
-        eachProfileInput(function (f, l, input) {
+        eachProfileInput(id, function (f, l, input) {
           var v = p[f.key + l.suffix];
           if ((v == null || v === "") && f.legacyKey) {
             v = p[f.legacyKey + l.suffix];
@@ -1479,10 +1705,18 @@
         clearProfileErrors();
       }
 
-      function readProfileForm() {
+      function readProfileForm(id) {
         var out = {};
-        eachProfileInput(function (f, l, input) {
+        eachProfileInput(id, function (f, l, input) {
           out[f.key + l.suffix] = cleanValue(input.value);
+        });
+        return out;
+      }
+
+      function nonEmpty(values) {
+        var out = {};
+        Object.keys(values).forEach(function (k) {
+          if (values[k]) out[k] = values[k];
         });
         return out;
       }
@@ -1506,14 +1740,21 @@
 
       function clearProfileErrors() {
         document
-          .querySelectorAll("#profileFields .pf-field.invalid")
+          .querySelectorAll("#profileForm .pf-field.invalid")
           .forEach(function (el) {
             el.classList.remove("invalid");
           });
       }
 
+      function formState() {
+        return JSON.stringify({
+          office: readProfileForm("office"),
+          rti: readProfileForm("rti"),
+        });
+      }
+
       function updateProfileDirty() {
-        profileDirty = JSON.stringify(readProfileForm()) !== profileSnapshot;
+        profileDirty = formState() !== profileSnapshot;
         document.getElementById("resetBtn").disabled = !profileDirty;
         var status = document.getElementById("profileStatus");
         if (profileDirty && !status.classList.contains("error")) {
@@ -1532,7 +1773,7 @@
       }
 
       function takeProfileSnapshot() {
-        profileSnapshot = JSON.stringify(readProfileForm());
+        profileSnapshot = formState();
         updateProfileDirty();
       }
 
@@ -1550,13 +1791,84 @@
         setProfileOpen(document.getElementById("profileForm").hidden);
       }
 
+      function showProfileTab(id) {
+        currentProfileTab = id;
+        ["office", "rti"].forEach(function (t) {
+          var tab = document.getElementById("tab_" + t);
+          var on = t === id;
+          tab.classList.toggle("active", on);
+          tab.setAttribute("aria-selected", on ? "true" : "false");
+          tab.tabIndex = on ? 0 : -1;
+          document.getElementById("panel_" + t).hidden = !on;
+        });
+        renderClearButton();
+      }
+
+      function onProfileTabKey(event) {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        var next = currentProfileTab === "office" ? "rti" : "office";
+        showProfileTab(next);
+        document.getElementById("tab_" + next).focus();
+        event.preventDefault();
+      }
+
+      function renderClearButton() {
+        var btn = document.getElementById("clearBtn");
+        var stored = readStoredProfile(currentProfileTab);
+        btn.style.display = stored ? "inline-block" : "none";
+        btn.textContent =
+          currentProfileTab === "rti" ? "Clear RTI Profile" : "Clear Profile";
+      }
+
+      /* Which profile the apps open with. Kept for this browser session
+         only, so a new session always starts with the office profile. */
+      function getActiveProfile() {
+        var v = activeProfileFallback;
+        try {
+          v = sessionStorage.getItem("activeProfile") || v;
+        } catch (e) {}
+        return v === "rti" && readStoredProfile("rti") ? "rti" : "office";
+      }
+
+      function setActiveProfile(id) {
+        activeProfileFallback = id;
+        try {
+          sessionStorage.setItem("activeProfile", id);
+        } catch (e) {}
+        renderProfileStatus();
+      }
+
+      function renderDraftSwitch() {
+        var active = getActiveProfile();
+        var hasRti = !!readStoredProfile("rti");
+        document.querySelectorAll("#draftAs .idx-mode-btn").forEach(function (b) {
+          var on = b.getAttribute("data-profile") === active;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        var rtiBtn = document.getElementById("draftAsRti");
+        rtiBtn.disabled = !hasRti;
+        rtiBtn.title = hasRti ? "" : "Save an RTI profile first";
+        var note = document.getElementById("draftAsNote");
+        if (active === "rti") {
+          note.textContent =
+            "Letters will use the RTI Head of Office, Designation and From Address.";
+          note.className = "draft-as-note rti";
+        } else {
+          note.textContent = hasRti
+            ? ""
+            : "Fill in the RTI tab in Office Profile to use RTI.";
+          note.className = "draft-as-note";
+        }
+      }
+
       function renderProfileStatus(note) {
-        var p = readStoredProfile();
+        var p = readStoredProfile("office");
+        var rti = readStoredProfile("rti");
         var card = document.getElementById("profileCard");
         var title = document.getElementById("profileTitle");
         var subtitle = document.getElementById("profileSubtitle");
         var badge = document.getElementById("profileBadge");
-        var clearBtn = document.getElementById("clearBtn");
 
         if (p) {
           card.classList.add("loaded");
@@ -1572,10 +1884,10 @@
           subtitle.textContent =
             note ||
             (who.length ? who.join(", ") + " · " : "") +
+              (rti ? "RTI profile saved · " : "") +
               "Click to view or edit";
           badge.textContent = "Profile Active";
           badge.className = "profile-badge active";
-          clearBtn.style.display = "inline-block";
         } else {
           card.classList.remove("loaded");
           title.textContent = "Office Profile";
@@ -1583,19 +1895,22 @@
             "Fill in your office details and click Save Profile. All apps will use them automatically.";
           badge.textContent = "Not configured";
           badge.className = "profile-badge inactive";
-          clearBtn.style.display = "none";
         }
+        document.getElementById("rtiDot").hidden = !rti;
+        renderClearButton();
+        renderDraftSwitch();
       }
 
       function saveProfile(event) {
         if (event) event.preventDefault();
-        var values = readProfileForm();
+        var values = readProfileForm("office");
         if (!hasProfileIdentity(values)) {
+          showProfileTab("office");
           ["officeName", "officeNameEn"].forEach(function (k) {
             profileInput(k).parentNode.classList.add("invalid");
           });
           setProfileStatus(
-            "Enter at least the Office Name or the Head of Office name.",
+            "Enter at least the Office Name or the Head of Office name in the Office tab.",
             "error",
           );
           profileInput("officeName").focus();
@@ -1603,19 +1918,26 @@
         }
 
         // Keep any extra keys from an older profile, replace the form's keys.
-        var profile = readStoredProfile() || {};
+        var profile = readStoredProfile("office") || {};
         PROFILE_FIELDS.forEach(function (f) {
           PROFILE_LANGS.forEach(function (l) {
             delete profile[f.key + l.suffix];
             if (f.legacyKey) delete profile[f.legacyKey + l.suffix];
           });
         });
-        Object.keys(values).forEach(function (k) {
-          if (values[k]) profile[k] = values[k];
+        var filled = nonEmpty(values);
+        Object.keys(filled).forEach(function (k) {
+          profile[k] = filled[k];
         });
+        var rti = nonEmpty(readProfileForm("rti"));
 
         try {
           localStorage.setItem("officeProfile", JSON.stringify(profile));
+          if (Object.keys(rti).length) {
+            localStorage.setItem("rtiProfile", JSON.stringify(rti));
+          } else {
+            localStorage.removeItem("rtiProfile");
+          }
         } catch (e) {
           setProfileStatus(
             "Could not save. The browser may be blocking local storage.",
@@ -1623,7 +1945,8 @@
           );
           return false;
         }
-        fillProfileForm(profile);
+        fillProfileForm("office", profile);
+        fillProfileForm("rti", rti);
         takeProfileSnapshot();
         setProfileStatus("");
         renderProfileStatus("✓ Saved. All apps will now use these details.");
@@ -1632,24 +1955,32 @@
       }
 
       function resetProfileForm() {
-        fillProfileForm(readStoredProfile());
+        fillProfileForm("office", readStoredProfile("office"));
+        fillProfileForm("rti", readStoredProfile("rti"));
         setProfileStatus("");
         updateProfileDirty();
       }
 
       function clearProfile() {
-        if (
-          confirm(
-            "Remove the saved office profile? Apps will show empty fields until you save a new profile.",
-          )
-        ) {
-          localStorage.removeItem("officeProfile");
-          fillProfileForm(null);
-          takeProfileSnapshot();
-          setProfileStatus("");
-          renderProfileStatus();
-          setProfileOpen(true);
-        }
+        var isRti = currentProfileTab === "rti";
+        var msg = isRti
+          ? "Remove the saved RTI profile? Letters will use the office profile."
+          : "Remove the saved office profile? Apps will show empty fields until you save a new profile. The RTI profile is kept.";
+        if (!confirm(msg)) return;
+        var id = isRti ? "rti" : "office";
+        var otherId = isRti ? "office" : "rti";
+        // Keep any unsaved edits in the other tab.
+        var pending = readProfileForm(otherId);
+        localStorage.removeItem(PROFILES[id].storageKey);
+        fillProfileForm(id, null);
+        fillProfileForm(otherId, readStoredProfile(otherId));
+        profileSnapshot = formState();
+        fillProfileForm(otherId, pending);
+        if (isRti) setActiveProfile("office");
+        setProfileStatus("");
+        updateProfileDirty();
+        renderProfileStatus();
+        setProfileOpen(true);
       }
 
       document.getElementById("profileUpload").onchange = function (event) {
@@ -1676,7 +2007,10 @@
             );
             return;
           }
-          fillProfileForm(profile);
+          fillProfileForm("office", profile);
+          if (profile.rti && typeof profile.rti === "object") {
+            fillProfileForm("rti", profile.rti);
+          }
           setProfileOpen(true);
           updateProfileDirty();
           if (profileDirty) {
@@ -1695,11 +2029,9 @@
       };
 
       function exportProfile() {
-        var values = readProfileForm();
-        var out = {};
-        Object.keys(values).forEach(function (k) {
-          if (values[k]) out[k] = values[k];
-        });
+        var out = nonEmpty(readProfileForm("office"));
+        var rti = nonEmpty(readProfileForm("rti"));
+        if (Object.keys(rti).length) out.rti = rti;
         if (!Object.keys(out).length) {
           setProfileStatus("Nothing to export yet. Fill in the form first.", "error");
           return;
@@ -1724,6 +2056,36 @@
         }
       });
 
+      /* The profile handed to an app: the office profile. For the Letter
+         app only, when RTI is chosen on its card, Head of Office,
+         Designation and From Address come from the RTI profile. A field
+         pair the RTI profile leaves empty keeps the office value. */
+      var RTI_APPS = ["Letter Generator.html"];
+
+      function getLaunchProfile(url) {
+        var office = readStoredProfile("office");
+        if (!office) return null;
+        var out = JSON.parse(JSON.stringify(office));
+        var useRti =
+          RTI_APPS.indexOf(url) !== -1 && getActiveProfile() === "rti";
+        var rti = useRti ? readStoredProfile("rti") : null;
+        if (!rti) return out;
+        RTI_FIELDS.forEach(function (f) {
+          var ml = rti[f.key];
+          var en = rti[f.key + "En"];
+          if (!ml && !en) return;
+          delete out[f.key];
+          delete out[f.key + "En"];
+          if (f.key === "approverName") {
+            delete out.principalName;
+            delete out.principalNameEn;
+          }
+          if (ml) out[f.key] = ml;
+          if (en) out[f.key + "En"] = en;
+        });
+        return out;
+      }
+
       function launchApp(url) {
         if (
           profileDirty &&
@@ -1735,9 +2097,10 @@
           return false;
         }
         skipUnloadPrompt = true;
-        var raw = localStorage.getItem("officeProfile");
-        if (raw) {
+        var profile = getLaunchProfile(url);
+        if (profile) {
           try {
+            var raw = JSON.stringify(profile);
             var b64 = btoa(unescape(encodeURIComponent(raw)));
             window.location.href = url + "?profile=" + encodeURIComponent(b64);
           } catch (e) {
@@ -1757,12 +2120,16 @@
         ch.classList.toggle("open", !open);
       }
 
-      buildProfileForm();
+      buildProfileForm("office");
+      buildProfileForm("rti");
       (function initProfile() {
-        var stored = readStoredProfile();
+        var stored = readStoredProfile("office");
         if (!stored) localStorage.removeItem("officeProfile");
-        fillProfileForm(stored);
+        if (!readStoredProfile("rti")) localStorage.removeItem("rtiProfile");
+        fillProfileForm("office", stored);
+        fillProfileForm("rti", readStoredProfile("rti"));
         takeProfileSnapshot();
+        showProfileTab("office");
         renderProfileStatus();
         setProfileOpen(!stored);
       })();
