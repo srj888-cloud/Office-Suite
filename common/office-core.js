@@ -387,3 +387,687 @@ var AddressPicker = (function () {
   return { open: open, close: close };
 })();
 
+/* ════════════════════════════════════════════════════════════════
+   Functions below were the same in substance in all three apps but
+   differed in small app-specific details. Those details now come from
+   the APP settings object that each app defines at the top of its own
+   script (preview element, how to refresh the preview, how to show a
+   message, where data sheets are kept).
+   ════════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════
+   Text formatting and numbering
+   ══════════════════════════════════════ */
+
+function applyInlineFormatting(text) {
+  // Combined bold+underline, either nesting order, then standalone
+  text = text.replace(/\*\*__(.+?)__\*\*/g, "<b><u>$1</u></b>");
+  text = text.replace(/__\*\*(.+?)\*\*__/g, "<b><u>$1</u></b>");
+  text = text.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  text = text.replace(/__(.+?)__/g, "<u>$1</u>");
+  return text;
+}
+
+function toLowerLetter(num) {
+  var n = num;
+  var result = "";
+  while (n > 0) {
+    var rem = (n - 1) % 26;
+    result = String.fromCharCode(97 + rem) + result;
+    n = Math.floor((n - 1) / 26);
+  }
+  return result || "a";
+}
+
+function toRomanLower(num) {
+  var map = [
+    [10, "x"],
+    [9, "ix"],
+    [5, "v"],
+    [4, "iv"],
+    [1, "i"],
+  ];
+  var n = num;
+  var result = "";
+  for (var m = 0; m < map.length; m++) {
+    while (n >= map[m][0]) {
+      result += map[m][1];
+      n -= map[m][0];
+    }
+  }
+  return result || "i";
+}
+
+function insertValueAtCursor(field, text) {
+  if (
+    !field ||
+    !document.body.contains(field) ||
+    (field.tagName !== "TEXTAREA" && field.tagName !== "INPUT")
+  ) {
+    showToast(
+      "Click into a field first, then click a value to insert it.",
+    );
+    return;
+  }
+
+  var start = field.selectionStart != null ? field.selectionStart : field.value.length;
+  var end = field.selectionEnd != null ? field.selectionEnd : field.value.length;
+  var before = field.value.substring(0, start);
+  var after = field.value.substring(end);
+
+  field.value = before + text + after;
+  var newPos = start + text.length;
+  field.focus();
+  field.setSelectionRange(newPos, newPos);
+
+  var evt = new Event("input", { bubbles: true });
+  field.dispatchEvent(evt);
+}
+
+/* ══════════════════════════════════════
+   Collapsible sections and copy options
+   ══════════════════════════════════════ */
+
+function toggleSimpleSection(key) {
+  var body = document.getElementById("body-" + key);
+  var btn = document.getElementById("togglebtn-" + key);
+  var companion = document.getElementById(key + "Label");
+  if (!body) return;
+  var isOpen = body.style.display !== "none";
+  body.style.display = isOpen ? "none" : "block";
+  if (companion) companion.style.display = isOpen ? "none" : "flex";
+  if (btn) btn.textContent = isOpen ? "▼" : "▲";
+}
+
+function toggleAllCopyOptions(checked) {
+  for (var i = 0; i < COPY_OPTION_CHECKBOX_IDS.length; i++) {
+    var el = document.getElementById(COPY_OPTION_CHECKBOX_IDS[i]);
+    if (el) el.checked = checked;
+  }
+}
+
+function updateCopySelectAllState() {
+  var total = 0;
+  var checkedCount = 0;
+  for (var i = 0; i < COPY_OPTION_CHECKBOX_IDS.length; i++) {
+    var el = document.getElementById(COPY_OPTION_CHECKBOX_IDS[i]);
+    if (!el) continue;
+    total++;
+    if (el.checked) checkedCount++;
+  }
+  var selectAllEl = document.getElementById("copySelectAll");
+  if (!selectAllEl) return;
+  selectAllEl.checked = checkedCount === total;
+  selectAllEl.indeterminate = checkedCount > 0 && checkedCount < total;
+}
+
+/* ══════════════════════════════════════
+   Popup dialog
+   ══════════════════════════════════════ */
+
+function showModal(title, content) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalBody").innerHTML = content;
+  document.getElementById("modal").style.display = "block";
+}
+
+/* ══════════════════════════════════════
+   Header with logo
+   ══════════════════════════════════════ */
+
+function buildHeaderWithLogo(textContent, mb, textAlign) {
+  var mode = localStorage.getItem("headerMode_" + APP.key);
+  if (mode === "none") {
+    return (
+      '<div style="text-align:' +
+      textAlign +
+      ";margin-bottom:" +
+      mb +
+      ';">' +
+      textContent +
+      "</div>"
+    );
+  }
+  var logo = localStorage.getItem("officeLogo");
+  var pos = localStorage.getItem("officeLogoPos") || "center";
+  var size = localStorage.getItem("officeLogoSize") || "115";
+  if (!logo) {
+    return (
+      '<div style="text-align:' +
+      textAlign +
+      ";margin-bottom:" +
+      mb +
+      ';">' +
+      textContent +
+      "</div>"
+    );
+  }
+  var imgTag =
+    '<img src="' +
+    logo +
+    '" style="height:' +
+    size +
+    'px;max-width:400px;object-fit:contain;">';
+  if (pos === "center") {
+    return (
+      '<div style="text-align:' +
+      textAlign +
+      ";margin-bottom:" +
+      mb +
+      ';">' +
+      '<div style="margin-bottom:8px;">' +
+      imgTag +
+      "</div>" +
+      textContent +
+      "</div>"
+    );
+  }
+  var hrM = textContent.match(/<hr[^>]*>/i);
+  var bodyContent = hrM ? textContent.replace(hrM[0], "") : textContent;
+  var hrHtml = hrM ? hrM[0] : "";
+  return (
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:0;padding:0;">' +
+    "<tr>" +
+    '<td style="border:none;padding:0 15px 0 0;vertical-align:middle;width:1%;white-space:nowrap;">' +
+    imgTag +
+    "</td>" +
+    '<td style="border:none;padding:0;vertical-align:middle;text-align:' +
+    textAlign +
+    ';">' +
+    bodyContent +
+    "</td>" +
+    "</tr></table>" +
+    hrHtml +
+    '<div style="margin-bottom:' +
+    mb +
+    ';"></div>'
+  );
+}
+
+/* ══════════════════════════════════════
+   Preview mode (document / data sheet) and printing
+   ══════════════════════════════════════ */
+
+function setPreviewMode(mode) {
+  var letterBtn = document.getElementById("previewModeLetterBtn");
+  var dataBtn = document.getElementById("previewModeDataBtn");
+  var letterEl = document.querySelector(APP.previewSelector);
+  var dataEl = document.getElementById("dataSheetPanel");
+
+  var activeStyle = "background: var(--primary, #2c3e50); color: white;";
+  var inactiveStyle = "background: white; color: #333;";
+
+  if (mode === "data") {
+    letterEl.style.display = "none";
+    dataEl.style.display = "block";
+    letterBtn.style.cssText = letterBtn.style.cssText.replace(
+      /background:[^;]*;\s*color:[^;]*;/,
+      inactiveStyle,
+    );
+    dataBtn.style.cssText = dataBtn.style.cssText.replace(
+      /background:[^;]*;\s*color:[^;]*;/,
+      activeStyle,
+    );
+  } else {
+    letterEl.style.display = "";
+    dataEl.style.display = "none";
+    letterBtn.style.cssText = letterBtn.style.cssText.replace(
+      /background:[^;]*;\s*color:[^;]*;/,
+      activeStyle,
+    );
+    dataBtn.style.cssText = dataBtn.style.cssText.replace(
+      /background:[^;]*;\s*color:[^;]*;/,
+      inactiveStyle,
+    );
+  }
+}
+
+function printPreview() {
+  var content;
+  if (APP.getPrintHTML) {
+    content = APP.getPrintHTML();
+  } else {
+    var preview = document.getElementById(APP.previewId);
+    content = preview ? preview.innerHTML : "";
+  }
+  if (!content.trim()) {
+    alert("Nothing to print.");
+    return;
+  }
+  // Clone and strip zoom
+  var tmp = document.createElement("div");
+  tmp.innerHTML = content;
+  tmp.querySelectorAll(".page-container").forEach(function (el) {
+    el.style.zoom = "";
+  });
+  var font = labels[currentLang].font;
+  var win = window.open("", "_blank");
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title><style>' +
+      "* { margin: 0; padding: 0; box-sizing: border-box; }" +
+      "body { font-family: " +
+      font +
+      "; background: white; }" +
+      ".page-container { width: 100%; box-shadow: none; margin: 0; padding: 0; }" +
+      "@page { size: A4; margin: 15mm 20mm; }" +
+      "table { border-collapse: collapse; }" +
+      (APP.printExtraCss ? APP.printExtraCss(font) : "") +
+      ".draft-separator { border: none !important; background: none !important; color: transparent !important; font-size: 0 !important; padding: 0 !important; margin: 0 !important; height: 0 !important; overflow: hidden !important; }" +
+      "</style></head><body>" +
+      tmp.innerHTML +
+      "</body></html>",
+  );
+  win.document.close();
+  win.onload = function () {
+    win.focus();
+    win.print();
+    win.close();
+  };
+}
+
+/* ══════════════════════════════════════
+   Mail merge (upload, parse, table, drafts)
+   ══════════════════════════════════════ */
+
+function toggleMailMergeControls() {
+  var controls = document.getElementById("mailMergeControls");
+  if (!controls) return;
+  controls.style.display =
+    controls.style.display === "none" ? "flex" : "none";
+}
+
+function handleMergeUpload(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var ext = file.name.split(".").pop().toLowerCase();
+  if (ext === "csv") {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      parseMergeCSV(e.target.result);
+    };
+    reader.readAsText(file);
+  } else {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var wb = XLSX.read(new Uint8Array(e.target.result), {
+          type: "array",
+        });
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+        if (raw.length < 2) {
+          APP.notify(
+            "Table needs at least a header row and one data row.",
+          );
+          return;
+        }
+        processMergeData(raw);
+      } catch (err) {
+        APP.notify("Could not read file.");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  event.target.value = "";
+}
+
+function parseMergeCSV(text) {
+  // Full character-by-character parser that preserves newlines inside quoted fields
+  var raw = [],
+    row = [],
+    field = "",
+    inQuote = false;
+  for (var i = 0; i < text.length; i++) {
+    var c = text[i],
+      next = i + 1 < text.length ? text[i + 1] : "";
+    if (inQuote) {
+      if (c === '"' && next === '"') {
+        field += '"';
+        i++;
+      } // escaped quote
+      else if (c === '"') {
+        inQuote = false;
+      } // closing quote
+      else {
+        field += c;
+      } // preserve \n inside quotes
+    } else {
+      if (c === '"') {
+        inQuote = true;
+      } else if (c === ",") {
+        row.push(field);
+        field = "";
+      } else if (c === "\r" && next === "\n") {
+        // CRLF
+        row.push(field);
+        if (
+          row.some(function (v) {
+            return v.trim();
+          })
+        )
+          raw.push(row);
+        row = [];
+        field = "";
+        i++;
+      } else if (c === "\n" || c === "\r") {
+        // LF or CR
+        row.push(field);
+        if (
+          row.some(function (v) {
+            return v.trim();
+          })
+        )
+          raw.push(row);
+        row = [];
+        field = "";
+      } else {
+        field += c;
+      }
+    }
+  }
+  // flush last field/row
+  row.push(field);
+  if (
+    row.some(function (v) {
+      return v.trim();
+    })
+  )
+    raw.push(row);
+  if (raw.length < 2) {
+    APP.notify("Table needs at least a header row and one data row.");
+    return;
+  }
+  processMergeData(raw);
+}
+
+function processMergeData(raw) {
+  var headers = raw[0]
+    .map(function (h) {
+      return String(h).trim();
+    })
+    .filter(Boolean);
+  var rows = [];
+  for (var i = 1; i < raw.length; i++) {
+    var anyVal = false;
+    for (var j = 0; j < headers.length; j++) {
+      if (String(raw[i][j] || "").trim()) {
+        anyVal = true;
+        break;
+      }
+    }
+    if (!anyVal) continue;
+    var rowObj = {};
+    headers.forEach(function (h, idx) {
+      var _v = String(
+        raw[i][idx] !== undefined ? raw[i][idx] : "",
+      ).replace(/\\n/g, "\n");
+      if (
+        _v.charAt(0) === '"' &&
+        _v.charAt(_v.length - 1) === '"' &&
+        _v.length >= 2
+      )
+        _v = _v.slice(1, -1);
+      rowObj[h] = _v;
+    });
+    rows.push(rowObj);
+  }
+  if (!rows.length) {
+    APP.notify("No data rows found.");
+    return;
+  }
+  mergeState.headers = headers;
+  mergeState.rows = rows;
+  mergeState.currentIndex = -1;
+  showMergePanel();
+  APP.notify(
+    "Loaded " +
+      rows.length +
+      " row(s) with columns: " +
+      headers.join(", "),
+  );
+}
+
+function showMergePanel() {
+  document.getElementById("mergePanel").style.display = "block";
+  document.getElementById("mergeClearBtn").style.display = "inline-block";
+  document.getElementById("allDraftsBtn").style.display = "inline-block";
+  updateMergeIndicator();
+  renderMergeTable();
+}
+
+function renderMergeTable() {
+  var container = document.getElementById("mergeTableContainer");
+  if (!container || !mergeState.headers.length) return;
+  var html = "<table><thead>";
+  // Placeholder row
+  html += '<tr class="merge-placeholder-row">';
+  mergeState.headers.forEach(function (h) {
+    html +=
+      '<td title="Copy this placeholder into your ' +
+APP.mergeFieldsLabel +
+'">' +
+      escMerge("{" + h + "}") +
+      "</td>";
+  });
+  html += "</tr>";
+  // Header row
+  html += '<tr class="merge-header-row">';
+  mergeState.headers.forEach(function (h) {
+    html += "<td>" + escMerge(h) + "</td>";
+  });
+  html += "</tr></thead><tbody>";
+  // Data rows
+  mergeState.rows.forEach(function (row, index) {
+    var active = index === mergeState.currentIndex;
+    html +=
+      '<tr class="merge-data-row' +
+      (active ? " active" : "") +
+      '" onclick="applyMergeRow(' +
+      index +
+      ')">';
+    mergeState.headers.forEach(function (h) {
+      var val = row[h] || "";
+      html += "<td>" + escMerge(val) + "</td>";
+    });
+    html += "</tr>";
+  });
+  html += "</tbody></table>";
+  container.innerHTML = html;
+  if (mergeState.currentIndex >= 0) {
+    var activeRow = container.querySelector("tr.active");
+    if (activeRow) activeRow.scrollIntoView({ block: "nearest" });
+  }
+}
+
+function applyMergeRow(index) {
+  mergeState.currentIndex = index;
+  updateMergeIndicator();
+  renderMergeTable();
+  APP.refreshPreview();
+}
+
+function clearMergeData() {
+  mergeState.headers = [];
+  mergeState.rows = [];
+  mergeState.currentIndex = -1;
+  document.getElementById("mergePanel").style.display = "none";
+  document.getElementById("mergeClearBtn").style.display = "none";
+  document.getElementById("allDraftsBtn").style.display = "none";
+  APP.refreshPreview();
+}
+
+function generateAllDrafts() {
+  if (!mergeState.rows.length) return;
+  var preview = document.getElementById(APP.previewId);
+  var savedIndex = mergeState.currentIndex;
+  var parts = [];
+  for (var i = 0; i < mergeState.rows.length; i++) {
+    mergeState.currentIndex = i;
+    APP.refreshPreview();
+    var separator =
+      i > 0
+        ? '<div class="draft-separator" style="page-break-before:always;margin:30px 0 20px;border-top:2px dashed #bbb;text-align:center;padding-top:10px;color:#999;font-size:11px;">— Draft ' +
+          (i + 1) +
+          " of " +
+          mergeState.rows.length +
+          " —</div>"
+        : "";
+    parts.push(separator + preview.innerHTML);
+  }
+  mergeState.currentIndex = savedIndex;
+  updateMergeIndicator();
+  preview.innerHTML = parts.join("");
+  applyZoom();
+}
+
+/* ══════════════════════════════════════
+   Data sheet (Excel/CSV shown beside the preview)
+   ══════════════════════════════════════ */
+
+function handleDataSheetUpload(files) {
+  if (!files || !files.length) return;
+  var file = files[0];
+  var isCsv = /\.csv$/i.test(file.name);
+  var reader = new FileReader();
+
+  reader.onload = function (e) {
+    try {
+      var workbook;
+      if (isCsv) {
+        workbook = XLSX.read(e.target.result, { type: "string" });
+      } else {
+        var arr = new Uint8Array(e.target.result);
+        workbook = XLSX.read(arr, { type: "array" });
+      }
+
+      var sheets = {};
+      for (var s = 0; s < workbook.SheetNames.length; s++) {
+        var sheetName = workbook.SheetNames[s];
+        var ws = workbook.Sheets[sheetName];
+        var rows = XLSX.utils.sheet_to_json(ws, {
+          header: 1,
+          defval: "",
+          raw: false,
+        });
+        sheets[sheetName] = rows;
+      }
+
+      APP.setDataSheets(sheets);
+      activeDataSheetName = workbook.SheetNames[0] || null;
+      renderDataSheetTabs();
+      setPreviewMode("data");
+      showToast("Data sheet uploaded: " + file.name);
+    } catch (err) {
+      showToast("Error reading data sheet file", "error");
+    }
+  };
+
+  if (isCsv) {
+    reader.readAsText(file);
+  } else {
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function renderDataSheetTabs() {
+  var tabsEl = document.getElementById("dataSheetTabs");
+  var sheetNames = Object.keys(APP.getDataSheets() || {});
+
+  if (sheetNames.length === 0) {
+    tabsEl.innerHTML = "";
+    document.getElementById("dataSheetGrid").innerHTML =
+      '<div style="color:#888; font-size:12px;">No data sheet uploaded yet.</div>';
+    return;
+  }
+
+  if (!activeDataSheetName || sheetNames.indexOf(activeDataSheetName) === -1) {
+    activeDataSheetName = sheetNames[0];
+  }
+
+  tabsEl.innerHTML = "";
+  for (var i = 0; i < sheetNames.length; i++) {
+    var name = sheetNames[i];
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = name;
+    btn.style.cssText =
+      "padding:4px 10px;font-size:12px;border:1px solid #ccc;border-radius:4px;cursor:pointer;" +
+      (name === activeDataSheetName
+        ? "background: var(--primary, #2c3e50); color:white;"
+        : "background:#f0f0f0; color:#333;");
+    (function (sheetName) {
+      btn.addEventListener("click", function () {
+        activeDataSheetName = sheetName;
+        var searchEl = document.getElementById("dataSheetSearch");
+        if (searchEl) searchEl.value = "";
+        renderDataSheetTabs();
+      });
+    })(name);
+    tabsEl.appendChild(btn);
+  }
+
+  renderDataSheetGrid();
+}
+
+function renderDataSheetGrid(filterText) {
+  var gridEl = document.getElementById("dataSheetGrid");
+  var allRows = (APP.getDataSheets() && APP.getDataSheets()[activeDataSheetName]) || [];
+
+  if (allRows.length === 0) {
+    gridEl.innerHTML =
+      '<div style="color:#888; font-size:12px;">This sheet has no data.</div>';
+    return;
+  }
+
+  var term = (filterText || "").trim().toLowerCase();
+  var rows = allRows;
+  if (term) {
+    rows = [allRows[0]].concat(
+      allRows.slice(1).filter(function (row) {
+        return row.some(function (cell) {
+          return String(cell == null ? "" : cell)
+            .toLowerCase()
+            .indexOf(term) !== -1;
+        });
+      }),
+    );
+  }
+
+  if (rows.length <= 1 && term) {
+    gridEl.innerHTML =
+      '<div style="color:#888; font-size:12px; padding-top:6px;">No matching rows.</div>';
+    return;
+  }
+
+  var table = document.createElement("table");
+  table.style.cssText =
+    "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+  for (var r = 0; r < rows.length; r++) {
+    var tr = document.createElement("tr");
+    var row = rows[r];
+    for (var c = 0; c < row.length; c++) {
+      var td = document.createElement("td");
+      var val = row[c] === null || row[c] === undefined ? "" : String(row[c]);
+      td.textContent = val;
+      td.style.cssText =
+        "border: 1px solid #ddd; padding: 4px 8px; cursor: pointer; white-space: nowrap;" +
+        (r === 0 ? " font-weight: bold; background: #f0f0f0;" : "");
+      td.addEventListener("mouseenter", function () {
+        this.style.background = "#dff0ff";
+      });
+      td.addEventListener("mouseleave", function () {
+        this.style.background =
+          this.parentElement.rowIndex === 0 ? "#f0f0f0" : "";
+      });
+      td.addEventListener("click", function () {
+        insertDataSheetValue(this.textContent);
+      });
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+
+  gridEl.innerHTML = "";
+  gridEl.appendChild(table);
+}

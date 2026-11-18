@@ -1742,6 +1742,33 @@
     </div>
 
     <script>
+      /* ── Settings read by the shared code in common/office-core.js ── */
+      var APP = {
+        key: "proceedings", // header setting is stored as headerMode_proceedings
+        previewId: "documentPreview",
+        previewSelector: ".preview-document",
+        mergeFieldsLabel: "fields",
+        refreshPreview: function () {
+          generateDocument();
+        },
+        notify: function (message) {
+          alert(message);
+        },
+        getDataSheets: function () {
+          return dataSheets;
+        },
+        setDataSheets: function (sheets) {
+          dataSheets = sheets;
+        },
+        // Print uses the copy version (keeps #ApprovedDate#) and sets the font on headings too
+        getPrintHTML: function () {
+          return getUnzoomedHTML();
+        },
+        printExtraCss: function (font) {
+          return "h3, h4, p { font-family: " + font + "; }";
+        },
+      };
+
       let referenceCount = 0;
       let toCount = 0;
       let copyToCount = 0;
@@ -1804,276 +1831,10 @@
         if (formBtn) formBtn.textContent = isFs ? "✕" : "⛶";
       });
 
-      function generateAllDrafts() {
-        if (!mergeState.rows.length) return;
-        var preview = document.getElementById("documentPreview");
-        var savedIndex = mergeState.currentIndex;
-        var parts = [];
-        for (var i = 0; i < mergeState.rows.length; i++) {
-          mergeState.currentIndex = i;
-          generateDocument();
-          var separator =
-            i > 0
-              ? '<div class="draft-separator" style="page-break-before:always;margin:30px 0 20px;border-top:2px dashed #bbb;text-align:center;padding-top:10px;color:#999;font-size:11px;">— Draft ' +
-                (i + 1) +
-                " of " +
-                mergeState.rows.length +
-                " —</div>"
-              : "";
-          parts.push(separator + preview.innerHTML);
-        }
-        mergeState.currentIndex = savedIndex;
-        updateMergeIndicator();
-        preview.innerHTML = parts.join("");
-        applyZoom();
-      }
-
-      function printPreview() {
-        var content = getUnzoomedHTML();
-        if (!content.trim()) {
-          alert("Nothing to print.");
-          return;
-        }
-        var L = labels[currentLang];
-        var win = window.open("", "_blank");
-        win.document.write(
-          '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title><style>' +
-            "* { margin: 0; padding: 0; box-sizing: border-box; }" +
-            "body { font-family: " +
-            L.font +
-            "; background: white; }" +
-            ".page-container { width: 100%; box-shadow: none; margin: 0; padding: 0; }" +
-            "@page { size: A4; margin: 15mm 20mm; }" +
-            "table { border-collapse: collapse; }" +
-            "h3, h4, p { font-family: " +
-            L.font +
-            "; }" +
-            ".draft-separator { border: none !important; background: none !important; color: transparent !important; font-size: 0 !important; padding: 0 !important; margin: 0 !important; height: 0 !important; overflow: hidden !important; }" +
-            "</style></head><body>" +
-            content +
-            "</body></html>",
-        );
-        win.document.close();
-        win.onload = function () {
-          win.focus();
-          win.print();
-          win.close();
-        };
-      }
-
       /* ══════════════════════════════════════
            Mail Merge
         ══════════════════════════════════════ */
 
-      function toggleMailMergeControls() {
-        const controls = document.getElementById("mailMergeControls");
-        if (!controls) return;
-        controls.style.display =
-          controls.style.display === "none" ? "flex" : "none";
-      }
-
-      function handleMergeUpload(event) {
-        var file = event.target.files[0];
-        if (!file) return;
-        var ext = file.name.split(".").pop().toLowerCase();
-        if (ext === "csv") {
-          var reader = new FileReader();
-          reader.onload = function (e) {
-            parseMergeCSV(e.target.result);
-          };
-          reader.readAsText(file);
-        } else {
-          var reader = new FileReader();
-          reader.onload = function (e) {
-            try {
-              var wb = XLSX.read(new Uint8Array(e.target.result), {
-                type: "array",
-              });
-              var ws = wb.Sheets[wb.SheetNames[0]];
-              var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
-              if (raw.length < 2) {
-                alert("Table needs at least a header row and one data row.");
-                return;
-              }
-              processMergeData(raw);
-            } catch (err) {
-              alert("Could not read file.");
-            }
-          };
-          reader.readAsArrayBuffer(file);
-        }
-        event.target.value = "";
-      }
-
-      function parseMergeCSV(text) {
-        var raw = [],
-          row = [],
-          field = "",
-          inQuote = false;
-        for (var i = 0; i < text.length; i++) {
-          var c = text[i],
-            next = i + 1 < text.length ? text[i + 1] : "";
-          if (inQuote) {
-            if (c === '"' && next === '"') {
-              field += '"';
-              i++;
-            } else if (c === '"') {
-              inQuote = false;
-            } else {
-              field += c;
-            }
-          } else {
-            if (c === '"') {
-              inQuote = true;
-            } else if (c === ",") {
-              row.push(field);
-              field = "";
-            } else if (c === "\r" && next === "\n") {
-              row.push(field);
-              if (
-                row.some(function (v) {
-                  return v.trim();
-                })
-              )
-                raw.push(row);
-              row = [];
-              field = "";
-              i++;
-            } else if (c === "\n" || c === "\r") {
-              row.push(field);
-              if (
-                row.some(function (v) {
-                  return v.trim();
-                })
-              )
-                raw.push(row);
-              row = [];
-              field = "";
-            } else {
-              field += c;
-            }
-          }
-        }
-        row.push(field);
-        if (
-          row.some(function (v) {
-            return v.trim();
-          })
-        )
-          raw.push(row);
-        if (raw.length < 2) {
-          alert("Table needs at least a header row and one data row.");
-          return;
-        }
-        processMergeData(raw);
-      }
-
-      function processMergeData(raw) {
-        var headers = raw[0]
-          .map(function (h) {
-            return String(h).trim();
-          })
-          .filter(Boolean);
-        var rows = [];
-        for (var i = 1; i < raw.length; i++) {
-          var anyVal = false;
-          for (var j = 0; j < headers.length; j++) {
-            if (String(raw[i][j] || "").trim()) {
-              anyVal = true;
-              break;
-            }
-          }
-          if (!anyVal) continue;
-          var rowObj = {};
-          headers.forEach(function (h, idx) {
-            var _v = String(
-              raw[i][idx] !== undefined ? raw[i][idx] : "",
-            ).replace(/\\n/g, "\n");
-            if (
-              _v.charAt(0) === '"' &&
-              _v.charAt(_v.length - 1) === '"' &&
-              _v.length >= 2
-            )
-              _v = _v.slice(1, -1);
-            rowObj[h] = _v;
-          });
-          rows.push(rowObj);
-        }
-        if (!rows.length) {
-          alert("No data rows found.");
-          return;
-        }
-        mergeState.headers = headers;
-        mergeState.rows = rows;
-        mergeState.currentIndex = -1;
-        document.getElementById("mergePanel").style.display = "block";
-        document.getElementById("mergeClearBtn").style.display = "inline-block";
-        document.getElementById("allDraftsBtn").style.display = "inline-block";
-        updateMergeIndicator();
-        renderMergeTable();
-        alert(
-          "Loaded " +
-            rows.length +
-            " row(s) with columns: " +
-            headers.join(", "),
-        );
-      }
-
-      function renderMergeTable() {
-        var container = document.getElementById("mergeTableContainer");
-        if (!container || !mergeState.headers.length) return;
-        var html = "<table><thead>";
-        html += '<tr class="merge-placeholder-row">';
-        mergeState.headers.forEach(function (h) {
-          html +=
-            '<td title="Copy this placeholder into your fields">' +
-            escMerge("{" + h + "}") +
-            "</td>";
-        });
-        html += "</tr>";
-        html += '<tr class="merge-header-row">';
-        mergeState.headers.forEach(function (h) {
-          html += "<td>" + escMerge(h) + "</td>";
-        });
-        html += "</tr></thead><tbody>";
-        mergeState.rows.forEach(function (row, index) {
-          var active = index === mergeState.currentIndex;
-          html +=
-            '<tr class="merge-data-row' +
-            (active ? " active" : "") +
-            '" onclick="applyMergeRow(' +
-            index +
-            ')">';
-          mergeState.headers.forEach(function (h) {
-            var val = row[h] || "";
-            html += "<td>" + escMerge(val) + "</td>";
-          });
-          html += "</tr>";
-        });
-        html += "</tbody></table>";
-        container.innerHTML = html;
-        if (mergeState.currentIndex >= 0) {
-          var activeRow = container.querySelector("tr.active");
-          if (activeRow) activeRow.scrollIntoView({ block: "nearest" });
-        }
-      }
-
-      function applyMergeRow(index) {
-        mergeState.currentIndex = index;
-        updateMergeIndicator();
-        renderMergeTable();
-        generateDocument();
-      }
-
-      function clearMergeData() {
-        mergeState.headers = [];
-        mergeState.rows = [];
-        mergeState.currentIndex = -1;
-        document.getElementById("mergePanel").style.display = "none";
-        document.getElementById("mergeClearBtn").style.display = "none";
-        document.getElementById("allDraftsBtn").style.display = "none";
-        generateDocument();
-      }
       /* ══════════════════════════════════════ */
 
       function loadOfficeProfile() {
@@ -2113,74 +1874,6 @@
       }
 
       /* ── Header rendering (settings managed from index.html) ── */
-      function buildHeaderWithLogo(textContent, mb, textAlign) {
-        var mode = localStorage.getItem("headerMode_proceedings");
-        if (mode === "none") {
-          return (
-            '<div style="text-align:' +
-            textAlign +
-            ";margin-bottom:" +
-            mb +
-            ';">' +
-            textContent +
-            "</div>"
-          );
-        }
-        var logo = localStorage.getItem("officeLogo");
-        var pos = localStorage.getItem("officeLogoPos") || "center";
-        var size = localStorage.getItem("officeLogoSize") || "115";
-        if (!logo) {
-          return (
-            '<div style="text-align:' +
-            textAlign +
-            ";margin-bottom:" +
-            mb +
-            ';">' +
-            textContent +
-            "</div>"
-          );
-        }
-        var imgTag =
-          '<img src="' +
-          logo +
-          '" style="height:' +
-          size +
-          'px;max-width:400px;object-fit:contain;">';
-        if (pos === "center") {
-          return (
-            '<div style="text-align:' +
-            textAlign +
-            ";margin-bottom:" +
-            mb +
-            ';">' +
-            '<div style="margin-bottom:8px;">' +
-            imgTag +
-            "</div>" +
-            textContent +
-            "</div>"
-          );
-        }
-        var hrM = textContent.match(/<hr[^>]*>/i);
-        var bodyContent = hrM ? textContent.replace(hrM[0], "") : textContent;
-        var hrHtml = hrM ? hrM[0] : "";
-        return (
-          '<table style="width:100%;border-collapse:collapse;margin-bottom:0;padding:0;">' +
-          "<tr>" +
-          '<td style="border:none;padding:0 15px 0 0;vertical-align:middle;width:1%;white-space:nowrap;">' +
-          imgTag +
-          "</td>" +
-          '<td style="border:none;padding:0;vertical-align:middle;text-align:' +
-          textAlign +
-          ';">' +
-          bodyContent +
-          "</td>" +
-          "</tr></table>" +
-          hrHtml +
-          '<div style="margin-bottom:' +
-          mb +
-          ';"></div>'
-        );
-      }
 
       // Template configurations
       const templates = {
@@ -2551,12 +2244,6 @@
           openManager(currentManager);
           showToast(old ? "Address updated" : "Address added");
         }
-      }
-
-      function showModal(title, html) {
-        document.getElementById("modalTitle").textContent = title;
-        document.getElementById("modalBody").innerHTML = html;
-        document.getElementById("modal").style.display = "block";
       }
 
       document.addEventListener("keydown", (e) => {
@@ -3038,215 +2725,6 @@
 
       // ===== Data Sheet feature =====
 
-      function setPreviewMode(mode) {
-        const letterBtn = document.getElementById("previewModeLetterBtn");
-        const dataBtn = document.getElementById("previewModeDataBtn");
-        const letterEl = document.querySelector(".preview-document");
-        const dataEl = document.getElementById("dataSheetPanel");
-
-        const activeStyle = "background: var(--primary, #2c3e50); color: white;";
-        const inactiveStyle = "background: white; color: #333;";
-
-        if (mode === "data") {
-          letterEl.style.display = "none";
-          dataEl.style.display = "block";
-          letterBtn.style.cssText = letterBtn.style.cssText.replace(
-            /background:[^;]*;\s*color:[^;]*;/,
-            inactiveStyle,
-          );
-          dataBtn.style.cssText = dataBtn.style.cssText.replace(
-            /background:[^;]*;\s*color:[^;]*;/,
-            activeStyle,
-          );
-        } else {
-          letterEl.style.display = "";
-          dataEl.style.display = "none";
-          letterBtn.style.cssText = letterBtn.style.cssText.replace(
-            /background:[^;]*;\s*color:[^;]*;/,
-            activeStyle,
-          );
-          dataBtn.style.cssText = dataBtn.style.cssText.replace(
-            /background:[^;]*;\s*color:[^;]*;/,
-            inactiveStyle,
-          );
-        }
-      }
-
-      function handleDataSheetUpload(files) {
-        if (!files || !files.length) return;
-        const file = files[0];
-        const isCsv = /\.csv$/i.test(file.name);
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          try {
-            let workbook;
-            if (isCsv) {
-              workbook = XLSX.read(e.target.result, { type: "string" });
-            } else {
-              const arr = new Uint8Array(e.target.result);
-              workbook = XLSX.read(arr, { type: "array" });
-            }
-
-            const sheets = {};
-            for (let s = 0; s < workbook.SheetNames.length; s++) {
-              const sheetName = workbook.SheetNames[s];
-              const ws = workbook.Sheets[sheetName];
-              const rows = XLSX.utils.sheet_to_json(ws, {
-                header: 1,
-                defval: "",
-                raw: false,
-              });
-              sheets[sheetName] = rows;
-            }
-
-            dataSheets = sheets;
-            activeDataSheetName = workbook.SheetNames[0] || null;
-            renderDataSheetTabs();
-            setPreviewMode("data");
-            showToast(`Data sheet uploaded: ${file.name}`);
-          } catch (err) {
-            showToast("Error reading data sheet file");
-          }
-        };
-
-        if (isCsv) {
-          reader.readAsText(file);
-        } else {
-          reader.readAsArrayBuffer(file);
-        }
-      }
-
-      function renderDataSheetTabs() {
-        const tabsEl = document.getElementById("dataSheetTabs");
-        const sheetNames = Object.keys(dataSheets || {});
-
-        if (sheetNames.length === 0) {
-          tabsEl.innerHTML = "";
-          document.getElementById("dataSheetGrid").innerHTML =
-            '<div style="color:#888; font-size:12px;">No data sheet uploaded yet.</div>';
-          return;
-        }
-
-        if (
-          !activeDataSheetName ||
-          sheetNames.indexOf(activeDataSheetName) === -1
-        ) {
-          activeDataSheetName = sheetNames[0];
-        }
-
-        tabsEl.innerHTML = "";
-        sheetNames.forEach((name) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.textContent = name;
-          btn.style.cssText =
-            "padding:4px 10px;font-size:12px;border:1px solid #ccc;border-radius:4px;cursor:pointer;" +
-            (name === activeDataSheetName
-              ? "background: var(--primary, #2c3e50); color:white;"
-              : "background:#f0f0f0; color:#333;");
-          btn.addEventListener("click", function () {
-            activeDataSheetName = name;
-            const searchEl = document.getElementById("dataSheetSearch");
-            if (searchEl) searchEl.value = "";
-            renderDataSheetTabs();
-          });
-          tabsEl.appendChild(btn);
-        });
-
-        renderDataSheetGrid();
-      }
-
-      function renderDataSheetGrid(filterText) {
-        const gridEl = document.getElementById("dataSheetGrid");
-        const allRows = (dataSheets && dataSheets[activeDataSheetName]) || [];
-
-        if (allRows.length === 0) {
-          gridEl.innerHTML =
-            '<div style="color:#888; font-size:12px;">This sheet has no data.</div>';
-          return;
-        }
-
-        const term = (filterText || "").trim().toLowerCase();
-        let rows = allRows;
-        if (term) {
-          rows = [allRows[0]].concat(
-            allRows.slice(1).filter((row) =>
-              row.some((cell) =>
-                String(cell == null ? "" : cell)
-                  .toLowerCase()
-                  .indexOf(term) !== -1,
-              ),
-            ),
-          );
-        }
-
-        if (rows.length <= 1 && term) {
-          gridEl.innerHTML =
-            '<div style="color:#888; font-size:12px; padding-top:6px;">No matching rows.</div>';
-          return;
-        }
-
-        const table = document.createElement("table");
-        table.style.cssText =
-          "border-collapse: collapse; width: max-content; font-size: 12px;";
-
-        rows.forEach((row, r) => {
-          const tr = document.createElement("tr");
-          row.forEach((cellVal, c) => {
-            const td = document.createElement("td");
-            const val = cellVal === null || cellVal === undefined ? "" : String(cellVal);
-            td.textContent = val;
-            td.style.cssText =
-              "border: 1px solid #ddd; padding: 4px 8px; cursor: pointer; white-space: nowrap;" +
-              (r === 0 ? " font-weight: bold; background: #f0f0f0;" : "");
-            td.addEventListener("mouseenter", function () {
-              this.style.background = "#dff0ff";
-            });
-            td.addEventListener("mouseleave", function () {
-              this.style.background =
-                this.parentElement.rowIndex === 0 ? "#f0f0f0" : "";
-            });
-            td.addEventListener("click", function () {
-              insertDataSheetValue(this.textContent);
-            });
-            tr.appendChild(td);
-          });
-          table.appendChild(tr);
-        });
-
-        gridEl.innerHTML = "";
-        gridEl.appendChild(table);
-      }
-
-      function insertValueAtCursor(field, text) {
-        if (
-          !field ||
-          !document.body.contains(field) ||
-          (field.tagName !== "TEXTAREA" && field.tagName !== "INPUT")
-        ) {
-          showToast(
-            "Click into a field first, then click a value to insert it.",
-          );
-          return;
-        }
-
-        const start =
-          field.selectionStart != null ? field.selectionStart : field.value.length;
-        const end =
-          field.selectionEnd != null ? field.selectionEnd : field.value.length;
-        const before = field.value.substring(0, start);
-        const after = field.value.substring(end);
-
-        field.value = before + text + after;
-        const newPos = start + text.length;
-        field.focus();
-        field.setSelectionRange(newPos, newPos);
-
-        const evt = new Event("input", { bubbles: true });
-        field.dispatchEvent(evt);
-      }
-
       document.addEventListener("focusin", function (e) {
         const t = e.target;
         if (
@@ -3395,47 +2873,6 @@
 
       // ===== Bullets & nested numbering (#, ##, ###, *) =====
 
-      function toggleSimpleSection(key) {
-        const body = document.getElementById(`body-${key}`);
-        const btn = document.getElementById(`togglebtn-${key}`);
-        const companion = document.getElementById(`${key}Label`);
-        if (!body) return;
-        const isOpen = body.style.display !== "none";
-        body.style.display = isOpen ? "none" : "block";
-        if (companion) companion.style.display = isOpen ? "none" : "flex";
-        if (btn) btn.textContent = isOpen ? "▼" : "▲";
-      }
-
-      function toRomanLower(num) {
-        const map = [
-          [10, "x"],
-          [9, "ix"],
-          [5, "v"],
-          [4, "iv"],
-          [1, "i"],
-        ];
-        let n = num;
-        let result = "";
-        for (let m = 0; m < map.length; m++) {
-          while (n >= map[m][0]) {
-            result += map[m][1];
-            n -= map[m][0];
-          }
-        }
-        return result || "i";
-      }
-
-      function toLowerLetter(num) {
-        let n = num;
-        let result = "";
-        while (n > 0) {
-          const rem = (n - 1) % 26;
-          result = String.fromCharCode(97 + rem) + result;
-          n = Math.floor((n - 1) / 26);
-        }
-        return result || "a";
-      }
-
       function parseBodyIntoBlocks(processedText) {
         const lines = processedText.split("\n");
         const blocks = [];
@@ -3525,14 +2962,6 @@
         }
         closeCurrent();
         return blocks;
-      }
-
-      function applyInlineFormatting(text) {
-        text = text.replace(/\*\*__(.+?)__\*\*/g, "<b><u>$1</u></b>");
-        text = text.replace(/__\*\*(.+?)\*\*__/g, "<b><u>$1</u></b>");
-        text = text.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
-        text = text.replace(/__(.+?)__/g, "<u>$1</u>");
-        return text;
       }
 
       function renderBodyBlocksHTML(blocks, numbered, pStyleBase) {
@@ -4517,28 +3946,6 @@
         "copyIncludeTo",
         "copyIncludeCopyTo",
       ];
-
-      function toggleAllCopyOptions(checked) {
-        COPY_OPTION_CHECKBOX_IDS.forEach((id) => {
-          const el = document.getElementById(id);
-          if (el) el.checked = checked;
-        });
-      }
-
-      function updateCopySelectAllState() {
-        let total = 0;
-        let checkedCount = 0;
-        COPY_OPTION_CHECKBOX_IDS.forEach((id) => {
-          const el = document.getElementById(id);
-          if (!el) return;
-          total++;
-          if (el.checked) checkedCount++;
-        });
-        const selectAllEl = document.getElementById("copySelectAll");
-        if (!selectAllEl) return;
-        selectAllEl.checked = checkedCount === total;
-        selectAllEl.indeterminate = checkedCount > 0 && checkedCount < total;
-      }
 
       function getCopyOptions() {
         function isChecked(id) {
