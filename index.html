@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Office Suite</title>
+    <script src="common/drafts.js"></script>
     <style>
       :root {
         --primary: #2c3e50;
@@ -708,6 +709,89 @@
         letter-spacing: 0.04em;
       }
 
+
+      /* ── Recent drafts ── */
+      .recent-drafts {
+        margin-top: 2rem;
+        background: white;
+        border-radius: 15px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      }
+
+      .rd-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .rd-head h2 {
+        font-size: 1.1rem;
+        color: var(--primary);
+      }
+
+      .rd-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .rd-list {
+        list-style: none;
+      }
+
+      .rd-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.25rem;
+        border-top: 1px solid #ecf0f1;
+      }
+
+      .rd-icon {
+        font-size: 1.3rem;
+        width: 2rem;
+        text-align: center;
+      }
+
+      .rd-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .rd-info strong {
+        display: block;
+        color: var(--primary);
+        font-size: 0.95rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .rd-info small {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+      }
+
+      .rd-note {
+        margin-top: 0.5rem;
+        font-size: 0.82rem;
+        color: #7f8c8d;
+      }
+
+      .rd-note.error {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .rd-note.ok {
+        color: var(--success);
+        font-weight: 600;
+      }
+
       /* ── Settings panel (slides in from the right) ── */
       header {
         position: relative;
@@ -1403,6 +1487,36 @@
           </div>
         </div>
       </div>
+
+      <!-- Drafts saved in this browser by the apps (common/drafts.js) -->
+      <section class="recent-drafts" aria-labelledby="recentDraftsTitle">
+        <div class="rd-head">
+          <h2 id="recentDraftsTitle">Recent drafts</h2>
+          <span class="rd-tools">
+            <button type="button" class="btn-sm btn-outline" onclick="backupDrafts()">
+              Back up all drafts
+            </button>
+            <button
+              type="button"
+              class="btn-sm btn-outline"
+              onclick="document.getElementById('draftRestoreIdx').click()"
+            >
+              Restore backup
+            </button>
+            <input
+              type="file"
+              id="draftRestoreIdx"
+              accept=".json,application/json"
+              hidden
+              onchange="restoreDrafts(this)"
+            />
+          </span>
+        </div>
+        <ul class="rd-list" id="recentDraftList"></ul>
+        <p class="rd-note" id="recentDraftNote" role="status">
+          Drafts are saved automatically in this browser as you type in any app.
+        </p>
+      </section>
     </div>
 
     <!-- Feedback -->
@@ -2354,7 +2468,103 @@
         return out;
       }
 
-      function launchApp(url) {
+
+      /* ── Recent drafts (saved by the apps in this browser) ── */
+      var RECENT_DRAFTS = 8;
+      var draftNoteDefault = null;
+
+      function setDraftNote(text, kind) {
+        var el = document.getElementById("recentDraftNote");
+        if (draftNoteDefault === null) draftNoteDefault = el.textContent;
+        el.textContent = text || draftNoteDefault;
+        el.className = "rd-note" + (kind ? " " + kind : "");
+      }
+
+      function renderRecentDrafts() {
+        var listEl = document.getElementById("recentDraftList");
+        OfficeDrafts.list().then(
+          function (drafts) {
+            var D = OfficeDrafts;
+            if (!drafts.length) {
+              listEl.innerHTML = "";
+              setDraftNote(
+                "No drafts yet. Drafts are saved automatically in this browser as you type in any app.",
+              );
+              return;
+            }
+            listEl.innerHTML = drafts
+              .slice(0, RECENT_DRAFTS)
+              .map(function (d) {
+                return (
+                  '<li class="rd-item">' +
+                  '<span class="rd-icon" aria-hidden="true">' + (D.APP_ICONS[d.app] || "") + "</span>" +
+                  '<span class="rd-info"><strong>' + D.esc(d.title) + "</strong>" +
+                  "<small>" + D.esc(D.APP_NAMES[d.app] || d.app) + " · " + D.esc(D.when(d.updated)) + "</small></span>" +
+                  '<button type="button" class="btn-sm btn-upload" onclick="openDraftFromHome(\'' +
+                  D.esc(d.id) + "')\">Open</button>" +
+                  "</li>"
+                );
+              })
+              .join("");
+            setDraftNote(
+              drafts.length > RECENT_DRAFTS
+                ? "Showing the " + RECENT_DRAFTS + " most recent of " + drafts.length +
+                    " drafts. Open an app and click 📂 Drafts to see all of its drafts."
+                : "Saved automatically in this browser. Open an app and click 📂 Drafts to manage its drafts.",
+            );
+          },
+          function () {
+            listEl.innerHTML = "";
+            setDraftNote(
+              "Saved drafts are not available in this browser (private window or storage blocked).",
+              "error",
+            );
+          },
+        );
+      }
+
+      function openDraftFromHome(id) {
+        OfficeDrafts.get(id).then(function (d) {
+          if (d) launchApp(OfficeDrafts.APP_FILES[d.app], d.id);
+        });
+      }
+
+      function backupDrafts() {
+        OfficeDrafts.exportAll().then(
+          function (n) {
+            setDraftNote(
+              n ? "Backed up " + n + " draft(s) to a file." : "There are no drafts to back up yet.",
+              n ? "ok" : "error",
+            );
+          },
+          function (e) {
+            setDraftNote("Could not back up drafts. " + e.message, "error");
+          },
+        );
+      }
+
+      function restoreDrafts(input) {
+        var file = input.files && input.files[0];
+        input.value = "";
+        if (!file) return;
+        OfficeDrafts.importFile(file).then(
+          function (c) {
+            renderRecentDrafts();
+            setTimeout(function () {
+              setDraftNote(
+                "Restored: " + c.added + " new, " + c.updated + " updated" +
+                  (c.skipped ? ", " + c.skipped + " already up to date" : "") + ".",
+                "ok",
+              );
+            }, 50);
+          },
+          function (e) {
+            setDraftNote(e.message, "error");
+          },
+        );
+      }
+
+      function launchApp(url, draftId) {
         if (
           profileDirty &&
           !confirm(
@@ -2374,6 +2584,7 @@
             params.push("profile=" + encodeURIComponent(b64));
           } catch (e) {}
         }
+        if (draftId) params.push("draft=" + encodeURIComponent(draftId));
         // Tells the Letter app to show its "RTI only" section.
         if (RTI_APPS.indexOf(url) !== -1 && getActiveProfile() === "rti") {
           params.push("mode=rti");
@@ -2405,6 +2616,7 @@
       })();
       window.addEventListener("pageshow", function () {
         skipUnloadPrompt = false;
+        renderRecentDrafts(); // also when coming back with the Back button
       });
       idxInitHeaderSettings();
     </script>

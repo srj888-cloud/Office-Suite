@@ -1691,6 +1691,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="common/office-core.js"></script>
+    <script src="common/drafts.js"></script>
     <!-- Address manager dialog -->
     <div
       id="modal"
@@ -1732,6 +1733,16 @@
         reloadAddresses: function () {
           loadAddressBook();
           fillAddressDropdowns();
+        },
+        draftApp: "proceedings",
+        getDraftData: function () {
+          return getProceedingsData();
+        },
+        applyDraftData: function (d) {
+          applyProceedingsData(d);
+        },
+        draftTitle: function (d) {
+          return d.documentTitle || d.orderNumber || "Untitled proceedings";
         },
         getDataSheets: function () {
           return dataSheets;
@@ -3566,6 +3577,41 @@
       }
 
       // JSON Export/Import Functions
+      // Everything the form holds (used by Export and by saved drafts)
+      function getProceedingsData() {
+        return {
+          documentType: document.getElementById("documentType").value,
+          orderNumber: document.getElementById("orderNumber").value,
+          showAttendance: document.getElementById("showAttendance").checked,
+          documentTitle: document.getElementById("documentTitle").value,
+          orderBodyText: document.getElementById("orderBodyText").value,
+          numberParagraphs: document.getElementById("numberParagraphs")
+            .checked,
+          references: collectReferences(),
+          toItems: collectToItems(),
+          copyToItems: collectCopyToItems(),
+          tablePlaceholders: tablePlaceholders,
+          excelFiles:
+            Object.keys(excelFiles).length > 0
+              ? Object.fromEntries(
+                  Object.entries(excelFiles).map(([key, file]) => [
+                    key,
+                    {
+                      id: file.id,
+                      name: file.name,
+                      data: file.data,
+                      uploadDate: file.uploadDate,
+                      placeholderId: file.placeholderId,
+                      splitAfterRows: file.splitAfterRows || [],
+                    },
+                  ]),
+                )
+              : {},
+          dataSheets: dataSheets,
+          copyOptions: getCopyOptions(),
+        };
+      }
+
       function exportToJSON() {
         try {
           const filename = prompt(
@@ -3574,40 +3620,14 @@
           );
           if (!filename) return; // User cancelled
 
-          const formData = {
-            filename: filename, // Store the filename in the JSON data
-            documentType: document.getElementById("documentType").value,
-            orderNumber: document.getElementById("orderNumber").value,
-            showAttendance: document.getElementById("showAttendance").checked,
-            documentTitle: document.getElementById("documentTitle").value,
-            orderBodyText: document.getElementById("orderBodyText").value,
-            numberParagraphs: document.getElementById("numberParagraphs")
-              .checked,
-            references: collectReferences(),
-            toItems: collectToItems(),
-            copyToItems: collectCopyToItems(),
-            tablePlaceholders: tablePlaceholders,
-            excelFiles:
-              Object.keys(excelFiles).length > 0
-                ? Object.fromEntries(
-                    Object.entries(excelFiles).map(([key, file]) => [
-                      key,
-                      {
-                        id: file.id,
-                        name: file.name,
-                        data: file.data,
-                        uploadDate: file.uploadDate,
-                        placeholderId: file.placeholderId,
-                        splitAfterRows: file.splitAfterRows || [],
-                      },
-                    ]),
-                  )
-                : {},
-            dataSheets: dataSheets,
-            copyOptions: getCopyOptions(),
-            exportDate: new Date().toISOString(),
-            version: "1.0",
-          };
+          const formData = Object.assign(
+            { filename: filename }, // Store the filename in the JSON data
+            getProceedingsData(),
+            {
+              exportDate: new Date().toISOString(),
+              version: "1.0",
+            },
+          );
 
           const jsonString = JSON.stringify(formData, null, 2);
           const blob = new Blob([jsonString], { type: "application/json" });
@@ -3630,6 +3650,118 @@
         document.getElementById("jsonFileInput").click();
       }
 
+      // Fill the form from getProceedingsData() output (JSON import, saved drafts)
+      function applyProceedingsData(jsonData) {
+      // Clear existing data
+      document.getElementById("referencesContainer").innerHTML = "";
+      document.getElementById("toContainer").innerHTML = "";
+      document.getElementById("copyToContainer").innerHTML = "";
+      document.getElementById("excelFilesContainer").innerHTML = "";
+      referenceCount = 0;
+      toCount = 0;
+      copyToCount = 0;
+      excelFiles = {};
+      tablePlaceholders = {};
+
+      // Import form data
+      if (jsonData.documentType)
+        document.getElementById("documentType").value =
+          jsonData.documentType;
+      if (jsonData.orderNumber)
+        document.getElementById("orderNumber").value =
+          jsonData.orderNumber;
+      if (typeof jsonData.showAttendance === "boolean")
+        document.getElementById("showAttendance").checked =
+          jsonData.showAttendance;
+      if (jsonData.documentTitle)
+        document.getElementById("documentTitle").value =
+          jsonData.documentTitle;
+      if (jsonData.orderBodyText)
+        document.getElementById("orderBodyText").value =
+          jsonData.orderBodyText;
+      document.getElementById("numberParagraphs").checked =
+        !!jsonData.numberParagraphs;
+
+      // Import references
+      if (jsonData.references && Array.isArray(jsonData.references)) {
+        jsonData.references.forEach((ref) => {
+          if (ref && ref.trim()) {
+            addReference();
+            document.getElementById(`ref-text-${referenceCount}`).value =
+              ref;
+          }
+        });
+      }
+
+      // Import to items
+      if (jsonData.toItems && Array.isArray(jsonData.toItems)) {
+        jsonData.toItems.forEach((item) => {
+          if (item && item.trim()) {
+            addTo();
+            document.getElementById(`to-text-${toCount}`).value = item;
+          }
+        });
+      }
+
+      // Import copy-to items
+      if (jsonData.copyToItems && Array.isArray(jsonData.copyToItems)) {
+        jsonData.copyToItems.forEach((item) => {
+          if (item && item.trim()) {
+            addCopyTo();
+            document.getElementById(`copy-text-${copyToCount}`).value =
+              item;
+          }
+        });
+      }
+
+      // Import table placeholders
+      if (
+        jsonData.tablePlaceholders &&
+        typeof jsonData.tablePlaceholders === "object"
+      ) {
+        tablePlaceholders = jsonData.tablePlaceholders;
+        tablePlaceholderCounter = Math.max(
+          0,
+          ...Object.keys(tablePlaceholders).map((k) => parseInt(k)),
+        );
+      }
+
+      // Import excel files
+      if (
+        jsonData.excelFiles &&
+        typeof jsonData.excelFiles === "object"
+      ) {
+        excelFiles = jsonData.excelFiles;
+        fileIdCounter = Math.max(
+          0,
+          ...Object.values(excelFiles).map((f) => f.id || 0),
+        );
+
+        // Update placeholder content with tables
+        Object.values(excelFiles).forEach((file) => {
+          if (
+            file.placeholderId &&
+            tablePlaceholders[file.placeholderId]
+          ) {
+            tablePlaceholders[file.placeholderId].hasContent = true;
+            tablePlaceholders[file.placeholderId].content =
+              generateTableFromFile(file.id);
+            tablePlaceholders[file.placeholderId].fileId = file.id;
+          }
+        });
+      }
+
+      // Update displays
+      displayExcelFiles();
+      updatePlaceholderStatus();
+      dataSheets = jsonData.dataSheets || {};
+      activeDataSheetName = null;
+      renderDataSheetTabs();
+      applyCopyOptions(jsonData.copyOptions);
+      generateDocument();
+
+      }
+
       function handleJSONImport(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -3644,104 +3776,7 @@
               throw new Error("Invalid JSON format");
             }
 
-            // Clear existing data
-            document.getElementById("referencesContainer").innerHTML = "";
-            document.getElementById("toContainer").innerHTML = "";
-            document.getElementById("copyToContainer").innerHTML = "";
-            document.getElementById("excelFilesContainer").innerHTML = "";
-            referenceCount = 0;
-            toCount = 0;
-            copyToCount = 0;
-            excelFiles = {};
-            tablePlaceholders = {};
-
-            // Import form data
-            if (jsonData.documentType)
-              document.getElementById("documentType").value =
-                jsonData.documentType;
-            if (jsonData.orderNumber)
-              document.getElementById("orderNumber").value =
-                jsonData.orderNumber;
-            if (typeof jsonData.showAttendance === "boolean")
-              document.getElementById("showAttendance").checked =
-                jsonData.showAttendance;
-            if (jsonData.documentTitle)
-              document.getElementById("documentTitle").value =
-                jsonData.documentTitle;
-            if (jsonData.orderBodyText)
-              document.getElementById("orderBodyText").value =
-                jsonData.orderBodyText;
-            document.getElementById("numberParagraphs").checked =
-              !!jsonData.numberParagraphs;
-
-            // Import references
-            if (jsonData.references && Array.isArray(jsonData.references)) {
-              jsonData.references.forEach((ref) => {
-                if (ref && ref.trim()) {
-                  addReference();
-                  document.getElementById(`ref-text-${referenceCount}`).value =
-                    ref;
-                }
-              });
-            }
-
-            // Import to items
-            if (jsonData.toItems && Array.isArray(jsonData.toItems)) {
-              jsonData.toItems.forEach((item) => {
-                if (item && item.trim()) {
-                  addTo();
-                  document.getElementById(`to-text-${toCount}`).value = item;
-                }
-              });
-            }
-
-            // Import copy-to items
-            if (jsonData.copyToItems && Array.isArray(jsonData.copyToItems)) {
-              jsonData.copyToItems.forEach((item) => {
-                if (item && item.trim()) {
-                  addCopyTo();
-                  document.getElementById(`copy-text-${copyToCount}`).value =
-                    item;
-                }
-              });
-            }
-
-            // Import table placeholders
-            if (
-              jsonData.tablePlaceholders &&
-              typeof jsonData.tablePlaceholders === "object"
-            ) {
-              tablePlaceholders = jsonData.tablePlaceholders;
-              tablePlaceholderCounter = Math.max(
-                0,
-                ...Object.keys(tablePlaceholders).map((k) => parseInt(k)),
-              );
-            }
-
-            // Import excel files
-            if (
-              jsonData.excelFiles &&
-              typeof jsonData.excelFiles === "object"
-            ) {
-              excelFiles = jsonData.excelFiles;
-              fileIdCounter = Math.max(
-                0,
-                ...Object.values(excelFiles).map((f) => f.id || 0),
-              );
-
-              // Update placeholder content with tables
-              Object.values(excelFiles).forEach((file) => {
-                if (
-                  file.placeholderId &&
-                  tablePlaceholders[file.placeholderId]
-                ) {
-                  tablePlaceholders[file.placeholderId].hasContent = true;
-                  tablePlaceholders[file.placeholderId].content =
-                    generateTableFromFile(file.id);
-                  tablePlaceholders[file.placeholderId].fileId = file.id;
-                }
-              });
-            }
+            applyProceedingsData(jsonData);
 
             // Add imported template to dropdown temporarily
             const dropdown = document.getElementById("documentType");
@@ -3765,13 +3800,6 @@
             // Select the imported template
             dropdown.value = existingOption ? existingOption.value : tempValue;
 
-            // Update displays
-            displayExcelFiles();
-            updatePlaceholderStatus();
-            dataSheets = jsonData.dataSheets || {};
-            activeDataSheetName = null;
-            renderDataSheetTabs();
-            applyCopyOptions(jsonData.copyOptions);
             generateDocument();
 
             showToast("Template imported successfully!");
@@ -3977,6 +4005,8 @@
 
           // Reinitialize defaults
           initializeDefaults();
+          // keep the saved draft; typing now starts a new one
+          OfficeDrafts.detach();
         }
       }
 

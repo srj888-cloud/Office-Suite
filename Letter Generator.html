@@ -843,6 +843,7 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="common/office-core.js"></script>
+    <script src="common/drafts.js"></script>
   </head>
 
   <body>
@@ -1828,6 +1829,16 @@
           updateDropdowns();
           if (t) t.value = v;
         },
+        draftApp: "letter",
+        getDraftData: function () {
+          return getLetterData();
+        },
+        applyDraftData: function (d) {
+          applyLetterData(d);
+        },
+        draftTitle: function (d) {
+          return d.subject || d.refNumber || "Untitled letter";
+        },
         getDataSheets: function () {
           return data.dataSheets;
         },
@@ -1951,11 +1962,8 @@
         document.removeEventListener("mouseup", stopResize);
       }
 
-      // Export function
-      function doExport() {
-        var templateName = prompt("Template name for export:");
-        if (!templateName) return;
-
+      // Everything the form holds (used by Export and by saved drafts)
+      function getLetterData() {
         var toAddresses = [];
         var textareas = document.querySelectorAll(".address-textarea");
         for (var i = 0; i < textareas.length; i++) {
@@ -1987,26 +1995,117 @@
             enclosures.push(enclosureInputs[i].value.trim());
         }
 
+        return {
+          refNumber: document.getElementById("refNumber").value,
+          fromAddress: document.getElementById("fromAddress").value,
+          toAddresses: toAddresses,
+          subject: document.getElementById("subject").value,
+          references: references,
+          letterBody: document.getElementById("letterBody").value,
+          enclosures: enclosures,
+          copyTo: copyTo,
+          approverName: document.getElementById("principalName").value,
+          tables: data.tables,
+          numberParagraphs: document.getElementById("numberParagraphs")
+            .checked,
+          copyOptions: getCopyOptions(),
+          dataSheets: data.dataSheets,
+          appellateAuthority: getAppellateAuthorityData(),
+        };
+      }
+
+      // Fill the form from getLetterData() output (template import, saved drafts)
+      function applyLetterData(d) {
+        document.getElementById("refNumber").value = d.refNumber || "";
+        document.getElementById("fromAddress").value =
+          d.fromAddress || "";
+        var _subEl = document.getElementById("subject");
+        _subEl.value = d.subject || "";
+        autoExpand(_subEl);
+        document.getElementById("letterBody").value = d.letterBody || "";
+        document.getElementById("principalName").value =
+          d.approverName || d.principalName || "";
+
+        data.tables = d.tables || {};
+        updateTablesDisplay();
+        document.getElementById("numberParagraphs").checked =
+          !!d.numberParagraphs;
+        applyCopyOptions(d.copyOptions);
+        data.dataSheets = d.dataSheets || {};
+        activeDataSheetName = null;
+        renderDataSheetTabs();
+        applyAppellateAuthorityData(d.appellateAuthority);
+        var containers = [
+          "toAddresses",
+          "references",
+          "enclosures",
+          "copyTo",
+        ];
+        for (var i = 0; i < containers.length; i++) {
+          var container = document.getElementById(containers[i]);
+          while (container.children.length > 1) {
+            container.removeChild(container.lastChild);
+          }
+        }
+        [".address-textarea", ".reference-input", ".enclosure-input", ".copy-input"].forEach(
+          function (sel) {
+            var first = document.querySelector(sel);
+            if (first) first.value = "";
+          },
+        );
+
+        // Load addresses
+        if (d.toAddresses && d.toAddresses.length > 0) {
+          for (var i = 0; i < d.toAddresses.length; i++) {
+            if (i > 0) addField("toAddresses", "to");
+            var _toEl1 =
+              document.querySelectorAll(".address-textarea")[i];
+            _toEl1.value = d.toAddresses[i];
+            autoExpand(_toEl1);
+          }
+        }
+
+        // Load references
+        if (d.references && d.references.length > 0) {
+          for (var i = 0; i < d.references.length; i++) {
+            if (i > 0) addField("references", "ref");
+            var _ri = document.querySelectorAll(".reference-input")[i];
+            _ri.value = d.references[i];
+            autoExpand(_ri);
+          }
+        }
+
+        // Load enclosures
+        if (d.enclosures && d.enclosures.length > 0) {
+          for (var i = 0; i < d.enclosures.length; i++) {
+            if (i > 0) addField("enclosures", "enclosure");
+            document.querySelectorAll(".enclosure-input")[i].value =
+              d.enclosures[i];
+          }
+        }
+
+        // Load copy addresses
+        if (d.copyTo && d.copyTo.length > 0) {
+          for (var i = 0; i < d.copyTo.length; i++) {
+            if (i > 0) addField("copyTo", "copy");
+            var _copyEl1 = document.querySelectorAll(".copy-input")[i];
+            _copyEl1.value = d.copyTo[i];
+            autoExpand(_copyEl1);
+          }
+        }
+
+        updatePreview();
+      }
+
+      // Export function
+      function doExport() {
+        var templateName = prompt("Template name for export:");
+        if (!templateName) return;
+
         var templateData = {
           name: templateName,
           description: "",
-          data: {
-            refNumber: document.getElementById("refNumber").value,
-            fromAddress: document.getElementById("fromAddress").value,
-            toAddresses: toAddresses,
-            subject: document.getElementById("subject").value,
-            references: references,
-            letterBody: document.getElementById("letterBody").value,
-            enclosures: enclosures,
-            copyTo: copyTo,
-            approverName: document.getElementById("principalName").value,
-            tables: data.tables,
-            numberParagraphs: document.getElementById("numberParagraphs")
-              .checked,
-            copyOptions: getCopyOptions(),
-            dataSheets: data.dataSheets,
-            appellateAuthority: getAppellateAuthorityData(),
-          },
+          data: getLetterData(),
           exportDate: new Date().toISOString(),
           version: "1.0",
         };
@@ -2069,80 +2168,7 @@
               document.getElementById("templateSelect").value = tempIndex;
 
               // Load the template data into the form
-              var d = templateData.data;
-              document.getElementById("refNumber").value = d.refNumber || "";
-              document.getElementById("fromAddress").value =
-                d.fromAddress || "";
-              var _subEl = document.getElementById("subject");
-              _subEl.value = d.subject || "";
-              autoExpand(_subEl);
-              document.getElementById("letterBody").value = d.letterBody || "";
-              document.getElementById("principalName").value =
-                d.approverName || d.principalName || "";
-
-              data.tables = d.tables || {};
-              updateTablesDisplay();
-              document.getElementById("numberParagraphs").checked =
-                !!d.numberParagraphs;
-              applyCopyOptions(d.copyOptions);
-              data.dataSheets = d.dataSheets || {};
-              activeDataSheetName = null;
-              renderDataSheetTabs();
-              applyAppellateAuthorityData(d.appellateAuthority);
-              var containers = [
-                "toAddresses",
-                "references",
-                "enclosures",
-                "copyTo",
-              ];
-              for (var i = 0; i < containers.length; i++) {
-                var container = document.getElementById(containers[i]);
-                while (container.children.length > 1) {
-                  container.removeChild(container.lastChild);
-                }
-              }
-
-              // Load addresses
-              if (d.toAddresses && d.toAddresses.length > 0) {
-                for (var i = 0; i < d.toAddresses.length; i++) {
-                  if (i > 0) addField("toAddresses", "to");
-                  var _toEl1 =
-                    document.querySelectorAll(".address-textarea")[i];
-                  _toEl1.value = d.toAddresses[i];
-                  autoExpand(_toEl1);
-                }
-              }
-
-              // Load references
-              if (d.references && d.references.length > 0) {
-                for (var i = 0; i < d.references.length; i++) {
-                  if (i > 0) addField("references", "ref");
-                  var _ri = document.querySelectorAll(".reference-input")[i];
-                  _ri.value = d.references[i];
-                  autoExpand(_ri);
-                }
-              }
-
-              // Load enclosures
-              if (d.enclosures && d.enclosures.length > 0) {
-                for (var i = 0; i < d.enclosures.length; i++) {
-                  if (i > 0) addField("enclosures", "enclosure");
-                  document.querySelectorAll(".enclosure-input")[i].value =
-                    d.enclosures[i];
-                }
-              }
-
-              // Load copy addresses
-              if (d.copyTo && d.copyTo.length > 0) {
-                for (var i = 0; i < d.copyTo.length; i++) {
-                  if (i > 0) addField("copyTo", "copy");
-                  var _copyEl1 = document.querySelectorAll(".copy-input")[i];
-                  _copyEl1.value = d.copyTo[i];
-                  autoExpand(_copyEl1);
-                }
-              }
-
-              updatePreview();
+              applyLetterData(templateData.data);
               showToast(
                 'Template "' + templateData.name + '" loaded successfully!',
               );

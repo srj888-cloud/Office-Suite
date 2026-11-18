@@ -939,6 +939,7 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="common/office-core.js"></script>
+    <script src="common/drafts.js"></script>
   </head>
 
   <body>
@@ -1786,6 +1787,16 @@
           loadAddressLists();
           updateDropdowns();
           if (t) t.value = v;
+        },
+        draftApp: "notice",
+        getDraftData: function () {
+          return gatherFormData();
+        },
+        applyDraftData: function (d) {
+          loadTemplateData({ data: d });
+        },
+        draftTitle: function (d) {
+          return d.noticeTitle || d.subject || d.refNumber || "Untitled notice";
         },
         getDataSheets: function () {
           return appData.dataSheets;
@@ -2976,6 +2987,10 @@
         document.getElementById("copyTo").innerHTML = "";
         document.getElementById("toContainer").innerHTML = "";
         toCount = 0;
+        // Keep one empty To and Copy To row. (Emptying them completely made
+        // Clear Form and template loading fail and hid both sections.)
+        addTo();
+        addField("copyTo", "copy");
       }
 
       function clearForm() {
@@ -3005,6 +3020,8 @@
 
         document.getElementById("templateSelect").value = "custom";
         updatePreview();
+        // keep the saved draft; typing now starts a new one
+        OfficeDrafts.detach();
         showToast("Form cleared");
       }
 
@@ -3764,36 +3781,7 @@ ${toText}${toText ? "\n" : ""}${copyTo}`;
         }
       });
 
-      // Auto-save functionality
-      let autoSaveTimeout;
-      function autoSave() {
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-          const formData = gatherFormData();
-          sessionStorage.setItem("ml_current_letter", JSON.stringify(formData));
-        }, 2000);
-      }
-
-      function loadAutoSave() {
-        try {
-          const savedData = JSON.parse(
-            sessionStorage.getItem("ml_current_letter"),
-          );
-          if (savedData) {
-            loadTemplateData({ data: savedData });
-          }
-        } catch (error) {
-          console.error("Error loading auto-saved data:", error);
-        }
-      }
-
-      // Add auto-save to input events
-      function setupAutoSave() {
-        const inputs = document.querySelectorAll("input, textarea, select");
-        inputs.forEach((input) => {
-          input.addEventListener("input", autoSave);
-        });
-      }
+      // Auto-save: drafts are saved in this browser by common/drafts.js
 
       // Make functions globally accessible
       window.initializeApp = initializeApp;
@@ -3818,8 +3806,6 @@ ${toText}${toText ? "\n" : ""}${copyTo}`;
       // Initialize when DOM is ready
       document.addEventListener("DOMContentLoaded", function () {
         initializeApp();
-        setupAutoSave();
-        loadAutoSave();
       });
 
       // Initialize immediately if DOM already loaded
