@@ -163,8 +163,9 @@
       }
 
       .profile-section {
+        width: 100%;
         max-width: 1200px;
-        margin: 0 auto 2rem auto;
+        margin: 1.5rem auto 0 auto;
         padding: 0 1rem;
       }
 
@@ -483,9 +484,6 @@
         .manual-section {
           padding: 0 0.75rem;
         }
-        .header-settings-card {
-          padding: 1rem;
-        }
         .profile-card {
           padding: 1rem;
         }
@@ -542,15 +540,6 @@
         color: #c0392b;
       }
 
-      /* Header & Logo Settings card */
-      .header-settings-card {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem 2rem;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-        border-left: 5px solid var(--secondary);
-        margin-top: 1rem;
-      }
       .idx-pos-btn {
         padding: 4px 12px;
         border: none;
@@ -584,31 +573,6 @@
       .idx-mode-btn.active {
         background: linear-gradient(135deg, var(--secondary), #2980b9);
         color: white;
-      }
-      .header-settings-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        cursor: pointer;
-        user-select: none;
-        padding: 0;
-        background: none;
-        border: none;
-        width: 100%;
-        text-align: left;
-      }
-      .header-settings-toggle:hover strong {
-        color: var(--secondary);
-      }
-      .header-settings-chevron {
-        font-size: 0.8rem;
-        color: var(--secondary);
-        transition: transform 0.2s;
-        display: inline-block;
-        font-style: normal;
-      }
-      .header-settings-chevron.open {
-        transform: rotate(180deg);
       }
 
       /* Feedback */
@@ -743,6 +707,175 @@
         opacity: 0.5;
         letter-spacing: 0.04em;
       }
+
+      /* ── Settings panel (slides in from the right) ── */
+      header {
+        position: relative;
+      }
+
+      .settings-open-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border: 1.5px solid rgba(255, 255, 255, 0.55);
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.12);
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .settings-open-btn:hover,
+      .settings-open-btn:focus-visible {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      .settings-alert {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 2px white;
+      }
+
+      .settings-alert[hidden] {
+        display: none;
+      }
+
+      .profile-edit {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--secondary);
+        white-space: nowrap;
+      }
+
+      .settings-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(20, 30, 40, 0.45);
+        z-index: 900;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .settings-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(560px, 100vw);
+        background: white;
+        z-index: 901;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18);
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+      }
+
+      .settings-backdrop[hidden],
+      .settings-panel[hidden] {
+        display: none;
+      }
+
+      body.settings-open {
+        overflow: hidden;
+      }
+
+      body.settings-open .settings-backdrop {
+        opacity: 1;
+      }
+
+      body.settings-open .settings-panel {
+        transform: none;
+      }
+
+      .sp-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem 0.5rem;
+      }
+
+      .sp-head h2 {
+        font-size: 1.2rem;
+        color: var(--primary);
+      }
+
+      .sp-close {
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 50%;
+        background: #f0f3f5;
+        color: var(--primary);
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .sp-close:hover {
+        background: #e1e7eb;
+      }
+
+      .sp-tabs {
+        margin: 0;
+        padding: 0 1.25rem;
+        overflow-x: auto;
+      }
+
+      .sp-tabs .pf-tab {
+        white-space: nowrap;
+      }
+
+      .sp-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 1.25rem;
+      }
+
+      .settings-panel .profile-form {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
+
+      /* Save / Undo / Import / Export stay visible at the bottom */
+      .settings-panel .pf-actions {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding-bottom: 1rem;
+      }
+
+      #panel_header {
+        padding-bottom: 1.5rem;
+      }
+
+      #panel_header[hidden] {
+        display: none;
+      }
+
+      #headerSettingsBody {
+        margin-top: 1rem;
+      }
+
+      @media (max-width: 560px) {
+        .settings-open-btn {
+          position: static;
+          margin-top: 0.75rem;
+        }
+        .sp-head,
+        .sp-tabs,
+        .sp-body {
+          padding-left: 0.85rem;
+          padding-right: 0.85rem;
+        }
+      }
     </style>
   </head>
 
@@ -750,8 +883,25 @@
     <header>
       <h1>Office Suite</h1>
       <p>A toolkit for e-Office document drafting.</p>
+      <button
+        type="button"
+        class="settings-open-btn"
+        id="settingsOpenBtn"
+        onclick="openSettings()"
+        aria-haspopup="dialog"
+        aria-controls="settingsPanel"
+      >
+        <span aria-hidden="true">⚙</span> Settings
+        <span
+          class="settings-alert"
+          id="settingsAlert"
+          title="Office profile not set up yet"
+          hidden
+        ></span>
+      </button>
     </header>
 
+    <!-- Office profile summary (click to open Settings) -->
     <div class="profile-section">
       <div class="profile-card" id="profileCard">
         <button
@@ -759,8 +909,7 @@
           class="profile-toggle"
           id="profileToggle"
           onclick="toggleProfileForm()"
-          aria-expanded="true"
-          aria-controls="profileForm"
+          aria-controls="settingsPanel"
         >
           <span class="profile-info">
             <span class="profile-title" id="profileTitle">Office Profile</span>
@@ -770,45 +919,86 @@
             <span class="profile-badge inactive" id="profileBadge"
               >Not configured</span
             >
-            <em id="profileChevron" class="header-settings-chevron open"
-              >▼</em
-            >
+            <span class="profile-edit">Edit ›</span>
           </span>
         </button>
+      </div>
+    </div>
+
+    <!-- Settings panel: Office Profile, RTI Profile, Header & Logo -->
+    <div
+      class="settings-backdrop"
+      id="settingsBackdrop"
+      onclick="closeSettings()"
+      hidden
+    ></div>
+    <aside
+      class="settings-panel"
+      id="settingsPanel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settingsTitle"
+      hidden
+    >
+      <div class="sp-head">
+        <h2 id="settingsTitle">Settings</h2>
+        <button
+          type="button"
+          class="sp-close"
+          onclick="closeSettings()"
+          aria-label="Close settings"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="pf-tabs sp-tabs" role="tablist" aria-label="Settings">
+        <button
+          type="button"
+          role="tab"
+          class="pf-tab active"
+          id="tab_office"
+          aria-selected="true"
+          aria-controls="panel_office"
+          onclick="showSettingsTab('office')"
+          onkeydown="onProfileTabKey(event)"
+        >
+          Office Profile
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="pf-tab"
+          id="tab_rti"
+          aria-selected="false"
+          aria-controls="panel_rti"
+          tabindex="-1"
+          onclick="showSettingsTab('rti')"
+          onkeydown="onProfileTabKey(event)"
+        >
+          RTI Profile
+          <span class="pf-tab-dot" id="rtiDot" title="Saved" hidden></span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="pf-tab"
+          id="tab_header"
+          aria-selected="false"
+          aria-controls="panel_header"
+          tabindex="-1"
+          onclick="showSettingsTab('header')"
+          onkeydown="onProfileTabKey(event)"
+        >
+          Header &amp; Logo
+        </button>
+      </div>
+      <div class="sp-body">
         <form
           id="profileForm"
           class="profile-form"
           onsubmit="saveProfile(event)"
           novalidate
         >
-          <div class="pf-tabs" role="tablist" aria-label="Profile type">
-            <button
-              type="button"
-              role="tab"
-              class="pf-tab active"
-              id="tab_office"
-              aria-selected="true"
-              aria-controls="panel_office"
-              onclick="showProfileTab('office')"
-              onkeydown="onProfileTabKey(event)"
-            >
-              Office
-            </button>
-            <button
-              type="button"
-              role="tab"
-              class="pf-tab"
-              id="tab_rti"
-              aria-selected="false"
-              aria-controls="panel_rti"
-              tabindex="-1"
-              onclick="showProfileTab('rti')"
-              onkeydown="onProfileTabKey(event)"
-            >
-              RTI
-              <span class="pf-tab-dot" id="rtiDot" title="Saved" hidden></span>
-            </button>
-          </div>
           <div role="tabpanel" id="panel_office" aria-labelledby="tab_office">
             <div id="profileFields"></div>
           </div>
@@ -822,7 +1012,7 @@
               Used only in the <strong>Letter</strong> app, for RTI replies.
               Head of Office, Designation and From Address replace the Office
               values (an empty field keeps the Office value); office name and
-              address come from the Office tab. The Appellate Authority is
+              address come from the Office Profile tab. The Appellate Authority is
               printed in every RTI reply. Choose <strong>RTI</strong> on the
               Letter card to use it.
             </p>
@@ -876,23 +1066,17 @@
             </button>
           </div>
         </form>
-      </div>
-      <!-- Header & Logo Settings -->
-      <div class="header-settings-card">
-        <button
-          class="header-settings-toggle"
-          onclick="idxToggleHeaderSettings()"
-          aria-expanded="true"
-          aria-controls="headerSettingsBody"
+        <div
+          role="tabpanel"
+          id="panel_header"
+          aria-labelledby="tab_header"
+          hidden
         >
-          <strong style="color: var(--primary); font-size: 1rem"
-            >Header &amp; Logo Settings</strong
-          >
-          <em id="headerSettingsChevron" class="header-settings-chevron open"
-            >▼</em
-          >
-        </button>
-        <div id="headerSettingsBody" style="margin-top: 1rem">
+          <p class="pf-note">
+            Saved in this browser and used by all three apps. Choose per app
+            whether drafts show no header, the logo, or the full header image.
+          </p>
+        <div id="headerSettingsBody">
           <!-- Image uploads -->
           <div style="margin-bottom: 1rem">
             <div
@@ -1134,9 +1318,9 @@
             </div>
           </div>
         </div>
-        <!-- /headerSettingsBody -->
+        </div>
       </div>
-    </div>
+    </aside>
 
     <div class="container">
       <div class="grid">
@@ -1479,24 +1663,7 @@
           btn.classList.toggle("active", btn.getAttribute("data-val") === mode);
         });
       }
-      function idxToggleHeaderSettings() {
-        var body = document.getElementById("headerSettingsBody");
-        var chevron = document.getElementById("headerSettingsChevron");
-        var btn = chevron.closest("button");
-        var isOpen = body.style.display !== "none";
-        body.style.display = isOpen ? "none" : "block";
-        chevron.classList.toggle("open", !isOpen);
-        btn.setAttribute("aria-expanded", !isOpen);
-        localStorage.setItem("headerSettingsOpen", isOpen ? "0" : "1");
-      }
       function idxInitHeaderSettings() {
-        var isOpen = localStorage.getItem("headerSettingsOpen") !== "0";
-        var body = document.getElementById("headerSettingsBody");
-        var chevron = document.getElementById("headerSettingsChevron");
-        var btn = chevron.closest("button");
-        body.style.display = isOpen ? "block" : "none";
-        chevron.classList.toggle("open", isOpen);
-        btn.setAttribute("aria-expanded", isOpen);
         idxRefreshLogoUI();
         idxRefreshHeaderUI();
         ["letter", "proceedings", "notice"].forEach(idxRefreshModeUI);
@@ -1790,19 +1957,100 @@
         updateProfileDirty();
       }
 
+      /* ── Settings panel ──
+         The Office Profile / RTI Profile tabs show the profile form (one
+         Save button saves both); Header & Logo shows the header settings. */
+      var SETTINGS_TABS = ["office", "rti", "header"];
+      var currentSettingsTab = "office";
+      var settingsReturnFocus = null;
+
+      function isSettingsOpen() {
+        return !document.getElementById("settingsPanel").hidden;
+      }
+
+      function openSettings(tab) {
+        var panel = document.getElementById("settingsPanel");
+        var backdrop = document.getElementById("settingsBackdrop");
+        showSettingsTab(tab || currentSettingsTab);
+        if (isSettingsOpen()) return;
+        settingsReturnFocus = document.activeElement;
+        panel.hidden = false;
+        backdrop.hidden = false;
+        void panel.offsetWidth; // let the slide-in transition run
+        document.body.classList.add("settings-open");
+        document.getElementById("tab_" + currentSettingsTab).focus();
+      }
+
+      function closeSettings() {
+        if (!isSettingsOpen()) return;
+        document.body.classList.remove("settings-open");
+        document.getElementById("settingsPanel").hidden = true;
+        document.getElementById("settingsBackdrop").hidden = true;
+        if (profileDirty) {
+          renderProfileStatus(
+            "Unsaved profile changes. Open Settings to save or undo them.",
+          );
+        }
+        if (settingsReturnFocus && settingsReturnFocus.focus) {
+          settingsReturnFocus.focus();
+        }
+      }
+
+      function showSettingsTab(id) {
+        currentSettingsTab = id;
+        var isHeader = id === "header";
+        if (!isHeader) showProfileTab(id);
+        document.getElementById("profileForm").hidden = isHeader;
+        document.getElementById("panel_header").hidden = !isHeader;
+        SETTINGS_TABS.forEach(function (t) {
+          var tab = document.getElementById("tab_" + t);
+          var on = t === id;
+          tab.classList.toggle("active", on);
+          tab.setAttribute("aria-selected", on ? "true" : "false");
+          tab.tabIndex = on ? 0 : -1;
+        });
+      }
+
+      // Older code opens/closes "the profile form"; that is now the panel.
       function setProfileOpen(open) {
-        document.getElementById("profileForm").hidden = !open;
-        document
-          .getElementById("profileToggle")
-          .setAttribute("aria-expanded", open ? "true" : "false");
-        document
-          .getElementById("profileChevron")
-          .classList.toggle("open", open);
+        if (open) {
+          openSettings(currentProfileTab === "rti" ? "rti" : "office");
+        } else {
+          closeSettings();
+        }
       }
 
       function toggleProfileForm() {
-        setProfileOpen(document.getElementById("profileForm").hidden);
+        openSettings(currentProfileTab === "rti" ? "rti" : "office");
       }
+
+      document.addEventListener("keydown", function (e) {
+        if (!isSettingsOpen()) return;
+        if (e.key === "Escape") {
+          closeSettings();
+          return;
+        }
+        if (e.key !== "Tab") return;
+        // keep keyboard focus inside the panel while it is open
+        var items = Array.prototype.filter.call(
+          document
+            .getElementById("settingsPanel")
+            .querySelectorAll("button, input, textarea, select, a[href]"),
+          function (el) {
+            return !el.disabled && el.tabIndex !== -1 && el.offsetParent !== null;
+          },
+        );
+        if (!items.length) return;
+        var first = items[0];
+        var last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
+        }
+      });
 
       function showProfileTab(id) {
         currentProfileTab = id;
@@ -1819,8 +2067,10 @@
 
       function onProfileTabKey(event) {
         if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        var next = currentProfileTab === "office" ? "rti" : "office";
-        showProfileTab(next);
+        var i = SETTINGS_TABS.indexOf(currentSettingsTab);
+        var step = event.key === "ArrowRight" ? 1 : SETTINGS_TABS.length - 1;
+        var next = SETTINGS_TABS[(i + step) % SETTINGS_TABS.length];
+        showSettingsTab(next);
         document.getElementById("tab_" + next).focus();
         event.preventDefault();
       }
@@ -1870,7 +2120,7 @@
         } else {
           note.textContent = hasRti
             ? ""
-            : "Fill in the RTI tab in Office Profile to use RTI.";
+            : "Fill in RTI Profile in Settings to use RTI.";
           note.className = "draft-as-note";
         }
       }
@@ -1883,6 +2133,7 @@
         var subtitle = document.getElementById("profileSubtitle");
         var badge = document.getElementById("profileBadge");
 
+        document.getElementById("settingsAlert").hidden = !!p;
         if (p) {
           card.classList.add("loaded");
           title.textContent =
@@ -1898,14 +2149,14 @@
             note ||
             (who.length ? who.join(", ") + " · " : "") +
               (rti ? "RTI profile saved · " : "") +
-              "Click to view or edit";
+              "Click to view or edit in Settings";
           badge.textContent = "Profile Active";
           badge.className = "profile-badge active";
         } else {
           card.classList.remove("loaded");
           title.textContent = "Office Profile";
           subtitle.textContent =
-            "Fill in your office details and click Save Profile. All apps will use them automatically.";
+            "Open Settings, fill in your office details and click Save Profile. All apps will use them automatically.";
           badge.textContent = "Not configured";
           badge.className = "profile-badge inactive";
         }
@@ -1923,7 +2174,7 @@
             profileInput(k).parentNode.classList.add("invalid");
           });
           setProfileStatus(
-            "Enter at least the Office Name or the Head of Office name in the Office tab.",
+            "Enter at least the Office Name or the Head of Office name in the Office Profile tab.",
             "error",
           );
           profileInput("officeName").focus();
@@ -2005,8 +2256,10 @@
           try {
             profile = JSON.parse(e.target.result);
           } catch (err) {
-            alert(
+            openSettings("office");
+            setProfileStatus(
               "Could not read the file. Make sure it is a profile JSON file.",
+              "error",
             );
             return;
           }
@@ -2015,8 +2268,10 @@
             typeof profile !== "object" ||
             !hasProfileIdentity(profile)
           ) {
-            alert(
+            openSettings("office");
+            setProfileStatus(
               "This file does not look like an office profile. It needs at least an office name or head of office name.",
+              "error",
             );
             return;
           }
@@ -2144,9 +2399,9 @@
         fillProfileForm("office", stored);
         fillProfileForm("rti", readStoredProfile("rti"));
         takeProfileSnapshot();
-        showProfileTab("office");
+        showSettingsTab("office");
         renderProfileStatus();
-        setProfileOpen(!stored);
+        if (!stored) openSettings("office");
       })();
       window.addEventListener("pageshow", function () {
         skipUnloadPrompt = false;
