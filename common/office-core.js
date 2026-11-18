@@ -1071,3 +1071,169 @@ function renderDataSheetGrid(filterText) {
   gridEl.innerHTML = "";
   gridEl.appendChild(table);
 }
+
+/* ══════════════════════════════════════
+   Saved address book (To, Copy To, and Letter's Appellate Authority)
+   ══════════════════════════════════════
+   The lists live in browser storage and are shared by all three apps.
+   Every change re-reads the saved list first, changes it, then saves it,
+   and finds the entry by its title and text (not by position). So an
+   address added in one app or tab is never wiped out by another.
+   Each app says through APP where it keeps its copy of the lists
+   (APP.addressList) and how to reload them and its dropdowns
+   (APP.reloadAddresses). */
+var ADDRESS_KEYS = {
+  address: "ml_addresses",
+  to: "ml_addresses",
+  copy: "ml_copy_addresses",
+  appellate: "ml_appellate_addresses",
+};
+var ADDRESS_LABELS = {
+  address: ["Manage Addresses", "Address"],
+  to: ["Manage Addresses", "Address"],
+  copy: ["Manage Copy Addresses", "Copy Address"],
+  appellate: ["Manage Appellate Authority Addresses", "Appellate Authority Address"],
+};
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+
+// type is "address" / "to" / "copy" / "appellate" (or a storage key)
+function readAddressList(type) {
+  try {
+    var list = JSON.parse(localStorage.getItem(ADDRESS_KEYS[type] || type));
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function managerTitle(type) {
+  return (ADDRESS_LABELS[type] || ADDRESS_LABELS.address)[0];
+}
+
+// The list as this app shows it (same order as its dropdowns)
+function managerItems(type) {
+  return APP.addressList(type) || [];
+}
+
+function updateAddressList(type, change) {
+  const items = readAddressList(type);
+  change(items);
+  try {
+    localStorage.setItem(ADDRESS_KEYS[type], JSON.stringify(items));
+  } catch (e) {
+    showToast("Could not save. Browser storage may be blocked.", "error");
+    return false;
+  }
+  APP.reloadAddresses();
+  return true;
+}
+
+function openManager(type) {
+  currentManager = type;
+  APP.reloadAddresses();
+  const items = managerItems(type);
+  let html = items.length
+    ? ""
+    : '<p class="addr-empty">No saved addresses yet.</p>';
+  items.forEach((item, i) => {
+    html += `
+      <div class="addr-card">
+        <h4>${escapeHtml(item.title)}</h4>
+        <pre>${escapeHtml(item.address)}</pre>
+        <button type="button" class="btn btn-primary btn-small" onclick="editItem(${i})">Edit</button>
+        <button type="button" class="btn btn-danger btn-small" onclick="deleteItem(${i})">Delete</button>
+      </div>`;
+  });
+  html += `<button type="button" class="btn btn-small" onclick="addNewItem()">+ Add New ${(ADDRESS_LABELS[type] || ADDRESS_LABELS.address)[1]}</button>`;
+  showModal(managerTitle(type), html);
+}
+
+function addNewItem() {
+  showAddressForm(-1);
+}
+
+function showAddressForm(index) {
+  const item = index >= 0 ? managerItems(currentManager)[index] : null;
+  const html = `
+    <div class="form-group">
+      <label for="addrFormTitle">Title</label>
+      <input type="text" id="addrFormTitle" value="${escapeHtml(item ? item.title : "")}" placeholder="Short name shown in the dropdown">
+    </div>
+    <div class="form-group">
+      <label for="addrFormAddress">Address (press Enter for a new line)</label>
+      <textarea id="addrFormAddress" rows="5">${escapeHtml(item ? item.address : "")}</textarea>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <button type="button" class="btn btn-small" onclick="saveAddressForm(${index})">Save</button>
+      <button type="button" class="btn btn-primary btn-small" onclick="openManager(currentManager)">Cancel</button>
+    </div>`;
+  showModal(
+    managerTitle(currentManager) + (item ? " — Edit" : " — Add New"),
+    html,
+  );
+  document.getElementById("addrFormTitle").focus();
+}
+
+function saveAddressForm(index) {
+  const title = document.getElementById("addrFormTitle").value.trim();
+  const address = document.getElementById("addrFormAddress").value.trim();
+  if (!title || !address) {
+    showToast("Both title and address are required");
+    return;
+  }
+  const old = index >= 0 ? managerItems(currentManager)[index] : null;
+  if (
+    updateAddressList(currentManager, (items) => {
+      const at = old
+        ? items.findIndex(
+            (x) => x.title === old.title && x.address === old.address,
+          )
+        : -1;
+      if (at !== -1) items[at] = { title, address };
+      else items.push({ title, address });
+    })
+  ) {
+    openManager(currentManager);
+    showToast(old ? "Address updated" : "Address added");
+  }
+}
+
+function editItem(index) {
+  showAddressForm(index);
+}
+
+function deleteItem(index) {
+  const item = managerItems(currentManager)[index];
+  if (!item || !confirm(`Delete "${item.title}"?`)) return;
+  if (
+    updateAddressList(currentManager, (items) => {
+      const at = items.findIndex(
+        (x) => x.title === item.title && x.address === item.address,
+      );
+      if (at !== -1) items.splice(at, 1);
+    })
+  ) {
+    openManager(currentManager);
+    showToast("Address deleted");
+  }
+}
+
+// Another app or tab changed the address book: refresh the lists and dropdowns here
+window.addEventListener("storage", function (e) {
+  if (
+    e.key === null ||
+    e.key === ADDRESS_KEYS.address ||
+    e.key === ADDRESS_KEYS.copy ||
+    e.key === ADDRESS_KEYS.appellate
+  ) {
+    APP.reloadAddresses();
+  }
+});

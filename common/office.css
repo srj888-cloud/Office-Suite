@@ -1,0 +1,30 @@
+/* Office Suite - styles shared by Letter Generator, Notice and Proceedings.
+   Loaded before each app's own <style>, so an app's own rules still win. */
+
+/* Saved address book manager (openManager in office-core.js) */
+.addr-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  background: #f9fbfb;
+}
+
+.addr-card h4 {
+  margin: 0 0 6px;
+  color: var(--primary);
+}
+
+.addr-card pre {
+  margin: 0 0 8px;
+  font-family: inherit;
+  font-size: 13px;
+  white-space: pre-wrap;
+  color: #555;
+}
+
+.addr-empty {
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 12px;
+}

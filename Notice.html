@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Circular/Notice</title>
+    <link rel="stylesheet" href="common/office.css" />
     <style>
       :root {
         --primary: #2c3e50;
@@ -1812,6 +1813,17 @@
         notify: function (message) {
           showToast(message);
         },
+        addressList: function (type) {
+          return type === "copy" ? appData.copyAddresses : appData.addresses;
+        },
+        reloadAddresses: function () {
+          // keep the chosen template selected while the dropdowns are rebuilt
+          var t = document.getElementById("templateSelect");
+          var v = t ? t.value : null;
+          loadAddressLists();
+          updateDropdowns();
+          if (t) t.value = v;
+        },
         getDataSheets: function () {
           return appData.dataSheets;
         },
@@ -2019,33 +2031,31 @@
       // Data management
       function loadStoredData() {
         try {
-          appData.addresses =
-            JSON.parse(localStorage.getItem("ml_addresses")) || [];
-          appData.copyAddresses =
-            JSON.parse(localStorage.getItem("ml_copy_addresses")) || [];
+          loadAddressLists();
           appData.templates =
             JSON.parse(localStorage.getItem("ml_templates")) || [];
-          // Clear any legacy pre-loaded default copy addresses
-          const legacyCopyTitles = ["Office File", "Head Accountant"];
-          appData.copyAddresses = appData.copyAddresses.filter(
-            (a) => legacyCopyTitles.indexOf(a.title) === -1,
-          );
         } catch (error) {
           console.error("Error loading stored data:", error);
           showToast("Error loading saved data", "error");
         }
       }
 
+      // Re-reads the saved address lists (shared with the other apps).
+      // Old built-in default copy addresses are hidden here, as before; they
+      // are no longer deleted from storage.
+      function loadAddressLists() {
+        const legacyCopyTitles = ["Office File", "Head Accountant"];
+        appData.addresses = readAddressList("address");
+        appData.copyAddresses = readAddressList("copy").filter(
+          (a) => legacyCopyTitles.indexOf(a.title) === -1,
+        );
+      }
+
+      // Address lists are saved by updateAddressList() in
+      // common/office-core.js, never from here, so saving anything else
+      // cannot overwrite addresses changed in another app or tab.
       function saveData() {
         try {
-          localStorage.setItem(
-            "ml_addresses",
-            JSON.stringify(appData.addresses),
-          );
-          localStorage.setItem(
-            "ml_copy_addresses",
-            JSON.stringify(appData.copyAddresses),
-          );
           localStorage.setItem(
             "ml_templates",
             JSON.stringify(appData.templates),
@@ -3047,7 +3057,7 @@
           dropdown.innerHTML =
             '<option value="">Select saved copy address...</option>';
           appData.copyAddresses.forEach((addr, index) => {
-            dropdown.innerHTML += `<option value="${index}">${addr.title}</option>`;
+            dropdown.innerHTML += `<option value="${index}">${escapeHtml(addr.title)}</option>`;
           });
           dropdown.value = currentValue;
         });
@@ -3058,7 +3068,7 @@
           dropdown.innerHTML =
             '<option value="">Select saved address...</option>';
           appData.addresses.forEach((addr, index) => {
-            dropdown.innerHTML += `<option value="${index}">${addr.title}</option>`;
+            dropdown.innerHTML += `<option value="${index}">${escapeHtml(addr.title)}</option>`;
           });
           dropdown.value = currentValue;
         });
@@ -3099,108 +3109,6 @@
           loadTemplateData(template);
           showToast(`Template "${template.name}" loaded`);
         }
-      }
-
-      // Address manager
-      function openManager(type) {
-        currentManager = type;
-        const title =
-          type === "address" ? "Manage Addresses" : "Manage Copy Addresses";
-        const items =
-          type === "address" ? appData.addresses : appData.copyAddresses;
-
-        let html = '<div style="margin-bottom: 20px;">';
-
-        items.forEach((item, index) => {
-          html += `
-                    <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 10px; background: #f9f9f9;">
-                        <h4 style="margin-bottom: 10px; color: var(--primary);">${item.title}</h4>
-                        <textarea readonly style="width: 100%; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: white;">${item.address}</textarea>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-primary btn-small" onclick="editItem(${index})">Edit</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteItem(${index})">Delete</button>
-                        </div>
-                    </div>
-                `;
-        });
-
-        html += `
-                </div>
-                <button class="btn btn-success" onclick="addNewItem()">+ Add New ${type === "address" ? "Address" : "Copy Address"}</button>
-            `;
-
-        showModal(title, html);
-      }
-
-      function editItem(index) {
-        const items =
-          currentManager === "address"
-            ? appData.addresses
-            : appData.copyAddresses;
-        const item = items[index];
-        showAddressForm(index, item.title, item.address);
-      }
-
-      function deleteItem(index) {
-        if (!confirm("Delete this item?")) return;
-
-        const items =
-          currentManager === "address"
-            ? appData.addresses
-            : appData.copyAddresses;
-        items.splice(index, 1);
-        saveData();
-        updateDropdowns();
-        openManager(currentManager);
-        showToast("Item deleted");
-      }
-
-      function addNewItem() {
-        showAddressForm(-1, "", "");
-      }
-
-      function showAddressForm(index, title, address) {
-        const isEdit = index >= 0;
-        const html =
-          '<div class="form-group">' +
-          "<label>Title:</label>" +
-          `<input type="text" id="addrFormTitle" value="${(title || "").replace(/"/g, "&quot;")}" style="width: 100%;">` +
-          "</div>" +
-          '<div class="form-group" style="margin-top: 12px;">' +
-          "<label>Address (press Enter for a new line):</label>" +
-          `<textarea id="addrFormAddress" style="width: 100%; min-height: 100px;">${address || ""}</textarea>` +
-          "</div>" +
-          '<div style="margin-top: 15px; display: flex; gap: 8px;">' +
-          `<button class="btn btn-success" onclick="saveAddressForm(${index})">Save</button>` +
-          '<button class="btn" onclick="openManager(currentManager)">Cancel</button>' +
-          "</div>";
-
-        const title2 =
-          currentManager === "address" ? "Manage Addresses" : "Manage Copy Addresses";
-        showModal(title2 + (isEdit ? " — Edit" : " — Add New"), html);
-      }
-
-      function saveAddressForm(index) {
-        const title = document.getElementById("addrFormTitle").value.trim();
-        const address = document.getElementById("addrFormAddress").value.trim();
-        if (!title || !address) {
-          showToast("Both title and address are required");
-          return;
-        }
-
-        const items =
-          currentManager === "address"
-            ? appData.addresses
-            : appData.copyAddresses;
-        if (index >= 0) {
-          items[index] = { title: title, address: address };
-        } else {
-          items.push({ title: title, address: address });
-        }
-        saveData();
-        updateDropdowns();
-        openManager(currentManager);
-        showToast(index >= 0 ? "Item updated" : "Item added");
       }
 
       // Letter preview and copying
