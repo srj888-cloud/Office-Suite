@@ -126,14 +126,20 @@ var OfficeDrafts = (function () {
 
   /* ── backup ── */
   function exportAll() {
+    // resolves to { drafts: n, phrases: n } (zeros when nothing was saved)
     return list().then(function (drafts) {
-      if (!drafts.length) return 0;
+      var hasPhrases = window.OfficePhrases && OfficePhrases.isCustom();
+      if (!drafts.length && !hasPhrases) return { drafts: 0, phrases: 0 };
       var out = {
         type: "office-suite-drafts",
         version: 1,
         exported: new Date().toISOString(),
         drafts: drafts,
       };
+      // the phrase list travels with the drafts (only when it was changed)
+      if (window.OfficePhrases && OfficePhrases.isCustom()) {
+        out.phrases = OfficePhrases.getList();
+      }
       var blob = new Blob([JSON.stringify(out, null, 2)], {
         type: "application/json",
       });
@@ -146,7 +152,7 @@ var OfficeDrafts = (function () {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      return drafts.length;
+      return { drafts: drafts.length, phrases: out.phrases ? out.phrases.length : 0 };
     });
   }
 
@@ -167,7 +173,12 @@ var OfficeDrafts = (function () {
           reject(new Error("This is not an Office Suite drafts backup file."));
           return;
         }
-        var counts = { added: 0, updated: 0, skipped: 0 };
+        var counts = { added: 0, updated: 0, skipped: 0, phrases: 0 };
+        if (Array.isArray(json.phrases) && window.OfficePhrases) {
+          try {
+            counts.phrases = OfficePhrases.mergeList(json.phrases);
+          } catch (e) {}
+        }
         var valid = json.drafts.filter(function (d) {
           return d && d.id && APP_FILES[d.app] && d.data;
         });
@@ -391,8 +402,12 @@ var OfficeDrafts = (function () {
     saveNow()
       .then(exportAll)
       .then(
-        function (n) {
-          showToast(n ? "Backed up " + n + " draft(s)." : "There are no drafts to back up yet.", n ? undefined : "error");
+        function (c) {
+          if (!c.drafts && !c.phrases) {
+            showToast("There are no drafts to back up yet.", "error");
+            return;
+          }
+          showToast("Backed up " + c.drafts + " draft(s)" + (c.phrases ? " and " + c.phrases + " phrase(s)" : "") + ".");
         },
         function (err) {
           showToast("Could not back up drafts. " + err.message, "error");
@@ -408,7 +423,8 @@ var OfficeDrafts = (function () {
       function (c) {
         showToast(
           "Restored: " + c.added + " new, " + c.updated + " updated" +
-            (c.skipped ? ", " + c.skipped + " already up to date" : "") + ".",
+            (c.skipped ? ", " + c.skipped + " already up to date" : "") +
+            (c.phrases ? ", " + c.phrases + " phrase(s) added" : "") + ".",
         );
         if (document.getElementById("draftRestoreInput")) showWindow();
       },

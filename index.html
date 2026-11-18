@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Office Suite</title>
     <script src="common/drafts.js"></script>
+    <script src="common/phrases.js"></script>
     <style>
       :root {
         --primary: #2c3e50;
@@ -940,8 +941,13 @@
         padding-bottom: 1.5rem;
       }
 
-      #panel_header[hidden] {
+      #panel_header[hidden],
+      #panel_phrases[hidden] {
         display: none;
+      }
+
+      #panel_phrases {
+        padding-bottom: 1.5rem;
       }
 
       #headerSettingsBody {
@@ -1074,6 +1080,19 @@
           onkeydown="onProfileTabKey(event)"
         >
           Header &amp; Logo
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="pf-tab"
+          id="tab_phrases"
+          aria-selected="false"
+          aria-controls="panel_phrases"
+          tabindex="-1"
+          onclick="showSettingsTab('phrases')"
+          onkeydown="onProfileTabKey(event)"
+        >
+          Phrases
         </button>
       </div>
       <div class="sp-body">
@@ -1402,6 +1421,22 @@
             </div>
           </div>
         </div>
+        </div>
+        <div
+          role="tabpanel"
+          id="panel_phrases"
+          aria-labelledby="tab_phrases"
+          hidden
+        >
+          <p class="pf-note">
+            While typing in any app, the first few letters of a phrase (in
+            Malayalam or English) show a short list under the cursor:
+            <strong>Tab</strong> inserts it, <strong>↑ ↓</strong> choose,
+            <strong>Esc</strong> closes. <strong>Ctrl+Space</strong> shows all
+            phrases. Select text in a form field and click
+            <strong>★ Save as phrase</strong> to add your own.
+          </p>
+          <div id="phraseManager"></div>
         </div>
       </div>
     </aside>
@@ -2074,7 +2109,7 @@
       /* ── Settings panel ──
          The Office Profile / RTI Profile tabs show the profile form (one
          Save button saves both); Header & Logo shows the header settings. */
-      var SETTINGS_TABS = ["office", "rti", "header"];
+      var SETTINGS_TABS = ["office", "rti", "header", "phrases"];
       var currentSettingsTab = "office";
       var settingsReturnFocus = null;
 
@@ -2112,10 +2147,14 @@
 
       function showSettingsTab(id) {
         currentSettingsTab = id;
-        var isHeader = id === "header";
-        if (!isHeader) showProfileTab(id);
-        document.getElementById("profileForm").hidden = isHeader;
-        document.getElementById("panel_header").hidden = !isHeader;
+        var isProfile = id === "office" || id === "rti";
+        if (isProfile) showProfileTab(id);
+        document.getElementById("profileForm").hidden = !isProfile;
+        document.getElementById("panel_header").hidden = id !== "header";
+        document.getElementById("panel_phrases").hidden = id !== "phrases";
+        if (id === "phrases") {
+          OfficePhrases.renderManager(document.getElementById("phraseManager"));
+        }
         SETTINGS_TABS.forEach(function (t) {
           var tab = document.getElementById("tab_" + t);
           var on = t === id;
@@ -2531,10 +2570,13 @@
 
       function backupDrafts() {
         OfficeDrafts.exportAll().then(
-          function (n) {
+          function (c) {
+            var any = c.drafts || c.phrases;
             setDraftNote(
-              n ? "Backed up " + n + " draft(s) to a file." : "There are no drafts to back up yet.",
-              n ? "ok" : "error",
+              any
+                ? "Backed up " + c.drafts + " draft(s)" + (c.phrases ? " and " + c.phrases + " phrase(s)" : "") + " to a file."
+                : "There are no drafts to back up yet.",
+              any ? "ok" : "error",
             );
           },
           function (e) {
@@ -2553,7 +2595,8 @@
             setTimeout(function () {
               setDraftNote(
                 "Restored: " + c.added + " new, " + c.updated + " updated" +
-                  (c.skipped ? ", " + c.skipped + " already up to date" : "") + ".",
+                  (c.skipped ? ", " + c.skipped + " already up to date" : "") +
+                  (c.phrases ? ", " + c.phrases + " phrase(s) added" : "") + ".",
                 "ok",
               );
             }, 50);
