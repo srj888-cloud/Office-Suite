@@ -7,6 +7,48 @@
 */
 
 /* ══════════════════════════════════════
+   Messages (toast at the bottom right)
+   ══════════════════════════════════════
+   showToast(message)           green, 3 seconds
+   showToast(message, "error")  red, 6 seconds
+   Without a type, a message worded as a problem ("Error...", "Could not...",
+   "Cannot...", "...failed", "...required", "Please...") is shown as an error.
+   Click the message to close it early. Used by all three apps instead of
+   alert boxes; confirm boxes are still used where a yes/no answer is needed. */
+var toastTimer = null;
+
+function looksLikeError(message) {
+  return /^\s*(❌\s*)?(error|could not|cannot|invalid|failed|copy failed|please)\b|\b(failed|required|must have|not found|is blank)\b|\bfirst,/i.test(
+    String(message),
+  );
+}
+
+function showToast(message, type) {
+  type = type || (looksLikeError(message) ? "error" : "success");
+  var toast = document.getElementById("toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.innerHTML = '<span id="toastMessage"></span>';
+    document.body.appendChild(toast);
+  }
+  toast.onclick = function () {
+    toast.classList.remove("show");
+  };
+  toast.className = "toast " + type;
+  void toast.offsetWidth; // restart the slide-in for a new message
+  document.getElementById("toastMessage").textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(
+    function () {
+      toast.classList.remove("show");
+    },
+    type === "error" ? 6000 : 3000,
+  );
+}
+
+/* ══════════════════════════════════════
    Dates
    ══════════════════════════════════════ */
 
@@ -631,7 +673,7 @@ function printPreview() {
     content = preview ? preview.innerHTML : "";
   }
   if (!content.trim()) {
-    alert("Nothing to print.");
+    showToast("Nothing to print.", "error");
     return;
   }
   // Clone and strip zoom
@@ -696,14 +738,15 @@ function handleMergeUpload(event) {
         var ws = wb.Sheets[wb.SheetNames[0]];
         var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
         if (raw.length < 2) {
-          APP.notify(
+          showToast(
             "Table needs at least a header row and one data row.",
+            "error",
           );
           return;
         }
         processMergeData(raw);
       } catch (err) {
-        APP.notify("Could not read file.");
+        showToast("Could not read file.", "error");
       }
     };
     reader.readAsArrayBuffer(file);
@@ -774,7 +817,7 @@ function parseMergeCSV(text) {
   )
     raw.push(row);
   if (raw.length < 2) {
-    APP.notify("Table needs at least a header row and one data row.");
+    showToast("Table needs at least a header row and one data row.", "error");
     return;
   }
   processMergeData(raw);
@@ -812,14 +855,14 @@ function processMergeData(raw) {
     rows.push(rowObj);
   }
   if (!rows.length) {
-    APP.notify("No data rows found.");
+    showToast("No data rows found.", "error");
     return;
   }
   mergeState.headers = headers;
   mergeState.rows = rows;
   mergeState.currentIndex = -1;
   showMergePanel();
-  APP.notify(
+  showToast(
     "Loaded " +
       rows.length +
       " row(s) with columns: " +

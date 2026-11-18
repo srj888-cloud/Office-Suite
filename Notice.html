@@ -466,40 +466,6 @@
         opacity: 0.7;
       }
 
-      .toast {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background: var(--success);
-        color: white;
-        padding: 20px 30px;
-        border-radius: 15px;
-        display: none;
-        z-index: 2000;
-        box-shadow: var(--shadow);
-        animation: slideInRight 0.3s ease;
-      }
-
-      @keyframes slideInRight {
-        from {
-          opacity: 0;
-          transform: translateX(100px);
-        }
-
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-
-      .toast.show {
-        display: block;
-      }
-
-      .toast.error {
-        background: var(--danger);
-      }
-
       table {
         border-collapse: collapse;
         width: 100%;
@@ -1809,9 +1775,6 @@
         mergeFieldsLabel: "notice fields",
         refreshPreview: function () {
           updatePreview();
-        },
-        notify: function (message) {
-          showToast(message);
         },
         addressList: function (type) {
           return type === "copy" ? appData.copyAddresses : appData.addresses;
@@ -3417,8 +3380,9 @@
       function copyLetter() {
         const data = applyMergeToData(gatherFormData());
         if (!data.refNumber || !data.refNumber.trim()) {
-          alert(
+          showToast(
             "Reference Number is blank. Please enter a reference number before copying.",
+            "error",
           );
           return;
         }
@@ -3773,21 +3737,6 @@ ${toText}${toText ? "\n" : ""}${copyTo}`;
       }
 
       // Modal functions
-
-      // Toast notification
-      function showToast(message, type) {
-        type = type || "success";
-        const toast = document.getElementById("toast");
-        const toastMessage = document.getElementById("toastMessage");
-
-        toast.className = "toast " + type;
-        toastMessage.textContent = message;
-        toast.classList.add("show");
-
-        setTimeout(function () {
-          toast.classList.remove("show");
-        }, 3000);
-      }
 
       // Event listeners
       window.onclick = function (event) {

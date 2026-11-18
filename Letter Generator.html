@@ -432,22 +432,6 @@
         cursor: pointer;
       }
 
-      .toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: var(--success);
-        color: white;
-        padding: 15px 25px;
-        border-radius: 10px;
-        display: none;
-        z-index: 2000;
-      }
-
-      .toast.show {
-        display: block;
-      }
-
       table {
         border-collapse: collapse;
         width: 100%;
@@ -1832,9 +1816,6 @@
         mergeFieldsLabel: "letter fields",
         refreshPreview: function () {
           updatePreview();
-        },
-        notify: function (message) {
-          showToast(message);
         },
         addressList: function (type) {
           return getManagerItems(type);
@@ -4640,14 +4621,6 @@
 
         selection.removeAllRanges();
         document.body.removeChild(tempDiv);
-      }
-
-      function showToast(message) {
-        document.getElementById("toastMessage").textContent = message;
-        document.getElementById("toast").classList.add("show");
-        setTimeout(function () {
-          document.getElementById("toast").classList.remove("show");
-        }, 3000);
       }
 
       window.onclick = function (event) {

@@ -28,3 +28,41 @@
   font-size: 13px;
   margin-bottom: 12px;
 }
+
+/* Messages (showToast in office-core.js) */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  max-width: 380px;
+  background: var(--success, #27ae60);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  display: none;
+  z-index: 10000;
+  box-shadow: var(--shadow, 0 4px 15px rgba(0, 0, 0, 0.15));
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+  animation: toastSlideIn 0.3s ease;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast.show {
+  display: block;
+}
+
+.toast.error {
+  background: var(--danger, #e74c3c);
+}

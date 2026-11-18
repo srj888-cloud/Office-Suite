@@ -1726,9 +1726,6 @@
         refreshPreview: function () {
           generateDocument();
         },
-        notify: function (message) {
-          alert(message);
-        },
         addressList: function (type) {
           return type === "copy" ? addressBook.copyAddresses : addressBook.addresses;
         },
@@ -2252,7 +2249,7 @@
             generateDocument();
             updatePlaceholderStatus();
           } catch (error) {
-            alert("Error reading file: " + error.message);
+            showToast("Error reading file: " + error.message, "error");
           }
         };
 
@@ -3117,7 +3114,7 @@
         const documentContent = document.getElementById("documentPreview");
 
         if (!documentContent || !documentContent.innerHTML.trim()) {
-          alert("Please generate a document first before copying!");
+          showToast("Please generate a document first before copying!", "error");
           return;
         }
 
@@ -3269,7 +3266,7 @@
                     }
                 `,
           showToast: (message, type) => {
-            showCopySuccess(message);
+            showToast(message, type);
           },
         });
 
@@ -3623,9 +3620,9 @@
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
 
-          showCopySuccess("Document data exported to JSON file successfully!");
+          showToast("Document data exported to JSON file successfully!");
         } catch (error) {
-          alert("Error exporting data: " + error.message);
+          showToast("Error exporting data: " + error.message, "error");
         }
       }
 
@@ -3777,9 +3774,9 @@
             applyCopyOptions(jsonData.copyOptions);
             generateDocument();
 
-            showCopySuccess("Template imported successfully!");
+            showToast("Template imported successfully!");
           } catch (error) {
-            alert("Error importing JSON file: " + error.message);
+            showToast("Error importing JSON file: " + error.message, "error");
           }
         };
 
@@ -3860,7 +3857,7 @@
         const documentContent = document.getElementById("documentPreview");
 
         if (!documentContent || !documentContent.innerHTML.trim()) {
-          alert("Please generate a document first before copying!");
+          showToast("Please generate a document first before copying!", "error");
           return;
         }
 
@@ -3878,8 +3875,11 @@
           color: "#000",
           customCSS: ``,
           showToast: (message, type) => {
-            showCopySuccess(
-              "Document copied with zero margins! Perfect for tight spacing requirements.",
+            showToast(
+              type === "success"
+                ? "Document copied with zero margins! Perfect for tight spacing requirements."
+                : message,
+              type,
             );
           },
         });
@@ -3947,69 +3947,6 @@
         cleanedHTML = cleanedHTML.replace(/style='[\s]*'/gi, "");
 
         return cleanedHTML;
-      }
-
-      function showToast(message) {
-        const toast = document.createElement("div");
-        toast.style.cssText = `
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    background: #333;
-                    color: white;
-                    padding: 12px 20px;
-                    border-radius: 6px;
-                    z-index: 10000;
-                    font-family: Arial, sans-serif;
-                    font-size: 13px;
-                    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-                `;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-          if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 3000);
-      }
-
-      function showCopySuccess(
-        message = "Document copied with formatting! You can now paste it into Word, Google Docs, or other platforms.",
-      ) {
-        // Create a temporary success message
-        const successDiv = document.createElement("div");
-        successDiv.innerHTML = `
-                <div style="
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
-                    color: white;
-                    padding: 15px 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-                    z-index: 10000;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    font-size: 14px;
-                    max-width: 300px;
-                ">
-                    <strong>✅ Success!</strong><br>
-                    ${message}
-                </div>
-            `;
-
-        document.body.appendChild(successDiv);
-
-        // Remove after 4 seconds
-        setTimeout(() => {
-          if (document.body.contains(successDiv)) {
-            document.body.removeChild(successDiv);
-          }
-        }, 4000);
-      }
-
-      function showCopyError() {
-        alert(
-          "Failed to copy document. Please try selecting and copying manually.",
-        );
       }
 
       function clearAll() {
