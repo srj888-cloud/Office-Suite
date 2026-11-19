@@ -1155,17 +1155,25 @@
               type="button"
               class="btn-sm btn-outline"
               onclick="document.getElementById('profileUpload').click()"
-              title="Load details from a profile file saved earlier"
+              title="Load the details from a profile file (a downloaded filled profile, or the sample file after filling it in)"
             >
-              Import JSON
+              Upload profile
             </button>
             <button
               type="button"
               class="btn-sm btn-outline"
               onclick="exportProfile()"
-              title="Save these details as a file, to use on another computer"
+              title="Save the details in this form (Office and RTI) as a file, to upload in another browser or computer"
             >
-              Export JSON
+              Download filled profile
+            </button>
+            <button
+              type="button"
+              class="btn-sm btn-outline"
+              onclick="downloadSampleProfile()"
+              title="A file with every field and its sample text, to fill in and upload"
+            >
+              Download sample profile
             </button>
           </div>
         </form>
@@ -1604,17 +1612,19 @@
             </li>
             <li>
               <strong>ഓഫീസ് പ്രൊഫൈൽ തയ്യാറാക്കുക</strong><br />
-              മുകളിലെ <em>Office Profile</em> ഭാഗത്ത് ഓഫീസ് വിവരങ്ങൾ
+              മുകളിലെ <em>⚙ Settings</em> ലെ <em>Office Profile</em> ടാബില്‍ ഓഫീസ് വിവരങ്ങൾ
               മലയാളത്തിലും ഇംഗ്ലീഷിലും പൂരിപ്പിച്ച് <em>Save Profile</em>
               ക്ലിക്ക് ചെയ്യുക. വിലാസം പോലുള്ള ബോക്സുകളില്‍ അടുത്ത വരിയിലേക്ക്
               പോകാന്‍ Enter അമര്‍ത്തിയാല്‍ മതി. Save ചെയ്താല്‍ Profile Active
               എന്ന് കാണിക്കും. വിവരങ്ങള്‍ മാറ്റാന്‍ Office Profile ല്‍ ക്ലിക്ക്
-              ചെയ്യുക. മറ്റൊരു കമ്പ്യൂട്ടറിലേക്ക് മാറ്റാന്‍ <em>Export JSON</em>,
-              <em>Import JSON</em> എന്നിവ ഉപയോഗിക്കാം.
+              ചെയ്യുക. മറ്റൊരു ബ്രൗസറിലേക്കോ കമ്പ്യൂട്ടറിലേക്കോ മാറ്റാന്‍
+              <em>Download filled profile</em> ചെയ്ത ഫയല്‍ അവിടെ
+              <em>Upload profile</em> ചെയ്യുക. എല്ലാ ഫീല്‍ഡുകളും അടങ്ങിയ മാതൃക
+              <em>Download sample profile</em> ല്‍ ലഭിക്കും.
             </li>
             <li>
               <strong>RTI പ്രൊഫൈൽ</strong><br />
-              വിവരാവകാശ മറുപടികള്‍ക്കായി Office Profile ലെ <em>RTI</em> ടാബില്‍
+              വിവരാവകാശ മറുപടികള്‍ക്കായി Settings ലെ <em>RTI Profile</em> ടാബില്‍
               Head of Office, Designation, From Address, Appellate Authority
               എന്നിവ മലയാളത്തിലും ഇംഗ്ലീഷിലും പൂരിപ്പിച്ച് Save ചെയ്യുക. ബാക്കി
               വിവരങ്ങള്‍ Office ടാബില്‍ നിന്ന് എടുക്കും. Appellate Authority
@@ -2416,6 +2426,12 @@
             );
             return;
           }
+          var sampleCount = 0;
+          if (profile && typeof profile === "object" && SAMPLE_NOTE_KEY in profile) {
+            delete profile[SAMPLE_NOTE_KEY];
+            sampleCount =
+              dropSampleText("office", profile) + dropSampleText("rti", profile.rti);
+          }
           if (
             !profile ||
             typeof profile !== "object" ||
@@ -2423,7 +2439,9 @@
           ) {
             openSettings("office");
             setProfileStatus(
-              "This file does not look like an office profile. It needs at least an office name or head of office name.",
+              sampleCount
+                ? "This file still has the sample text. Replace it with your office details, then upload it again."
+                : "This file does not look like an office profile. It needs at least an office name or head of office name.",
               "error",
             );
             return;
@@ -2451,11 +2469,86 @@
           } else {
             setProfileStatus("This file matches the saved profile.", "ok");
           }
+          if (sampleCount) {
+            setProfileStatus(
+              "Loaded from " +
+                file.name +
+                ". " +
+                sampleCount +
+                " field(s) still had the sample text and were left empty. Fill them in, then click Save Profile.",
+              "dirty",
+            );
+          }
         };
         reader.readAsText(file);
         event.target.value = "";
       };
 
+      function downloadProfileFile(obj, filename) {
+        var blob = new Blob([JSON.stringify(obj, null, 2)], {
+          type: "application/json",
+        });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // The sample text shown in each empty field (its placeholder).
+      function profileSampleText(id) {
+        var out = {};
+        eachProfileInput(id, function (f, l, input) {
+          out[f.key + l.suffix] = input.placeholder || "";
+        });
+        return out;
+      }
+
+      // Every field of the Office and RTI profiles with its sample text, to
+      // fill in (for example in Notepad) and upload.
+      var SAMPLE_NOTE_KEY = "_instructions";
+      function downloadSampleProfile() {
+        var out = {};
+        out[SAMPLE_NOTE_KEY] =
+          "Sample Office Suite profile. Replace the sample text after each colon with your details, keeping the quotes and the line-break marks used in the sample addresses. Save the file and upload it with Upload profile. Fields left as sample text are ignored.";
+        var office = profileSampleText("office");
+        Object.keys(office).forEach(function (k) {
+          out[k] = office[k];
+        });
+        out.rti = profileSampleText("rti");
+        downloadProfileFile(out, "office_profile_sample.json");
+        setProfileStatus(
+          "Sample downloaded. Replace the sample text with your details, then upload it.",
+          "ok",
+        );
+      }
+
+      // In a sample file, fields that still hold their sample text are left
+      // out on upload, so unfilled sample text never ends up in letters.
+      // (Only for sample files: some sample text, such as "State Public
+      // Information Officer", can be a real value in a filled profile.)
+      // Returns the count.
+      function dropSampleText(id, obj) {
+        var n = 0;
+        if (!obj || typeof obj !== "object") return 0;
+        eachProfileInput(id, function (f, l, input) {
+          var k = f.key + l.suffix;
+          if (
+            obj[k] &&
+            input.placeholder &&
+            cleanValue(obj[k]) === cleanValue(input.placeholder)
+          ) {
+            delete obj[k];
+            n++;
+          }
+        });
+        return n;
+      }
+
+      // "Download filled profile": what is in the form now (Office and RTI)
       function exportProfile() {
         var out = nonEmpty(readProfileForm("office"));
         if (!Object.keys(out).length) {
@@ -2465,17 +2558,11 @@
         // The RTI section is always written, with "" for empty fields, so the
         // file shows every RTI field and can be filled in and imported later.
         out.rti = readProfileForm("rti");
-        var blob = new Blob([JSON.stringify(out, null, 2)], {
-          type: "application/json",
-        });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement("a");
-        a.href = url;
-        a.download = "office_profile.json";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        downloadProfileFile(out, "office_profile.json");
+        setProfileStatus(
+          "Downloaded office_profile.json. Upload it in another browser or computer to copy these details.",
+          "ok",
+        );
       }
 
       window.addEventListener("beforeunload", function (e) {

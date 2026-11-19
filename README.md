@@ -5,7 +5,7 @@ No installation. No internet. Just open the HTML file in a browser.
 
 Features
 Three ready-to-use apps — Letter Generator, Proceedings, and Circular/Notice
-Office Profile — Fill in your office details once on the home page; all apps fill in automatically (Export / Import JSON to move them to another computer)
+Office Profile — Fill in your office details once on the home page; all apps fill in automatically (Download filled profile / Upload profile to move them to another browser or computer; Download sample profile gives a file with every field to fill in)
 RTI Profile — Save a separate Head of Office, Designation and From Address for RTI replies, and pick "RTI" on the Letter card (Letter app only)
 Live preview — See the formatted document update in real time as you type
 Header & Logo — Add your office logo (Top or Left position) or a full header image
