@@ -1,27 +1,48 @@
-e-Office Suite
-A free, fully offline tool for drafting e-Office documents — Letters, Proceedings, and Circulars/Notices — built for Kerala government offices.
+# e-Office Suite
 
-No installation. No internet. Just open the HTML file in a browser.
+A free tool for drafting e-Office documents — **Letters**, **Proceedings** and **Circulars/Notices** — built for Kerala government offices. Drafts are prepared in Malayalam or English and copied into e-Office with the formatting intact.
 
-Features
-Three ready-to-use apps — Letter Generator, Proceedings, and Circular/Notice
-Office Profile — Fill in your office details once on the home page; all apps fill in automatically (Download filled profile / Upload profile to move them to another browser or computer; Download sample profile gives a file with every field to fill in)
-RTI Profile — Save a separate Head of Office, Designation and From Address for RTI replies, and pick "RTI" on the Letter card (Letter app only)
-Live preview — See the formatted document update in real time as you type
-Header & Logo — Add your office logo (Top or Left position) or a full header image
-Mail Merge — Upload an Excel/CSV file to generate multiple drafts in one go
-Phrase suggestions — Type the first few letters of a common office phrase (Malayalam with InScript or any keyboard, or English) and pick it from the list with Tab; Ctrl+Space shows all phrases. Manage the list in Settings > Phrases (import/export as Excel CSV)
-Drafts saved in the browser — Every draft is saved automatically as you type; reopen it from 📂 Drafts in the app or from Recent drafts on the home page. Use Back up all drafts to keep a copy in one file
-Download Draft — Save any draft as a JSON file and reload it anytime
-Print ready — Clean A4 printout with no background colors or UI elements
-Fully offline & secure — No server, no login, no data leaves your device
-Open source — The entire code is a single HTML file, fully inspectable
-How to use
-Download the ZIP and extract it
-Open index.html in Chrome or Edge
-Fill in the Office Profile form (Malayalam and English) and click Save Profile
-Launch any app and start drafting
-Developed by
+No installation, no server, no login. Everything runs in your browser and stays on your computer.
+
+## Features
+
+- **Three apps** — Letter Generator, Proceedings, and Circular/Notice, with a live preview as you type.
+- **Settings in one place** — click **⚙ Settings** on the home page:
+  - **Office Profile** — fill in your office details once; all apps use them. Use **Download filled profile** / **Upload profile** to move them to another browser or computer, or **Download sample profile** for a file with every field to fill in.
+  - **RTI Profile** — a separate Name of S.P.I.O., From Address, Designation and Appellate Authority for RTI replies (choose **RTI** on the Letter card).
+  - **Header & Logo** — upload a logo and/or a full header image, and choose per app: *Text only*, *Logo with text* or *Header image*.
+  - **Phrases** — manage the phrase list, **Download phrases** / **Upload phrases** as an Excel CSV file.
+- **Drafts saved automatically** — every draft is saved in the browser as you type. Reopen it from **📂 Drafts** in the app or from **Recent drafts** on the home page. **Back up all drafts** keeps a copy of all drafts and phrases in one file.
+- **Phrase suggestions** — type the first few letters of a common office phrase (Malayalam with InScript or any keyboard, or English) and press **Tab** to insert it. **Ctrl+Space** shows all phrases. Select text in a form and click **★ Save as phrase** to add your own.
+- **Tables from Excel** — insert tables from an Excel file, edit cells, split long tables.
+- **Mail merge** — upload an Excel/CSV file to generate one draft per row.
+- **Print ready** — clean A4 printout.
+- **Private** — no data leaves your computer.
+
+## How to use
+
+**Online:** open the GitHub Pages link and bookmark it.
+
+**Offline (ZIP):**
+1. Download the ZIP and extract it. Keep the **`common`** folder next to the HTML files — the apps need it.
+2. Open `index.html` in Chrome or Edge.
+3. Click **⚙ Settings**, fill in the Office Profile (Malayalam and English) and click **Save Profile**.
+4. Open any app and start drafting.
+
+Note: uploading Excel files (tables, mail merge, data sheets) uses the SheetJS library, which is loaded from the internet.
+
+## Your data
+
+Profile, drafts and phrases are kept in this browser on this computer. Clearing the browser's data removes them, so use **Back up all drafts** and **Download filled profile** now and then, and before moving to another computer.
+
+## For maintainers
+
+- Shared code is in `common/` (`office-core.js`, `drafts.js`, `phrases.js`, `office.css`); each app sets its own details in an `APP` object at the top of its script.
+- The pages link the shared files with a version stamp (`common/office-core.js?v=…`). After changing anything in `common/`, raise that number in all four HTML pages so browsers load the new files.
+- `phrases/starter-phrases.csv` is the starter phrase list (also built into `phrases.js`).
+
+## Developed by
+
 Sreejith M, Head Accountant
 Govt. Arts and Science College Uduma, Kasaragod
 📧 officesuite888@gmail.com
