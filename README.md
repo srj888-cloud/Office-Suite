@@ -1,4 +1,4 @@
-Office Suite
+e-Office Suite
 A free, fully offline tool for drafting e-Office documents — Letters, Proceedings, and Circulars/Notices — built for Kerala government offices.
 
 No installation. No internet. Just open the HTML file in a browser.

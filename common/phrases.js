@@ -633,6 +633,7 @@ var OfficePhrases = (function () {
       hideChip();
       return;
     }
+    hide(); // a selection replaces any open suggestion list
     if (!chip) {
       chip = document.createElement("button");
       chip.type = "button";
@@ -866,12 +867,12 @@ var OfficePhrases = (function () {
               .join("")
           : '<p style="color:#888;font-size:13px">No phrases match.</p>') +
         '<div class="ph-mgr-foot">' +
-        '<button type="button" class="btn-sm btn-outline" data-act="import">Import CSV</button>' +
-        '<button type="button" class="btn-sm btn-outline" data-act="export">Export CSV</button>' +
+        '<button type="button" class="btn-sm btn-outline" data-act="import">Upload phrases</button>' +
+        '<button type="button" class="btn-sm btn-outline" data-act="export">Download phrases</button>' +
         '<button type="button" class="btn-sm btn-outline" data-act="reset"' + (isCustom() ? "" : " disabled") + ">Reset to starter list</button>" +
         '<input type="file" accept=".csv,text/csv" hidden data-act="file"></div>' +
         '<p style="font-size:12px;color:#8a99a6;margin-top:8px">' + list.length +
-        " phrases. Import adds phrases from an Excel sheet saved as <b>CSV UTF-8</b> (columns Category, Use in, Malayalam, English). Phrases are included in “Back up all drafts”.</p>" +
+        " phrases. Download phrases saves them all (including the ones you saved) as a CSV file that opens in Excel. Upload phrases adds phrases from such a file, or any Excel sheet saved as <b>CSV UTF-8</b> (columns Category, Use in, Malayalam, English). Phrases are included in “Back up all drafts”.</p>" +
         '<div class="ph-status' + (statusKind ? " " + statusKind : "") + '" role="status">' + esc(status) + "</div></div>";
       var s = root.querySelector('[data-act="search"]');
       if (s && document.activeElement === document.body && query) s.focus();
@@ -962,7 +963,7 @@ var OfficePhrases = (function () {
         root.querySelector('[data-act="file"]').click();
       } else if (act === "export") {
         var n = exportCSV();
-        setStatus("Exported " + n + " phrases to a CSV file.", "ok");
+        setStatus("Downloaded " + n + " phrases (office_suite_phrases.csv).", "ok");
       } else if (act === "reset") {
         if (!confirm("Replace your phrase list with the starter list? Phrases you added will be removed.")) return;
         resetList();
