@@ -1,4 +1,10 @@
 /* Office Suite — shared code used by Letter Generator, Notice and Proceedings.
+
+   UPDATING: the pages load the files in common/ with a version stamp
+   (e.g. common/office-core.js?v=20261119). After changing any file in
+   common/, raise that number in index.html, Letter Generator.html,
+   Notice.html and Proceedings.html, so browsers fetch the new copy
+   instead of an old cached one.
    Loaded with a plain <script src> (not a module) so the apps still work when
    opened straight from disk (file://). Everything here is global, exactly as it
    was when each app held its own copy. Variables such as lastFocusedField,
@@ -1780,3 +1786,32 @@ function renderEditableTableGrid(tableId) {
   });
   gridEl.appendChild(addRowBtn);
 }
+
+/* ══════════════════════════════════════
+   Header & logo settings changed elsewhere
+   ══════════════════════════════════════
+   The logo, header image and header choice are set on the home page. If
+   they change while an app is open (another tab), or the app page comes
+   back from the browser's Back/Forward cache, redraw the preview so it
+   shows the current setting. */
+(function () {
+  var KEYS = ["officeLogo", "officeLogoPos", "officeLogoSize", "officeHeader"];
+  function redraw() {
+    if (typeof APP === "undefined" || !APP.refreshPreview) return;
+    try {
+      APP.refreshPreview();
+    } catch (e) {}
+  }
+  window.addEventListener("storage", function (e) {
+    if (
+      e.key === null ||
+      KEYS.indexOf(e.key) !== -1 ||
+      (typeof APP !== "undefined" && e.key === "headerMode_" + APP.key)
+    ) {
+      redraw();
+    }
+  });
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) redraw();
+  });
+})();

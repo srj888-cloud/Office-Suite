@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Office Suite</title>
-    <script src="common/drafts.js"></script>
-    <script src="common/phrases.js"></script>
+    <script src="common/drafts.js?v=20261119"></script>
+    <script src="common/phrases.js?v=20261119"></script>
     <style>
       :root {
         --primary: #2c3e50;
@@ -793,6 +793,115 @@
         font-weight: 600;
       }
 
+
+      /* ── Header & Logo tab ── */
+      .hl-title {
+        font-size: 0.95rem;
+        color: var(--primary);
+        margin: 1.25rem 0 0.6rem;
+      }
+
+      .hl-card {
+        border: 1px solid #e3e9ed;
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
+        margin-bottom: 0.75rem;
+        background: #fbfcfd;
+      }
+
+      .hl-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.6rem;
+      }
+
+      .hl-card-head strong {
+        display: block;
+        color: var(--primary);
+        font-size: 0.92rem;
+      }
+
+      .hl-card-head small {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+      }
+
+      .hl-thumb img {
+        display: block;
+        max-height: 44px;
+        max-width: 160px;
+        object-fit: contain;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+      }
+
+      .hl-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem;
+        margin-top: 0.5rem;
+      }
+
+      .hl-label {
+        font-size: 0.82rem;
+        color: #5d6d7e;
+        font-weight: 600;
+      }
+
+      .hl-size {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .hl-size input {
+        width: 110px;
+        cursor: pointer;
+      }
+
+      .hl-size-val {
+        font-size: 0.8rem;
+        color: #555;
+        min-width: 38px;
+      }
+
+      .hl-app {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.4rem 0.75rem;
+        padding: 0.6rem 0;
+        border-top: 1px solid #eef2f4;
+      }
+
+      .hl-app-name {
+        min-width: 120px;
+        font-size: 0.88rem;
+        color: #2c3e50;
+        font-weight: 600;
+      }
+
+      .hl-app-note {
+        flex-basis: 100%;
+        font-size: 0.78rem;
+        color: #7f8c8d;
+      }
+
+      .hl-app-note.warn {
+        color: #d35400;
+        font-weight: 600;
+      }
+
+      .idx-mode-btn:disabled {
+        color: #b0b8bf;
+        cursor: not-allowed;
+        background: #f6f8f9;
+      }
+
       /* ── Settings panel (slides in from the right) ── */
       header {
         position: relative;
@@ -950,9 +1059,6 @@
         padding-bottom: 1.5rem;
       }
 
-      #headerSettingsBody {
-        margin-top: 1rem;
-      }
 
       @media (max-width: 560px) {
         .settings-open-btn {
@@ -1184,21 +1290,21 @@
           hidden
         >
           <p class="pf-note">
-            Saved in this browser and used by all three apps. Choose per app
-            whether drafts show no header, the logo, or the full header image.
+            Saved in this browser and used by all three apps. Upload a logo
+            and/or a header image, then choose what each app shows at the top
+            of its drafts. Open apps update straight away.
           </p>
-        <div id="headerSettingsBody">
-          <!-- Image uploads -->
-          <div style="margin-bottom: 1rem">
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
-                margin-bottom: 8px;
-              "
-            >
+
+          <h3 class="hl-title">Images</h3>
+          <div class="hl-card">
+            <div class="hl-card-head">
+              <div>
+                <strong>Logo</strong>
+                <small>Shown with the office name and address</small>
+              </div>
+              <span id="idxLogoThumb" class="hl-thumb"></span>
+            </div>
+            <div class="hl-row">
               <input
                 type="file"
                 id="idxLogoUpload"
@@ -1207,90 +1313,67 @@
                 onchange="idxHandleLogoUpload(event)"
               />
               <button
+                type="button"
                 class="btn-sm btn-upload"
+                id="idxLogoUploadBtn"
                 onclick="document.getElementById('idxLogoUpload').click()"
               >
-                🖼 Logo
+                Upload logo
               </button>
-              <div
-                style="
-                  display: flex;
-                  border: 2px solid var(--secondary);
-                  border-radius: 8px;
-                  overflow: hidden;
-                  flex-shrink: 0;
-                "
+              <button
+                type="button"
+                id="idxLogoClearBtn"
+                class="btn-sm btn-outline"
+                onclick="idxClearLogo()"
+                style="display: none"
               >
+                Remove
+              </button>
+            </div>
+            <div class="hl-row" id="idxLogoOpts" style="display: none">
+              <span class="hl-label">Position</span>
+              <div class="idx-mode-group">
                 <button
+                  type="button"
                   id="idxLogoPosCenter"
                   class="idx-pos-btn active"
                   onclick="idxSetLogoPos('center')"
                 >
-                  Top
+                  Above text
                 </button>
                 <button
+                  type="button"
                   id="idxLogoPosLeft"
                   class="idx-pos-btn"
                   onclick="idxSetLogoPos('left')"
                 >
-                  Left
+                  Left of text
                 </button>
               </div>
-              <span id="idxLogoThumb"></span>
-              <span
-                id="idxLogoSizeRow"
-                style="display: none; align-items: center; gap: 4px"
-              >
+              <span id="idxLogoSizeRow" class="hl-size">
+                <span class="hl-label">Size</span>
                 <input
                   type="range"
                   id="idxLogoSizeSlider"
                   min="30"
                   max="250"
                   value="115"
-                  style="width: 90px; cursor: pointer"
                   oninput="idxSetLogoSize(this.value)"
                 />
-                <span
-                  id="idxLogoSizeLabel"
-                  style="font-size: 0.8rem; color: #555; min-width: 32px"
-                  >115px</span
-                >
+                <span id="idxLogoSizeLabel" class="hl-size-val">115px</span>
               </span>
-              <button
-                id="idxLogoClearBtn"
-                class="btn-sm btn-clear"
-                onclick="idxClearLogo()"
-                style="display: none"
-              >
-                ✕ Remove
-              </button>
             </div>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin: 6px 0;
-              "
-            >
-              <hr
-                style="flex: 1; border: none; border-top: 1px solid #e0e0e0"
-              />
-              <span style="font-size: 0.75rem; color: #aaa; white-space: nowrap"
-                >or full header image (replaces text header)</span
-              >
-              <hr
-                style="flex: 1; border: none; border-top: 1px solid #e0e0e0"
-              />
+          </div>
+
+          <div class="hl-card">
+            <div class="hl-card-head">
+              <div>
+                <strong>Header image</strong>
+                <small>A full-width image used instead of the office name and address</small>
+              </div>
+              <span id="idxHeaderThumb" class="hl-thumb"></span>
             </div>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
-              "
-            >
+            <div class="hl-row">
               <input
                 type="file"
                 id="idxHeaderUpload"
@@ -1299,136 +1382,54 @@
                 onchange="idxHandleHeaderUpload(event)"
               />
               <button
+                type="button"
                 class="btn-sm btn-upload"
+                id="idxHeaderUploadBtn"
                 onclick="document.getElementById('idxHeaderUpload').click()"
               >
-                🖼 Header Image
+                Upload header image
               </button>
-              <span id="idxHeaderThumb"></span>
               <button
+                type="button"
                 id="idxHeaderClearBtn"
-                class="btn-sm btn-clear"
+                class="btn-sm btn-outline"
                 onclick="idxClearHeader()"
                 style="display: none"
               >
-                ✕ Remove
+                Remove
               </button>
             </div>
           </div>
-          <!-- Per-app display mode -->
-          <div style="border-top: 1px solid #e8e8e8; padding-top: 1rem">
-            <div
-              style="
-                font-size: 0.85rem;
-                font-weight: 600;
-                color: var(--primary);
-                margin-bottom: 0.75rem;
-              "
-            >
-              Header display per app:
+
+          <p class="hl-app-note warn" id="idxImageNote" role="status"></p>
+
+          <h3 class="hl-title">What each app shows at the top</h3>
+          <div class="hl-app">
+            <span class="hl-app-name">✉️ Letter</span>
+            <div class="idx-mode-group" data-app="letter" role="group" aria-label="Letter header">
+              <button type="button" class="idx-mode-btn" data-val="none" onclick="idxSetMode('letter', 'none')">Text only</button>
+              <button type="button" class="idx-mode-btn" data-val="logo" onclick="idxSetMode('letter', 'logo')">Logo with text</button>
+              <button type="button" class="idx-mode-btn" data-val="header" onclick="idxSetMode('letter', 'header')">Header image</button>
             </div>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-bottom: 8px;
-                flex-wrap: wrap;
-              "
-            >
-              <span style="min-width: 130px; font-size: 0.85rem; color: #555"
-                >✉️ Letter</span
-              >
-              <div class="idx-mode-group" data-app="letter">
-                <button
-                  class="idx-mode-btn"
-                  data-val="none"
-                  onclick="idxSetMode('letter', 'none')"
-                >
-                  No Header
-                </button>
-                <button
-                  class="idx-mode-btn"
-                  data-val="logo"
-                  onclick="idxSetMode('letter', 'logo')"
-                >
-                  Logo
-                </button>
-                <button
-                  class="idx-mode-btn"
-                  data-val="header"
-                  onclick="idxSetMode('letter', 'header')"
-                >
-                  Header Image
-                </button>
-              </div>
-            </div>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-bottom: 8px;
-                flex-wrap: wrap;
-              "
-            >
-              <span style="min-width: 130px; font-size: 0.85rem; color: #555"
-                >⚖️ Proceedings</span
-              >
-              <div class="idx-mode-group" data-app="proceedings">
-                <button
-                  class="idx-mode-btn"
-                  data-val="none"
-                  onclick="idxSetMode('proceedings', 'none')"
-                >
-                  No Header
-                </button>
-                <button
-                  class="idx-mode-btn"
-                  data-val="logo"
-                  onclick="idxSetMode('proceedings', 'logo')"
-                >
-                  Logo
-                </button>
-              </div>
-            </div>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                flex-wrap: wrap;
-              "
-            >
-              <span style="min-width: 130px; font-size: 0.85rem; color: #555"
-                >📢 Notice</span
-              >
-              <div class="idx-mode-group" data-app="notice">
-                <button
-                  class="idx-mode-btn"
-                  data-val="none"
-                  onclick="idxSetMode('notice', 'none')"
-                >
-                  No Header
-                </button>
-                <button
-                  class="idx-mode-btn"
-                  data-val="logo"
-                  onclick="idxSetMode('notice', 'logo')"
-                >
-                  Logo
-                </button>
-                <button
-                  class="idx-mode-btn"
-                  data-val="header"
-                  onclick="idxSetMode('notice', 'header')"
-                >
-                  Header Image
-                </button>
-              </div>
-            </div>
+            <small class="hl-app-note" id="idxModeNote_letter"></small>
           </div>
-        </div>
+          <div class="hl-app">
+            <span class="hl-app-name">⚖️ Proceedings</span>
+            <div class="idx-mode-group" data-app="proceedings" role="group" aria-label="Proceedings header">
+              <button type="button" class="idx-mode-btn" data-val="none" onclick="idxSetMode('proceedings', 'none')">Text only</button>
+              <button type="button" class="idx-mode-btn" data-val="logo" onclick="idxSetMode('proceedings', 'logo')">Logo with text</button>
+            </div>
+            <small class="hl-app-note" id="idxModeNote_proceedings"></small>
+          </div>
+          <div class="hl-app">
+            <span class="hl-app-name">📢 Notice</span>
+            <div class="idx-mode-group" data-app="notice" role="group" aria-label="Notice header">
+              <button type="button" class="idx-mode-btn" data-val="none" onclick="idxSetMode('notice', 'none')">Text only</button>
+              <button type="button" class="idx-mode-btn" data-val="logo" onclick="idxSetMode('notice', 'logo')">Logo with text</button>
+              <button type="button" class="idx-mode-btn" data-val="header" onclick="idxSetMode('notice', 'header')">Header image</button>
+            </div>
+            <small class="hl-app-note" id="idxModeNote_notice"></small>
+          </div>
         </div>
         <div
           role="tabpanel"
@@ -1732,8 +1733,15 @@
         if (!file) return;
         var reader = new FileReader();
         reader.onload = function (e) {
-          localStorage.setItem("officeLogo", e.target.result);
+          try {
+            localStorage.setItem("officeLogo", e.target.result);
+          } catch (err) {
+            alertImageTooBig();
+            return;
+          }
+          clearImageNote();
           idxRefreshLogoUI();
+          idxRefreshAllModes();
         };
         reader.readAsDataURL(file);
         event.target.value = "";
@@ -1743,19 +1751,37 @@
         if (!file) return;
         var reader = new FileReader();
         reader.onload = function (e) {
-          localStorage.setItem("officeHeader", e.target.result);
+          try {
+            localStorage.setItem("officeHeader", e.target.result);
+          } catch (err) {
+            alertImageTooBig();
+            return;
+          }
+          clearImageNote();
           idxRefreshHeaderUI();
+          idxRefreshAllModes();
         };
         reader.readAsDataURL(file);
         event.target.value = "";
       }
+      // Images are kept in browser storage (about 5 MB in all); a very large
+      // picture does not fit.
+      function alertImageTooBig() {
+        document.getElementById("idxImageNote").textContent =
+          "That image is too large to keep in the browser. Please use a smaller file (under about 1 MB).";
+      }
+      function clearImageNote() {
+        document.getElementById("idxImageNote").textContent = "";
+      }
       function idxClearLogo() {
         localStorage.removeItem("officeLogo");
         idxRefreshLogoUI();
+        idxRefreshAllModes();
       }
       function idxClearHeader() {
         localStorage.removeItem("officeHeader");
         idxRefreshHeaderUI();
+        idxRefreshAllModes();
       }
       function idxSetLogoPos(pos) {
         localStorage.setItem("officeLogoPos", pos);
@@ -1779,18 +1805,19 @@
         var sizeRow = document.getElementById("idxLogoSizeRow");
         idxSetLogoPos(pos);
         if (logo) {
-          thumb.innerHTML =
-            '<img src="' +
-            logo +
-            '" style="height:40px;max-width:80px;object-fit:contain;border:1px solid #ddd;border-radius:4px;">';
+          thumb.innerHTML = '<img src="' + logo + '" alt="Logo">';
           clearBtn.style.display = "inline-block";
           sizeRow.style.display = "inline-flex";
+          document.getElementById("idxLogoOpts").style.display = "flex";
+          document.getElementById("idxLogoUploadBtn").textContent = "Change logo";
           document.getElementById("idxLogoSizeSlider").value = size;
           document.getElementById("idxLogoSizeLabel").textContent = size + "px";
         } else {
           thumb.innerHTML = "";
           clearBtn.style.display = "none";
           sizeRow.style.display = "none";
+          document.getElementById("idxLogoOpts").style.display = "none";
+          document.getElementById("idxLogoUploadBtn").textContent = "Upload logo";
         }
       }
       function idxRefreshHeaderUI() {
@@ -1798,34 +1825,77 @@
         var thumb = document.getElementById("idxHeaderThumb");
         var clearBtn = document.getElementById("idxHeaderClearBtn");
         if (header) {
-          thumb.innerHTML =
-            '<img src="' +
-            header +
-            '" style="max-height:40px;max-width:150px;object-fit:contain;border:1px solid #ddd;border-radius:4px;">';
+          thumb.innerHTML = '<img src="' + header + '" alt="Header image">';
           clearBtn.style.display = "inline-block";
+          document.getElementById("idxHeaderUploadBtn").textContent = "Change header image";
         } else {
           thumb.innerHTML = "";
           clearBtn.style.display = "none";
+          document.getElementById("idxHeaderUploadBtn").textContent = "Upload header image";
         }
       }
+      var HEADER_APPS = ["letter", "proceedings", "notice"];
+      var HEADER_MODE_NAMES = {
+        none: "Text only",
+        logo: "Logo with text",
+        header: "Header image",
+      };
       function idxSetMode(app, val) {
         localStorage.setItem("headerMode_" + app, val);
         idxRefreshModeUI(app);
       }
+      // What the app really shows. With nothing chosen yet the apps use the
+      // header image if there is one (Letter, Notice), else the logo, else
+      // text only; this mirrors that so the highlighted button is the truth.
+      function idxEffectiveMode(app) {
+        var chosen = localStorage.getItem("headerMode_" + app);
+        var hasLogo = !!localStorage.getItem("officeLogo");
+        var hasHeader = !!localStorage.getItem("officeHeader");
+        var shown = chosen;
+        if (!chosen) shown = hasHeader && app !== "proceedings" ? "header" : hasLogo ? "logo" : "none";
+        if (shown === "logo" && !hasLogo) shown = "none";
+        if (shown === "header" && !hasHeader) shown = "none";
+        return { chosen: chosen, shown: shown, hasLogo: hasLogo, hasHeader: hasHeader };
+      }
       function idxRefreshModeUI(app) {
-        var mode = localStorage.getItem("headerMode_" + app) || "logo";
+        var m = idxEffectiveMode(app);
+        var selected = m.chosen || m.shown;
         var group = document.querySelector(
           '.idx-mode-group[data-app="' + app + '"]',
         );
         if (!group) return;
         group.querySelectorAll(".idx-mode-btn").forEach(function (btn) {
-          btn.classList.toggle("active", btn.getAttribute("data-val") === mode);
+          var val = btn.getAttribute("data-val");
+          var on = val === selected;
+          btn.classList.toggle("active", on);
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+          var missing = (val === "logo" && !m.hasLogo) || (val === "header" && !m.hasHeader);
+          btn.disabled = missing && !on;
+          btn.title = missing ? (val === "logo" ? "Upload a logo first" : "Upload a header image first") : "";
         });
+        var note = document.getElementById("idxModeNote_" + app);
+        if (!note) return;
+        var warn = false;
+        if (m.chosen === "logo" && !m.hasLogo) {
+          note.textContent = "No logo uploaded yet, so drafts show text only.";
+          warn = true;
+        } else if (m.chosen === "header" && !m.hasHeader) {
+          note.textContent = "No header image uploaded yet, so drafts show text only.";
+          warn = true;
+        } else if (!m.chosen) {
+          note.textContent = "Not chosen yet: drafts show " + HEADER_MODE_NAMES[m.shown].toLowerCase() + ".";
+        } else {
+          note.textContent = "";
+        }
+        note.className = "hl-app-note" + (warn ? " warn" : "");
+      }
+      function idxRefreshAllModes() {
+        HEADER_APPS.forEach(idxRefreshModeUI);
       }
       function idxInitHeaderSettings() {
         idxRefreshLogoUI();
         idxRefreshHeaderUI();
-        ["letter", "proceedings", "notice"].forEach(idxRefreshModeUI);
+        idxRefreshAllModes();
       }
 
       /* ── Office Profile form ──
