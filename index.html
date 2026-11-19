@@ -2429,7 +2429,14 @@
             return;
           }
           fillProfileForm("office", profile);
-          if (profile.rti && typeof profile.rti === "object") {
+          // Fill the RTI tab when the file has RTI details. A file without
+          // them (older exports, or an all-empty "rti" section) leaves the
+          // RTI tab as it is.
+          if (
+            profile.rti &&
+            typeof profile.rti === "object" &&
+            Object.keys(nonEmpty(profile.rti)).length
+          ) {
             fillProfileForm("rti", profile.rti);
           }
           setProfileOpen(true);
@@ -2451,12 +2458,13 @@
 
       function exportProfile() {
         var out = nonEmpty(readProfileForm("office"));
-        var rti = nonEmpty(readProfileForm("rti"));
-        if (Object.keys(rti).length) out.rti = rti;
         if (!Object.keys(out).length) {
           setProfileStatus("Nothing to export yet. Fill in the form first.", "error");
           return;
         }
+        // The RTI section is always written, with "" for empty fields, so the
+        // file shows every RTI field and can be filled in and imported later.
+        out.rti = readProfileForm("rti");
         var blob = new Blob([JSON.stringify(out, null, 2)], {
           type: "application/json",
         });
