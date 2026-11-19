@@ -1280,3 +1280,503 @@ window.addEventListener("storage", function (e) {
     APP.reloadAddresses();
   }
 });
+
+/* ══════════════════════════════════════
+   Body text: paragraphs, numbered points (# ## ###), bullets (*)
+   ══════════════════════════════════════ */
+// A body line that is already HTML (an inserted table) is passed through.
+// Letter/Notice table lines contain "<table"; Proceedings puts any
+// substituted HTML at the start of a line (APP.bodyHtmlAtLineStart).
+function isEmbeddedHtmlLine(line) {
+  return APP.bodyHtmlAtLineStart
+    ? line.indexOf("<") === 0
+    : line.indexOf("<table") !== -1;
+}
+
+function parseBodyIntoBlocks(processedBody) {
+  var lines = processedBody.split("\n");
+  var blocks = [];
+  var current = null;
+  var level1 = 0;
+  var level2 = 0;
+  var level3 = 0;
+
+  function closeCurrent() {
+    if (current) blocks.push(current);
+    current = null;
+  }
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+
+    if (line === "") {
+      closeCurrent();
+      continue;
+    }
+
+    if (isEmbeddedHtmlLine(line)) {
+      closeCurrent();
+      blocks.push({ type: "table", html: line });
+      continue;
+    }
+
+    var markerMatch = line.match(/^(###|##|#)\s*(.*)$/);
+    if (!markerMatch) {
+      markerMatch = line.match(/^(\*)\s+(.*)$/);
+    }
+    if (markerMatch) {
+      closeCurrent();
+      var marker = markerMatch[1];
+      var text = markerMatch[2];
+      var type, label;
+      if (marker === "#") {
+        level1++;
+        level2 = 0;
+        level3 = 0;
+        type = "num1";
+        label = "(" + level1 + ")";
+      } else if (marker === "##") {
+        level2++;
+        level3 = 0;
+        type = "num2";
+        label = "(" + toLowerLetter(level2) + ")";
+      } else if (marker === "###") {
+        level3++;
+        type = "num3";
+        label = "(" + toRomanLower(level3) + ")";
+      } else {
+        type = "bullet";
+        label = "\u2022";
+      }
+      current = { type: type, label: label, lines: [text] };
+      continue;
+    }
+
+    if (current) {
+      current.lines.push(line);
+      continue;
+    }
+
+    var noIndent = false;
+    var noSpacer = false;
+    var plainText = line;
+    if (plainText.indexOf("~~~") === 0) {
+      noIndent = true;
+      noSpacer = true;
+      plainText = plainText.substring(3).replace(/^\s+/, "");
+    } else if (plainText.indexOf("~~") === 0) {
+      noSpacer = true;
+      plainText = plainText.substring(2).replace(/^\s+/, "");
+    } else if (plainText.indexOf("~") === 0) {
+      noIndent = true;
+      plainText = plainText.substring(1).replace(/^\s+/, "");
+    }
+
+    blocks.push({
+      type: "plain",
+      lines: [plainText],
+      noIndent: noIndent,
+      noSpacer: noSpacer,
+    });
+  }
+  closeCurrent();
+  return blocks;
+}
+
+function renderBodyBlocksHTML(blocks, numbered, pStyleBase) {
+  var html = "";
+  // Proceedings uses <div> blocks, Letter and Notice use <p>
+  var tag = APP.bodyBlockTag || "p";
+  var plainCounter = 0;
+  var NBSP_PER_LEVEL = 6;
+  var isFirstTopLevelBlock = true;
+
+  function repeatNbsp(count) {
+    return new Array(count + 1).join("&nbsp;");
+  }
+
+  function formatLines(lines) {
+    return lines
+      .map(function (l) {
+        return applyInlineFormatting(l);
+      })
+      .join("<br>");
+  }
+
+  function labelForBlock(block) {
+    var levelIndex =
+      block.type === "num1"
+        ? 0
+        : block.type === "num2"
+          ? 1
+          : block.type === "num3"
+            ? 2
+            : 0;
+    var indentUnits = 1 + levelIndex;
+    var nbspPrefix = repeatNbsp(indentUnits * NBSP_PER_LEVEL);
+    return nbspPrefix + block.label + " " + formatLines(block.lines);
+  }
+
+  function addSpacerIfNeeded() {
+    // A literal blank paragraph survives e-Office's paste-cleaning,
+    // unlike margin-bottom on <p> tags, which can get stripped.
+    // Sized to ~1em (16px) to match the gap e-Office falls back to
+    // when it strips a margin declaration entirely.
+    if (!isFirstTopLevelBlock) {
+      html +=
+        "<" +
+        tag +
+        ' style="margin: 0; padding: 0; font-size: 16px; line-height: 1;">&nbsp;</' +
+        tag +
+        ">";
+    }
+    isFirstTopLevelBlock = false;
+  }
+
+  var i = 0;
+  while (i < blocks.length) {
+    var block = blocks[i];
+
+    if (block.type === "table") {
+      html += block.html;
+      isFirstTopLevelBlock = false;
+      i++;
+      continue;
+    }
+
+    if (block.type === "plain") {
+      if (!block.noSpacer) {
+        addSpacerIfNeeded();
+      } else {
+        isFirstTopLevelBlock = false;
+      }
+      var prefix = "";
+      if (numbered) {
+        plainCounter++;
+        prefix = plainCounter + ". ";
+      }
+      var extraStyle = block.noIndent ? " text-indent: 0;" : "";
+      html +=
+        "<" +
+        tag +
+        ' style="' +
+        pStyleBase +
+        extraStyle +
+        '">' +
+        prefix +
+        formatLines(block.lines) +
+        "</" +
+      tag +
+      ">";
+      i++;
+      continue;
+    }
+
+    // Marker block (num1/num2/num3/bullet): group every consecutive
+    // marker block into ONE <p>, joined with <br>, so spacing between
+    // points is governed by line-height instead of per-paragraph margin.
+    addSpacerIfNeeded();
+    var groupLines = [];
+    while (
+      i < blocks.length &&
+      blocks[i].type !== "plain" &&
+      blocks[i].type !== "table"
+    ) {
+      groupLines.push(labelForBlock(blocks[i]));
+      i++;
+    }
+    html +=
+      "<" +
+      tag +
+      ' style="' +
+      pStyleBase +
+      ' text-indent: 0;">' +
+      groupLines.join("<br>") +
+      "</" +
+      tag +
+      ">";
+  }
+
+  return html;
+}
+
+/* ══════════════════════════════════════
+   Tables from Excel (all three apps build the HTML here)
+   ══════════════════════════════════════ */
+// Table HTML for the preview and the e-Office copy. The outline stops
+// e-Office from dropping the outer border. splitAfterRows starts a new
+// table (with the header row repeated) after those row numbers.
+function buildTableHTMLFromData(cellData, splitAfterRows) {
+  if (!cellData || cellData.length === 0) return "";
+
+  var tableOpenTag =
+    '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 0 auto; border: 1px solid #000; outline: 1px solid #000; outline-offset: -1px; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table;">';
+  var tableOpenTagSplit =
+    '<table style="width: 588px; max-width: 588px; border-collapse: collapse; margin: 24px auto 0 auto; border: 1px solid #000; outline: 1px solid #000; outline-offset: -1px; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif; margin-left: auto; margin-right: auto; display: table; page-break-before: always;">';
+  var splitDividerHTML =
+    '<p style="text-align: center; font-weight: bold; margin: 16px 0; font-family: mandaram, \'Noto Sans Malayalam\', \'Malayalam Sangam MN\', serif;">(Table continued)</p>';
+  // Proceedings centres the table in a wrapper block
+  var cleanedHTML =
+    (APP.tableWrapper
+      ? '<div style="text-align: center; margin: 20px auto; width: 100%;">'
+      : "") + tableOpenTag;
+
+  var splitRows = [];
+  if (Array.isArray(splitAfterRows)) {
+    for (var s = 0; s < splitAfterRows.length; s++) {
+      var n = parseInt(splitAfterRows[s], 10);
+      if (n > 0 && splitRows.indexOf(n) === -1) splitRows.push(n);
+    }
+  } else {
+    var singleN = parseInt(splitAfterRows, 10);
+    if (singleN > 0) splitRows.push(singleN);
+  }
+  splitRows.sort(function (a, b) {
+    return a - b;
+  });
+  var headerRowHTML = "";
+
+  var numCols = 0;
+  for (var r0 = 0; r0 < cellData.length; r0++) {
+    if (cellData[r0] && cellData[r0].length > 0) {
+      numCols = cellData[r0].length;
+      break;
+    }
+  }
+  var TOTAL_TABLE_WIDTH = 588;
+  var colWidths = [];
+  if (numCols > 0) {
+    var baseWidth = Math.floor(TOTAL_TABLE_WIDTH / numCols);
+    var remainder = TOTAL_TABLE_WIDTH - baseWidth * numCols;
+    for (var c1 = 0; c1 < numCols; c1++) {
+      colWidths.push(baseWidth + (c1 < remainder ? 1 : 0));
+    }
+  }
+
+  for (var i = 0; i < cellData.length; i++) {
+    var cells = cellData[i];
+    if (!cells || cells.length === 0) continue;
+
+    if (splitRows.indexOf(i) !== -1) {
+      cleanedHTML +=
+        "</table>" +
+        splitDividerHTML +
+        tableOpenTagSplit +
+        headerRowHTML;
+    }
+
+    cleanedHTML += "<tr>";
+    var rowHTML = "<tr>";
+
+    for (var j = 0; j < cells.length; j++) {
+      // keep a 0 in a cell (it used to show as blank)
+      var cleanText =
+        cells[j] === null || cells[j] === undefined ? "" : String(cells[j]).trim();
+
+      var colWidthPx =
+        colWidths.length > j
+          ? colWidths[j]
+          : Math.floor(588 / cells.length);
+      var cellStyle =
+        "border: 1px solid #000; padding: 2px; text-align: center; width: " +
+        colWidthPx +
+        "px;";
+      var cellAttrs = ' style="' + cellStyle;
+
+      if (i === 0) {
+        cellAttrs += " background-color: #f0f0f0;";
+      }
+
+      cellAttrs += '"';
+
+      var spanStyle =
+        "font-family: mandaram, 'Noto Sans Malayalam', 'Malayalam Sangam MN', serif; font-size: 13pt;" +
+        (i === 0 ? " font-weight: bold;" : "");
+      var cellText =
+        '<span style="' + spanStyle + '">' + cleanText + "</span>";
+
+      var cellHTML = "<td" + cellAttrs + ">" + cellText + "</td>";
+      cleanedHTML += cellHTML;
+      rowHTML += cellHTML;
+    }
+
+    cleanedHTML += "</tr>";
+    rowHTML += "</tr>";
+
+    if (i === 0) {
+      headerRowHTML = rowHTML;
+    }
+  }
+
+  cleanedHTML += "</table>" + (APP.tableWrapper ? "</div>" : "");
+  return cleanedHTML;
+}
+
+/* Letter and Notice table editor ({{TABLE_n}} placeholders, data in
+   APP.getTables()). Proceedings has its own table system and defines its
+   own insertTablePlaceholder, renderEditableTableGrid and applyTableSplit,
+   which replace these when its script loads. */
+function getTableCellData(tbl) {
+  if (!tbl) return null;
+  if (tbl.cellData) return tbl.cellData;
+  if (tbl.rawHTML) {
+    tbl.cellData = extractCellDataFromRawHTML(tbl.rawHTML);
+    return tbl.cellData;
+  }
+  return null;
+}
+
+function extractCellDataFromRawHTML(rawHTML) {
+  var tempDiv = document.createElement("div");
+  tempDiv.innerHTML = rawHTML;
+
+  var table = tempDiv.querySelector("table");
+  if (!table) return [];
+
+  var rows = table.querySelectorAll("tr");
+  var cellData = [];
+
+  for (var i = 0; i < rows.length; i++) {
+    var cells = rows[i].querySelectorAll("td, th");
+    if (cells.length === 0) continue;
+
+    var rowData = [];
+    for (var j = 0; j < cells.length; j++) {
+      var cleanText = cells[j].textContent || cells[j].innerText || "";
+      cleanText = cleanText.replace(/style="[^"]*"/g, "");
+      cleanText = cleanText.replace(/border:\s*[^;]*;/g, "");
+      cleanText = cleanText.replace(/padding:\s*[^;]*;/g, "");
+      cleanText = cleanText.replace(/background-color:\s*[^;]*;/g, "");
+      cleanText = cleanText.replace(/font-weight:\s*[^;]*;/g, "");
+      cleanText = cleanText.replace(/text-align:\s*[^;]*;/g, "");
+      cleanText = cleanText.replace(/white-space:\s*[^;]*;/g, "");
+      rowData.push(cleanText.trim());
+    }
+    cellData.push(rowData);
+  }
+
+  return cellData;
+}
+
+function regenerateTableHTML(tableId) {
+  var tbl = APP.getTables()[tableId];
+  var cellData = getTableCellData(tbl);
+  if (!tbl || !cellData) return;
+  tbl.html = buildTableHTMLFromData(cellData, tbl.splitAfterRows || []);
+  APP.refreshPreview();
+}
+
+function applyTableSplit(tableId, rowNums) {
+  var tbl = APP.getTables()[tableId];
+  var cellData = getTableCellData(tbl);
+  if (!tbl || !cellData) {
+    showToast("Cannot split this table \u2014 original data not found.");
+    return;
+  }
+  tbl.splitAfterRows = rowNums;
+  tbl.html = buildTableHTMLFromData(cellData, rowNums);
+  APP.refreshPreview();
+  showToast(
+    rowNums.length > 0
+      ? "Table split after row(s) " + rowNums.join(", ") + "."
+      : "Table splits removed.",
+  );
+}
+
+function insertTablePlaceholder(tableId) {
+  var letterBody = document.getElementById("letterBody");
+  var cursorPos = letterBody.selectionStart || letterBody.value.length;
+  var placeholder = "{{" + tableId + "}}";
+  var before = letterBody.value.substring(0, cursorPos);
+  var after = letterBody.value.substring(cursorPos);
+  letterBody.value = before + placeholder + after;
+  letterBody.focus();
+  letterBody.setSelectionRange(
+    cursorPos + placeholder.length,
+    cursorPos + placeholder.length,
+  );
+  APP.refreshPreview();
+}
+
+function renderEditableTableGrid(tableId) {
+  var gridEl = document.getElementById("tableEditGrid_" + tableId);
+  if (!gridEl) return;
+  var tbl = APP.getTables()[tableId];
+  var cellData = getTableCellData(tbl);
+  if (!cellData) {
+    gridEl.innerHTML =
+      '<div style="color:#888; font-size:12px;">No editable data found for this table.</div>';
+    return;
+  }
+
+  var table = document.createElement("table");
+  table.style.cssText =
+    "border-collapse: collapse; width: max-content; font-size: 12px;";
+
+  for (var r = 0; r < cellData.length; r++) {
+    var tr = document.createElement("tr");
+    for (var c = 0; c < cellData[r].length; c++) {
+      var td = document.createElement("td");
+      td.style.cssText = "border: 1px solid #ddd; padding: 2px;";
+      var input = document.createElement("input");
+      input.type = "text";
+      input.value = cellData[r][c];
+      input.style.cssText =
+        "width: 110px; padding: 3px 4px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;" +
+        (r === 0 ? " font-weight: bold; background: #f7f7f7;" : "");
+      (function (row, col) {
+        input.addEventListener("input", function () {
+          APP.getTables()[tableId].cellData[row][col] = this.value;
+          regenerateTableHTML(tableId);
+        });
+      })(r, c);
+      td.appendChild(input);
+      tr.appendChild(td);
+    }
+
+    var delTd = document.createElement("td");
+    delTd.style.cssText = "border: none; padding: 2px;";
+    var delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.textContent = "🗑";
+    delBtn.title = "Delete row";
+    delBtn.style.cssText =
+      "cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;";
+    (function (row) {
+      delBtn.addEventListener("click", function () {
+        if (APP.getTables()[tableId].cellData.length <= 1) {
+          showToast("Table must have at least one row.");
+          return;
+        }
+        APP.getTables()[tableId].cellData.splice(row, 1);
+        regenerateTableHTML(tableId);
+        renderEditableTableGrid(tableId);
+      });
+    })(r);
+    delTd.appendChild(delBtn);
+    tr.appendChild(delTd);
+
+    table.appendChild(tr);
+  }
+
+  gridEl.innerHTML = "";
+  gridEl.appendChild(table);
+
+  var addRowBtn = document.createElement("button");
+  addRowBtn.type = "button";
+  addRowBtn.textContent = "+ Add Row";
+  addRowBtn.style.cssText =
+    "margin-top: 6px; cursor: pointer; background: #2e7d32; color: white; border: none; border-radius: 3px; padding: 4px 10px; font-size: 11px;";
+  addRowBtn.addEventListener("click", function () {
+    var numCols =
+      APP.getTables()[tableId].cellData[0]
+        ? APP.getTables()[tableId].cellData[0].length
+        : 1;
+    var newRow = [];
+    for (var k = 0; k < numCols; k++) newRow.push("");
+    APP.getTables()[tableId].cellData.push(newRow);
+    regenerateTableHTML(tableId);
+    renderEditableTableGrid(tableId);
+  });
+  gridEl.appendChild(addRowBtn);
+}
