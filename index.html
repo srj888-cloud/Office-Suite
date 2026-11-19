@@ -1113,7 +1113,7 @@
           >
             <p class="pf-note">
               Used only in the <strong>Letter</strong> app, for RTI replies.
-              Name of S.P.O., Designation and From Address replace the Office
+              Name of S.P.I.O., Designation and From Address replace the Office
               values (an empty field keeps the Office value); office name and
               address come from the Office Profile tab. The Appellate Authority is
               printed in every RTI reply. Choose <strong>RTI</strong> on the
@@ -1625,7 +1625,7 @@
             <li>
               <strong>RTI പ്രൊഫൈൽ</strong><br />
               വിവരാവകാശ മറുപടികള്‍ക്കായി Settings ലെ <em>RTI Profile</em> ടാബില്‍
-              Name of S.P.O., From Address, Designation, Appellate Authority
+              Name of S.P.I.O., From Address, Designation, Appellate Authority
               എന്നിവ മലയാളത്തിലും ഇംഗ്ലീഷിലും പൂരിപ്പിച്ച് Save ചെയ്യുക. ബാക്കി
               വിവരങ്ങള്‍ Office ടാബില്‍ നിന്ന് എടുക്കും. Appellate Authority
               എല്ലാ RTI മറുപടികളിലും സ്വയം ചേര്‍ക്കും; Signature ന് മുമ്പോ
@@ -1831,7 +1831,7 @@
       /* ── Office Profile form ──
          Office profile: localStorage "officeProfile", same keys the apps read
          (officeName / officeNameEn, …), so the apps need no changes.
-         RTI profile: localStorage "rtiProfile", only Name of S.P.O.,
+         RTI profile: localStorage "rtiProfile", only Name of S.P.I.O.,
          Designation and From Address. When RTI is chosen on the Letter card,
          launchApp() passes the Letter app the office profile with those
          fields replaced by the RTI values. Other apps always get the office
@@ -1883,7 +1883,7 @@
       var RTI_FIELDS = [
         {
           key: "approverName",
-          label: "Name of S.P.O.",
+          label: "Name of S.P.I.O.",
           hint: "The officer who signs RTI replies",
           phMl: "പേര്",
           phEn: "Name",
@@ -2265,7 +2265,7 @@
         var note = document.getElementById("draftAsNote");
         if (active === "rti") {
           note.textContent =
-            "Letters will use the RTI Name of S.P.O., Designation and From Address.";
+            "Letters will use the RTI Name of S.P.I.O., Designation and From Address.";
           note.className = "draft-as-note rti";
         } else {
           note.textContent = hasRti
@@ -2560,7 +2560,7 @@
       });
 
       /* The profile handed to an app: the office profile. For the Letter
-         app only, when RTI is chosen on its card, Name of S.P.O.,
+         app only, when RTI is chosen on its card, Name of S.P.I.O.,
          Designation and From Address come from the RTI profile. A field
          pair the RTI profile leaves empty keeps the office value. */
       var RTI_APPS = ["Letter Generator.html"];
